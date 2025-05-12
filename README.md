@@ -40,8 +40,8 @@ This MCP server provides a bridge between AI assistants (like Claude) and Cisco 
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/cisco-meraki-mcp-server.git
-   cd cisco-meraki-mcp-server
+   git clone https://github.com/tomique34/cisco-meraki-mcp-server-tvi.git
+   cd cisco-meraki-mcp-server-tvi
    ```
 
 2. Install uv (if not already installed):
@@ -84,8 +84,8 @@ This MCP server provides a bridge between AI assistants (like Claude) and Cisco 
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/cisco-meraki-mcp-server.git
-   cd cisco-meraki-mcp-server
+   git clone https://github.com/tomique34/cisco-meraki-mcp-server-tvi.git
+   cd cisco-meraki-mcp-server-tvi
    ```
 
 2. Install dependencies using uv:
