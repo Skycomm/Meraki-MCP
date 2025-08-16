@@ -84,3 +84,42 @@ class MerakiClient:
     def get_device_camera_video_link(self, serial: str, timestamp: Optional[str] = None) -> Dict[str, Any]:
         """Get video link for a camera."""
         return self.dashboard.camera.getDeviceCameraVideoLink(serial, timestamp=timestamp)
+    
+    # REAL Analytics API Methods
+    def get_organization_devices_uplinks_loss_and_latency(self, org_id: str, timespan: int = 86400):
+        """Get organization uplinks loss and latency - REAL packet loss data."""
+        return self.dashboard.organizations.getOrganizationDevicesUplinksLossAndLatency(org_id, timespan=timespan)
+    
+    def get_organization_appliance_uplink_statuses(self, org_id: str):
+        """Get appliance uplink statuses - REAL uplink status data."""
+        return self.dashboard.organizations.getOrganizationApplianceUplinkStatuses(org_id)
+    
+    def get_network_connection_stats(self, network_id: str, timespan: int = 86400):
+        """Get network connection statistics - REAL method."""
+        return self.dashboard.networks.getNetworkConnectionStats(network_id, timespan=timespan)
+    
+    def get_network_latency_stats(self, network_id: str, timespan: int = 86400):
+        """Get network latency statistics - REAL method."""
+        return self.dashboard.networks.getNetworkLatencyStats(network_id, timespan=timespan)
+    
+    # REAL Wireless API Methods
+    def get_network_wireless_passwords(self, network_id: str):
+        """Get wireless network passwords/PSK - REAL method."""
+        return self.dashboard.wireless.getNetworkWirelessSsids(network_id)
+    
+    def get_network_wireless_clients(self, network_id: str, timespan: int = 86400):
+        """Get wireless clients - REAL method."""
+        return self.dashboard.wireless.getNetworkWirelessClients(network_id, timespan=timespan)
+    
+    def get_network_wireless_usage(self, network_id: str, timespan: int = 86400):
+        """Get wireless usage history - REAL method."""
+        return self.dashboard.wireless.getNetworkWirelessUsageHistory(network_id, timespan=timespan)
+    
+    def update_network_wireless_ssid(self, network_id: str, number: int, name: str = None, enabled: bool = None):
+        """Update wireless SSID - REAL method."""
+        kwargs = {}
+        if name is not None:
+            kwargs['name'] = name
+        if enabled is not None:
+            kwargs['enabled'] = enabled
+        return self.dashboard.wireless.updateNetworkWirelessSsid(network_id, number, **kwargs)

@@ -71,6 +71,62 @@ def register_wireless_tool_handlers():
             return f"Failed to list wireless SSIDs for network {network_id}: {str(e)}"
     
     @app.tool(
+        name="get_network_wireless_passwords",
+        description="🔑 Get WiFi passwords/PSK for wireless networks"
+    )
+    def get_network_wireless_passwords(network_id: str):
+        """
+        Get WiFi passwords/PSK for wireless networks.
+        
+        Args:
+            network_id: ID of the network
+            
+        Returns:
+            Formatted list of SSIDs with passwords where available
+        """
+        try:
+            ssids = meraki_client.get_network_wireless_passwords(network_id)
+            
+            if not ssids:
+                return f"No wireless SSIDs found for network {network_id}."
+                
+            result = f"# 🔑 WiFi Passwords for Network ({network_id})\n\n"
+            
+            for ssid in ssids:
+                ssid_name = ssid.get('name', 'Unnamed')
+                ssid_number = ssid.get('number', 'Unknown')
+                enabled = ssid.get('enabled', False)
+                
+                result += f"## SSID {ssid_number}: {ssid_name}\n"
+                result += f"- **Status**: {'🟢 Enabled' if enabled else '🔴 Disabled'}\n"
+                
+                auth_mode = ssid.get('authMode', 'Unknown')
+                result += f"- **Security**: {auth_mode}\n"
+                
+                # Show password/PSK if available
+                if auth_mode in ['psk', 'wpa', 'wpa-eap', '8021x-radius']:
+                    psk = ssid.get('psk')
+                    if psk:
+                        result += f"- **🔑 Password/PSK**: `{psk}`\n"
+                    else:
+                        result += f"- **🔑 Password/PSK**: Not available via API\n"
+                elif auth_mode == 'open':
+                    result += f"- **🔑 Password/PSK**: Open network (no password required)\n"
+                else:
+                    result += f"- **🔑 Password/PSK**: Enterprise authentication\n"
+                
+                # Add RADIUS settings if available
+                if ssid.get('radiusServers'):
+                    result += f"- **RADIUS Servers**: {len(ssid['radiusServers'])} configured\n"
+                
+                result += "\n"
+                
+            return result
+            
+        except Exception as e:
+            return f"Error retrieving WiFi passwords for network {network_id}: {str(e)}"
+    
+    @app.tool(
         name="update_network_wireless_ssid",
         description="Update a wireless SSID for a Meraki network"
     )
