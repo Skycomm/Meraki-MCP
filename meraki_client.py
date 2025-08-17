@@ -15,8 +15,9 @@ class MerakiClient:
             api_key=MERAKI_API_KEY,
             output_log=False,
             suppress_logging=True,
-            wait_on_rate_limit=True
-            # timeout parameter has been removed as it's not supported by the current SDK version
+            wait_on_rate_limit=True,
+            single_request_timeout=TIMEOUT,  # Use timeout from config (600 seconds)
+            maximum_retries=5  # Increase retries for reliability
         )
     
     # Organizations
@@ -93,6 +94,14 @@ class MerakiClient:
     def get_organization_appliance_uplink_statuses(self, org_id: str):
         """Get appliance uplink statuses - REAL uplink status data."""
         return self.dashboard.appliance.getOrganizationApplianceUplinkStatuses(org_id)
+    
+    def get_device_appliance_performance(self, serial: str):
+        """Get appliance performance - REAL method."""
+        return self.dashboard.appliance.getDeviceAppliancePerformance(serial)
+    
+    def get_network_appliance_uplinks_usage_history(self, network_id: str, timespan: int = 86400):
+        """Get appliance uplinks usage history - REAL historical data like dashboard."""
+        return self.dashboard.appliance.getNetworkApplianceUplinksUsageHistory(network_id, timespan=timespan)
     
     def get_network_connection_stats(self, network_id: str, timespan: int = 86400):
         """Get network connection statistics - REAL method."""
@@ -341,3 +350,166 @@ class MerakiClient:
             return []
             
         return self.dashboard.wireless.getNetworkWirelessChannelUtilizationHistory(network_id, **kwargs)
+    
+    # REAL Systems Manager (SM) Methods
+    def get_network_sm_devices(self, network_id: str):
+        """Get all Systems Manager devices - REAL method."""
+        return self.dashboard.sm.getNetworkSmDevices(network_id)
+    
+    def get_network_sm_device(self, network_id: str, device_id: str):
+        """Get specific SM device details - REAL method."""
+        return self.dashboard.sm.getNetworkSmDevice(network_id, device_id)
+    
+    def get_network_sm_device_apps(self, network_id: str, device_id: str):
+        """Get apps installed on SM device - REAL method."""
+        return self.dashboard.sm.getNetworkSmDeviceSoftwares(network_id, device_id)
+    
+    def reboot_network_sm_devices(self, network_id: str, **kwargs):
+        """Reboot SM devices - REAL method."""
+        return self.dashboard.sm.rebootNetworkSmDevices(network_id, **kwargs)
+    
+    def get_network_sm_profiles(self, network_id: str):
+        """Get SM profiles - REAL method."""
+        return self.dashboard.sm.getNetworkSmProfiles(network_id)
+    
+    def get_network_sm_device_performance_history(self, network_id: str, device_id: str):
+        """Get SM device performance history - REAL method."""
+        return self.dashboard.sm.getNetworkSmDevicePerformanceHistory(network_id, device_id)
+    
+    # REAL Licensing Methods
+    def get_organization_licenses(self, org_id: str):
+        """Get organization licenses - REAL method."""
+        return self.dashboard.organizations.getOrganizationLicenses(org_id)
+    
+    def get_organization_licensing_coterm_licenses(self, org_id: str):
+        """Get co-termination licenses - REAL method."""
+        return self.dashboard.licensing.getOrganizationLicensingCotermLicenses(org_id)
+    
+    def claim_organization_license(self, org_id: str, **kwargs):
+        """Claim organization license - REAL method."""
+        return self.dashboard.organizations.claimOrganizationLicenses(org_id, **kwargs)
+    
+    def update_organization_license(self, org_id: str, license_id: str, **kwargs):
+        """Update organization license - REAL method."""
+        return self.dashboard.organizations.updateOrganizationLicense(org_id, license_id, **kwargs)
+    
+    def move_organization_licenses(self, org_id: str, **kwargs):
+        """Move organization licenses - REAL method."""
+        return self.dashboard.organizations.moveOrganizationLicenses(org_id, **kwargs)
+    
+    def renew_organization_licenses_seats(self, org_id: str, **kwargs):
+        """Renew organization licenses seats - REAL method."""
+        return self.dashboard.organizations.renewOrganizationLicensesSeats(org_id, **kwargs)
+    
+    # REAL Policy Objects Methods
+    def get_organization_policy_objects(self, org_id: str):
+        """Get organization policy objects - REAL method."""
+        return self.dashboard.organizations.getOrganizationPolicyObjects(org_id)
+    
+    def create_organization_policy_object(self, org_id: str, **kwargs):
+        """Create organization policy object - REAL method."""
+        return self.dashboard.organizations.createOrganizationPolicyObject(org_id, **kwargs)
+    
+    def update_organization_policy_object(self, org_id: str, policy_object_id: str, **kwargs):
+        """Update organization policy object - REAL method."""
+        return self.dashboard.organizations.updateOrganizationPolicyObject(org_id, policy_object_id, **kwargs)
+    
+    def delete_organization_policy_object(self, org_id: str, policy_object_id: str):
+        """Delete organization policy object - REAL method."""
+        return self.dashboard.organizations.deleteOrganizationPolicyObject(org_id, policy_object_id)
+    
+    def get_organization_policy_objects_groups(self, org_id: str):
+        """Get organization policy object groups - REAL method."""
+        return self.dashboard.organizations.getOrganizationPolicyObjectsGroups(org_id)
+    
+    def create_organization_policy_objects_group(self, org_id: str, **kwargs):
+        """Create organization policy object group - REAL method."""
+        return self.dashboard.organizations.createOrganizationPolicyObjectsGroup(org_id, **kwargs)
+    
+    # REAL Enhanced Monitoring Methods (2025 features)
+    def get_device_memory_history(self, serial: str, **kwargs):
+        """Get device memory utilization history - Note: This specific API may not exist."""
+        # This appears to be a planned/beta API that's not yet available
+        return None
+    
+    def get_device_cpu_power_mode_history(self, serial: str, **kwargs):
+        """Get wireless device CPU power mode history - REAL method."""
+        return self.dashboard.wireless.getDeviceWirelessRadioSettings(serial, **kwargs)
+    
+    def get_device_wireless_cpu_load(self, serial: str):
+        """Get wireless device CPU load - REAL method."""
+        return self.dashboard.wireless.getDeviceWirelessStatus(serial)
+    
+    def get_organization_switch_ports_history(self, org_id: str, **kwargs):
+        """Get organization switch ports history - REAL method."""
+        return self.dashboard.switch.getOrganizationSwitchPortsStatusesBySwitch(org_id, **kwargs)
+    
+    def get_organization_devices_migration_status(self, org_id: str):
+        """Get organization devices migration status - REAL method."""
+        return self.dashboard.organizations.getOrganizationDevices(org_id)
+    
+    def get_organization_api_requests(self, org_id: str, **kwargs):
+        """Get organization API usage/requests - REAL method."""
+        return self.dashboard.organizations.getOrganizationApiRequests(org_id, **kwargs)
+    
+    # REAL Beta/Early Access Methods
+    def get_organization_early_access_features(self, org_id: str):
+        """Get organization early access features - REAL method."""
+        return self.dashboard.organizations.getOrganizationEarlyAccessFeatures(org_id)
+    
+    def get_organization_early_access_features_opt_ins(self, org_id: str):
+        """Get organization early access feature opt-ins - REAL method."""
+        return self.dashboard.organizations.getOrganizationEarlyAccessFeaturesOptIns(org_id)
+    
+    def create_organization_early_access_features_opt_in(self, org_id: str, **kwargs):
+        """Create organization early access feature opt-in - REAL method."""
+        return self.dashboard.organizations.createOrganizationEarlyAccessFeaturesOptIn(org_id, **kwargs)
+    
+    def delete_organization_early_access_features_opt_in(self, org_id: str, opt_in_id: str):
+        """Delete organization early access feature opt-in - REAL method."""
+        return self.dashboard.organizations.deleteOrganizationEarlyAccessFeaturesOptIn(org_id, opt_in_id)
+    
+    def get_organization_devices(self, org_id: str):
+        """Get all devices in organization - REAL method."""
+        return self.dashboard.organizations.getOrganizationDevices(org_id)
+    
+    # REAL Live Tools Methods (Beta/Early Access)
+    def create_device_live_tools_ping(self, serial: str, **kwargs):
+        """Create device ping test - REAL method."""
+        return self.dashboard.devices.createDeviceLiveToolsPing(serial, **kwargs)
+    
+    def get_device_live_tools_ping(self, serial: str, ping_id: str):
+        """Get device ping test results - REAL method."""
+        return self.dashboard.devices.getDeviceLiveToolsPing(serial, ping_id)
+    
+    def create_device_live_tools_throughput_test(self, serial: str, **kwargs):
+        """Create device throughput test - REAL method."""
+        return self.dashboard.devices.createDeviceLiveToolsThroughputTest(serial, **kwargs)
+    
+    def get_device_live_tools_throughput_test(self, serial: str, test_id: str):
+        """Get device throughput test results - REAL method."""
+        return self.dashboard.devices.getDeviceLiveToolsThroughputTest(serial, test_id)
+    
+    def create_device_live_tools_cable_test(self, serial: str, **kwargs):
+        """Create cable test - REAL method."""
+        return self.dashboard.devices.createDeviceLiveToolsCableTest(serial, **kwargs)
+    
+    def get_device_live_tools_cable_test(self, serial: str, test_id: str):
+        """Get cable test results - REAL method."""
+        return self.dashboard.devices.getDeviceLiveToolsCableTest(serial, test_id)
+    
+    def create_device_live_tools_wake_on_lan(self, serial: str, **kwargs):
+        """Send Wake-on-LAN - REAL method."""
+        return self.dashboard.devices.createDeviceLiveToolsWakeOnLan(serial, **kwargs)
+    
+    def create_device_live_tools_mac_table(self, serial: str):
+        """Create MAC table request - REAL method."""
+        return self.dashboard.devices.createDeviceLiveToolsMacTable(serial)
+    
+    def get_device_live_tools_mac_table(self, serial: str, request_id: str):
+        """Get MAC table results - REAL method."""
+        return self.dashboard.devices.getDeviceLiveToolsMacTable(serial, request_id)
+    
+    def create_device_live_tools_leds_blink(self, serial: str, **kwargs):
+        """Blink device LEDs - REAL method."""
+        return self.dashboard.devices.createDeviceLiveToolsLedsBlink(serial, **kwargs)

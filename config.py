@@ -21,7 +21,7 @@ if not MERAKI_API_KEY:
 
 # API configuration
 API_BASE_URL = "https://api.meraki.com/api/v1"
-TIMEOUT = 30  # Request timeout in seconds
+TIMEOUT = 600  # Request timeout in seconds (10 minutes max for MCP)
 
 # MCP server configuration
 SERVER_NAME = "meraki-mcp-server"

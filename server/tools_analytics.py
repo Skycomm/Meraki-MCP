@@ -40,6 +40,10 @@ def register_analytics_tool_handlers():
             Formatted uplink loss and latency data
         """
         try:
+            # Ensure timespan doesn't exceed API limit
+            if timespan > 300:
+                timespan = 300
+                
             loss_latency = meraki_client.get_organization_devices_uplinks_loss_and_latency(org_id, timespan)
             
             if not loss_latency:
@@ -71,7 +75,11 @@ def register_analytics_tool_handlers():
                     for uplink_data in uplinks:
                         uplink_name = uplink_data.get('uplink', 'Unknown')
                         ip = uplink_data.get('ip', 'N/A')
-                        result += f"#### 🔗 {uplink_name.upper()}\n"
+                        # Handle None uplink_name
+                        if uplink_name:
+                            result += f"#### 🔗 {uplink_name.upper()}\n"
+                        else:
+                            result += f"#### 🔗 UNKNOWN UPLINK\n"
                         result += f"- **IP**: {ip}\n"
                         
                         # Get time series data
@@ -234,14 +242,34 @@ def register_analytics_tool_handlers():
             result = f"# 📊 Connection Statistics for Network {network_id}\n\n"
             result += f"**Time Period**: Last {timespan/3600:.1f} hours\n\n"
             
-            for entry in conn_stats:
-                result += f"## {entry.get('startTs', 'Unknown Time')}\n"
-                result += f"- **Successful Connections**: {entry.get('assoc', 'N/A')}\n"
-                result += f"- **Authentication Failures**: {entry.get('authFailures', 'N/A')}\n"
-                result += f"- **DHCP Failures**: {entry.get('dhcpFailures', 'N/A')}\n"
-                result += f"- **DNS Failures**: {entry.get('dnsFailures', 'N/A')}\n"
-                result += f"- **Success Rate**: {entry.get('successRate', 'N/A')}%\n"
-                result += "\n"
+            # Handle both dict and list responses
+            if isinstance(conn_stats, dict):
+                # Single summary object
+                result += f"## Summary Statistics\n"
+                result += f"- **Total Associations**: {conn_stats.get('assoc', 0)}\n"
+                result += f"- **Successful Authentications**: {conn_stats.get('auth', 0)}\n"
+                result += f"- **DHCP Success**: {conn_stats.get('dhcp', 0)}\n"
+                result += f"- **DNS Success**: {conn_stats.get('dns', 0)}\n"
+                result += f"- **Overall Success**: {conn_stats.get('success', 0)}\n"
+                
+                # Calculate success rate if possible
+                if conn_stats.get('assoc', 0) > 0:
+                    success_rate = (conn_stats.get('success', 0) / conn_stats.get('assoc', 0)) * 100
+                    result += f"- **Success Rate**: {success_rate:.1f}%\n"
+                    
+                    if success_rate < 95:
+                        result += f"\n⚠️ **WARNING**: Success rate below 95%!\n"
+                        
+            elif isinstance(conn_stats, list):
+                # Time series data
+                for entry in conn_stats:
+                    result += f"## {entry.get('startTs', 'Unknown Time')}\n"
+                    result += f"- **Successful Connections**: {entry.get('assoc', 'N/A')}\n"
+                    result += f"- **Authentication Failures**: {entry.get('authFailures', 'N/A')}\n"
+                    result += f"- **DHCP Failures**: {entry.get('dhcpFailures', 'N/A')}\n"
+                    result += f"- **DNS Failures**: {entry.get('dnsFailures', 'N/A')}\n"
+                    result += f"- **Success Rate**: {entry.get('successRate', 'N/A')}%\n"
+                    result += "\n"
                 
             return result
             
