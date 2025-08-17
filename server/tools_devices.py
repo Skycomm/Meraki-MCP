@@ -194,32 +194,63 @@ The device is now rebooting. Monitor its status to confirm it comes back online.
             Formatted status information
         """
         try:
-            status = meraki_client.get_device_status(serial)
+            # Get device details
+            device = meraki_client.get_device_status(serial)
             
-            if not status:
-                return f"No status information found for device {serial}."
+            if not device:
+                return f"No device found with serial {serial}."
                 
             # Format the output for readability
-            result = f"# Status for Device ({serial})\n\n"
+            result = f"# Device Status: {device.get('name') or serial}\n\n"
             
-            # Connection
-            result += "## Connection\n"
-            result += f"- Status: {status.get('status', 'Unknown')}\n"
-            result += f"- Last Reported: {status.get('lastReportedAt', 'Unknown')}\n"
+            # Basic Information
+            result += "## Device Information\n"
+            result += f"- **Model**: {device.get('model', 'Unknown')}\n"
+            result += f"- **Serial**: {device.get('serial', serial)}\n"
+            result += f"- **MAC Address**: {device.get('mac', 'Unknown')}\n"
+            result += f"- **Firmware**: {device.get('firmware', 'Unknown')}\n"
+            result += f"- **Network ID**: {device.get('networkId', 'Unknown')}\n"
             
-            # Performance
-            result += "\n## Performance\n"
-            result += f"- CPU: {status.get('cpu', 'Unknown')}%\n"
-            result += f"- Memory: {status.get('memory', 'Unknown')}%\n"
+            # Location
+            if device.get('address') or device.get('lat'):
+                result += "\n## Location\n"
+                if device.get('address'):
+                    result += f"- **Address**: {device['address']}\n"
+                if device.get('lat') and device.get('lng'):
+                    result += f"- **Coordinates**: {device['lat']}, {device['lng']}\n"
             
-            # WAN
-            wan = status.get('wan', {})
-            if wan:
-                result += "\n## WAN Interface\n"
-                result += f"- IP: {wan.get('ip', 'Unknown')}\n"
-                result += f"- Gateway: {wan.get('gateway', 'Unknown')}\n"
-                result += f"- DNS: {wan.get('dns', 'Unknown')}\n"
-                result += f"- Upload: {wan.get('uplink', {}).get('status', 'Unknown')}\n"
+            # WAN IPs (for MX/Z devices)
+            if device.get('wan1Ip') or device.get('wan2Ip'):
+                result += "\n## WAN Status\n"
+                if device.get('wan1Ip'):
+                    result += f"- **WAN 1**: {device['wan1Ip']}\n"
+                if device.get('wan2Ip'):
+                    result += f"- **WAN 2**: {device['wan2Ip']}\n"
+            
+            # LAN IP (for devices with management IP)
+            if device.get('lanIp'):
+                result += f"\n## Management\n"
+                result += f"- **LAN IP**: {device['lanIp']}\n"
+            
+            # Configuration
+            if device.get('configurationUpdatedAt'):
+                result += f"\n## Configuration\n"
+                result += f"- **Last Updated**: {device['configurationUpdatedAt']}\n"
+            
+            # Tags
+            if device.get('tags'):
+                result += f"\n## Tags\n"
+                result += f"- {device['tags']}\n"
+            
+            # Dashboard URL
+            if device.get('url'):
+                result += f"\n## Dashboard\n"
+                result += f"- **URL**: {device['url']}\n"
+            
+            # Notes
+            if device.get('notes'):
+                result += f"\n## Notes\n"
+                result += f"{device['notes']}\n"
             
             return result
             

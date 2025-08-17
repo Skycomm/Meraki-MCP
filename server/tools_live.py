@@ -52,13 +52,33 @@ def register_live_tool_handlers():
                 count=count
             )
             
-            response = f"# 🏓 Ping Test Started\n\n"
+            # Check if we got a valid response
+            if not result:
+                return "❌ Error: No response from API. The device may be offline or Live Tools may not be enabled."
+            
+            # Get the job ID - it might be 'id' or 'pingId'
+            job_id = result.get('pingId') or result.get('id')
+            
+            if not job_id:
+                return f"""❌ Error: Ping test creation failed.
+                
+API Response: {result}
+
+Possible causes:
+- Device is offline or unreachable
+- Live Tools not enabled for this organization
+- Invalid target address
+- Device doesn't support Live Tools"""
+            
+            response = f"# 🏓 Ping Test Started Successfully\n\n"
             response += f"**Device**: {serial}\n"
             response += f"**Target**: {target}\n"
             response += f"**Count**: {count}\n"
-            response += f"**Job ID**: {result.get('id', 'N/A')}\n\n"
+            response += f"**Job ID**: `{job_id}`\n"
+            response += f"**Status**: {result.get('status', 'Unknown')}\n\n"
             
             response += "⏳ Test in progress. Use `get_device_ping_test` with the job ID to check results.\n"
+            response += f"\nExample: `get_device_ping_test serial=\"{serial}\" ping_id=\"{job_id}\"`\n"
             
             return response
             
@@ -135,18 +155,53 @@ def register_live_tool_handlers():
                 targetSerial=target_serial
             )
             
-            response = f"# 🚀 Throughput Test Started\n\n"
+            # Check if we got a valid response
+            if not result:
+                return "❌ Error: No response from API. Live Tools may not be enabled."
+            
+            # Get the job ID - it might be 'id' or 'throughputTestId'
+            job_id = result.get('throughputTestId') or result.get('id')
+            
+            if not job_id:
+                return f"""❌ Error: Throughput test creation failed.
+                
+API Response: {result}
+
+Possible causes:
+- Devices must be on the same network
+- Both devices must support Live Tools
+- Devices must be compatible (e.g., switch to switch, MX to MX)
+- Live Tools not enabled for this organization
+- One or both devices may be offline"""
+            
+            response = f"# 🚀 Throughput Test Started Successfully\n\n"
             response += f"**Source Device**: {serial}\n"
             response += f"**Target Device**: {target_serial}\n"
-            response += f"**Job ID**: {result.get('id', 'N/A')}\n\n"
+            response += f"**Job ID**: `{job_id}`\n"
+            response += f"**Status**: {result.get('status', 'Unknown')}\n\n"
             
-            response += "⏳ Test in progress. This may take a few minutes.\n"
-            response += "Use `get_device_throughput_test` with the job ID to check results.\n"
+            response += "⏳ Test in progress. This may take 1-3 minutes.\n"
+            response += f"\nExample: `get_device_throughput_test serial=\"{serial}\" test_id=\"{job_id}\"`\n"
             
             return response
             
         except Exception as e:
-            return f"Error creating throughput test: {str(e)}"
+            error_msg = str(e)
+            
+            # Provide helpful error messages for common issues
+            if "400" in error_msg:
+                return f"""❌ Error: {error_msg}
+
+Common causes:
+- Devices must be on the same network
+- Device types must be compatible
+- Both devices must support Live Tools throughput testing"""
+            elif "404" in error_msg:
+                return f"""❌ Error: {error_msg}
+
+Device not found or Live Tools not available."""
+            else:
+                return f"❌ Error creating throughput test: {error_msg}"
     
     @app.tool(
         name="get_device_throughput_test",

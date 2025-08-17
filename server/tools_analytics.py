@@ -40,9 +40,16 @@ def register_analytics_tool_handlers():
             Formatted uplink loss and latency data
         """
         try:
-            # Ensure timespan doesn't exceed API limit
+            # Validate and ensure timespan doesn't exceed API limit
+            if not isinstance(timespan, (int, float)):
+                return "❌ Error: timespan must be a number (seconds)"
+            
+            if timespan <= 0:
+                return "❌ Error: timespan must be positive"
+                
             if timespan > 300:
                 timespan = 300
+                # Note: API limit is 300 seconds (5 minutes)
                 
             loss_latency = meraki_client.get_organization_devices_uplinks_loss_and_latency(org_id, timespan)
             
@@ -75,7 +82,11 @@ def register_analytics_tool_handlers():
                     uplink_name = uplink.get('uplink', 'Unknown')
                     ip = uplink.get('ip', 'N/A')
                     
-                    result += f"### 🔗 {uplink_name.upper()} ({ip})\n"
+                    # Check if uplink_name exists before calling upper()
+                    if uplink_name:
+                        result += f"### 🔗 {uplink_name.upper()} ({ip})\n"
+                    else:
+                        result += f"### 🔗 Unknown Uplink ({ip})\n"
                     
                     # Get time series data
                     time_series = uplink.get('timeSeries', [])
@@ -219,7 +230,26 @@ def register_analytics_tool_handlers():
             return result
             
         except Exception as e:
-            return f"Error retrieving appliance uplink statuses: {str(e)}"
+            error_msg = str(e)
+            
+            if "404" in error_msg:
+                return f"""❌ Error: Organization not found or API not accessible.
+                
+Organization ID: {org_id}
+
+Possible causes:
+- Invalid organization ID
+- No API access to this organization
+- Organization doesn't have appliances
+- API endpoint not available for your license"""
+            elif "403" in error_msg:
+                return f"""❌ Error: Permission denied.
+
+Possible causes:
+- API key doesn't have permission for this organization
+- Feature not available for your license tier"""
+            else:
+                return f"❌ Error retrieving appliance uplink statuses: {error_msg}"
 
     @app.tool(
         name="get_network_connection_stats",
@@ -255,13 +285,30 @@ def register_analytics_tool_handlers():
                 result += f"- **DNS Success**: {conn_stats.get('dns', 0)}\n"
                 result += f"- **Overall Success**: {conn_stats.get('success', 0)}\n"
                 
-                # Calculate success rate if possible
-                if conn_stats.get('assoc', 0) > 0:
-                    success_rate = (conn_stats.get('success', 0) / conn_stats.get('assoc', 0)) * 100
-                    result += f"- **Success Rate**: {success_rate:.1f}%\n"
-                    
-                    if success_rate < 95:
-                        result += f"\n⚠️ **WARNING**: Success rate below 95%!\n"
+                # Check if all values are zero
+                total_activity = sum([
+                    conn_stats.get('assoc', 0),
+                    conn_stats.get('auth', 0),
+                    conn_stats.get('dhcp', 0),
+                    conn_stats.get('dns', 0),
+                    conn_stats.get('success', 0)
+                ])
+                
+                if total_activity == 0:
+                    result += f"\n📌 **Note**: No wireless client activity in the specified time period.\n"
+                    result += "This could mean:\n"
+                    result += "- No wireless clients connected\n"
+                    result += "- All clients are wired\n"
+                    result += "- The network is idle\n"
+                    result += "- Try a longer timespan for more data\n"
+                else:
+                    # Calculate success rate if possible
+                    if conn_stats.get('assoc', 0) > 0:
+                        success_rate = (conn_stats.get('success', 0) / conn_stats.get('assoc', 0)) * 100
+                        result += f"- **Success Rate**: {success_rate:.1f}%\n"
+                        
+                        if success_rate < 95:
+                            result += f"\n⚠️ **WARNING**: Success rate below 95%!\n"
                         
             elif isinstance(conn_stats, list):
                 # Time series data
