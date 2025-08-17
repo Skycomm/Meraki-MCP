@@ -213,11 +213,13 @@ def register_sm_tool_handlers():
     
     @app.tool(
         name="reboot_network_sm_devices",
-        description="🔄 Reboot Systems Manager devices"
+        description="⚠️ REBOOT Systems Manager devices - REQUIRES CONFIRMATION"
     )
     def reboot_network_sm_devices(network_id: str, device_ids: str):
         """
         Reboot one or more Systems Manager devices.
+        
+        ⚠️ WARNING: This will force devices to restart!
         
         Args:
             network_id: Network ID
@@ -228,18 +230,82 @@ def register_sm_tool_handlers():
         """
         try:
             ids_list = [id.strip() for id in device_ids.split(',')]
+            device_count = len(ids_list)
+            
+            # Return a warning message instead of directly rebooting
+            warning_msg = f"""# ⚠️ SM DEVICE REBOOT CONFIRMATION REQUIRED
+
+**Network**: {network_id}
+**Devices to reboot**: {device_count}
+**Device IDs**: {', '.join(ids_list)}
+
+**WARNING**: Rebooting these devices will:
+- 🔴 Force devices to restart immediately
+- 🔴 Interrupt any active work on the devices
+- 🔴 May cause data loss if files are open
+- 🔴 Take several minutes to complete
+
+**To proceed with reboot**:
+If you really want to reboot these devices, please confirm by saying:
+"Yes, reboot SM devices in network {network_id}"
+
+**Alternative solutions to try first**:
+1. Check device performance metrics
+2. Review installed apps and profiles
+3. Check for pending OS updates
+4. Try remote assistance first
+
+⚠️ This action will affect {device_count} device(s)!"""
+            
+            return warning_msg
+            
+        except Exception as e:
+            return f"Error preparing reboot command: {str(e)}"
+    
+    @app.tool(
+        name="confirm_reboot_network_sm_devices",
+        description="🔴 CONFIRM and execute SM device reboot (use with extreme caution)"
+    )
+    def confirm_reboot_network_sm_devices(network_id: str, device_ids: str, confirmation: str):
+        """
+        Actually reboot SM devices after explicit confirmation.
+        
+        Args:
+            network_id: Network ID
+            device_ids: Comma-separated device IDs to reboot
+            confirmation: Must be exactly "YES-REBOOT-SM-[network_id]" to proceed
+            
+        Returns:
+            Reboot command status
+        """
+        expected_confirmation = f"YES-REBOOT-SM-{network_id}"
+        
+        if confirmation != expected_confirmation:
+            return f"""❌ Confirmation failed!
+
+You provided: "{confirmation}"
+Expected: "{expected_confirmation}"
+
+No devices were rebooted. Please use exact confirmation text if you really want to proceed."""
+        
+        try:
+            ids_list = [id.strip() for id in device_ids.split(',')]
             
             result = meraki_client.reboot_network_sm_devices(network_id, ids=ids_list)
             
-            response = f"# 🔄 Reboot Command Sent\n\n"
-            response += f"**Devices**: {len(ids_list)}\n"
-            response += f"**Command ID**: {result.get('id', 'N/A')}\n\n"
-            response += "⚠️ Devices will reboot shortly. This may take a few minutes.\n"
+            response = f"""✅ SM REBOOT COMMAND SENT
+
+**Network**: {network_id}
+**Devices rebooted**: {len(ids_list)}
+**Device IDs**: {', '.join(ids_list)}
+**Command ID**: {result.get('id', 'N/A')}
+
+The reboot command has been sent to all devices. They will restart shortly."""
             
             return response
             
         except Exception as e:
-            return f"Error sending reboot command: {str(e)}"
+            return f"❌ Error sending reboot command: {str(e)}"
     
     @app.tool(
         name="get_network_sm_profiles",
