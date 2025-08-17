@@ -59,12 +59,12 @@ class MerakiClient:
     # VLANs
     def get_network_vlans(self, network_id: str) -> List[Dict[str, Any]]:
         """Get VLANs in a network."""
-        return self.dashboard.networks.getNetworkVlans(network_id)
+        return self.dashboard.appliance.getNetworkApplianceVlans(network_id)
     
     # Alerts
-    def get_organization_alerts(self, org_id: str) -> Dict[str, Any]:
-        """Get alert settings for an organization."""
-        return self.dashboard.organizations.getOrganizationAlertsSettings(org_id)
+    def get_organization_alerts(self, org_id: str) -> List[Dict[str, Any]]:
+        """Get alert profiles for an organization."""
+        return self.dashboard.organizations.getOrganizationAlertsProfiles(org_id)
     
     # Firmware
     def get_organization_firmware_upgrades(self, org_id: str) -> List[Dict[str, Any]]:
@@ -86,21 +86,23 @@ class MerakiClient:
         return self.dashboard.camera.getDeviceCameraVideoLink(serial, timestamp=timestamp)
     
     # REAL Analytics API Methods
-    def get_organization_devices_uplinks_loss_and_latency(self, org_id: str, timespan: int = 86400):
+    def get_organization_devices_uplinks_loss_and_latency(self, org_id: str, timespan: int = 300):
         """Get organization uplinks loss and latency - REAL packet loss data."""
         return self.dashboard.organizations.getOrganizationDevicesUplinksLossAndLatency(org_id, timespan=timespan)
     
     def get_organization_appliance_uplink_statuses(self, org_id: str):
         """Get appliance uplink statuses - REAL uplink status data."""
-        return self.dashboard.organizations.getOrganizationApplianceUplinkStatuses(org_id)
+        return self.dashboard.appliance.getOrganizationApplianceUplinkStatuses(org_id)
     
     def get_network_connection_stats(self, network_id: str, timespan: int = 86400):
         """Get network connection statistics - REAL method."""
-        return self.dashboard.networks.getNetworkConnectionStats(network_id, timespan=timespan)
+        # This returns wireless connection stats
+        return self.dashboard.wireless.getNetworkWirelessConnectionStats(network_id, timespan=timespan)
     
     def get_network_latency_stats(self, network_id: str, timespan: int = 86400):
         """Get network latency statistics - REAL method."""
-        return self.dashboard.networks.getNetworkLatencyStats(network_id, timespan=timespan)
+        # This returns wireless latency stats
+        return self.dashboard.wireless.getNetworkWirelessLatencyStats(network_id, timespan=timespan)
     
     # REAL Wireless API Methods
     def get_network_wireless_passwords(self, network_id: str):
@@ -109,10 +111,13 @@ class MerakiClient:
     
     def get_network_wireless_clients(self, network_id: str, timespan: int = 86400):
         """Get wireless clients - REAL method."""
-        return self.dashboard.wireless.getNetworkWirelessClients(network_id, timespan=timespan)
+        # Use the general network clients endpoint and filter for wireless
+        return self.dashboard.networks.getNetworkClients(network_id, timespan=timespan)
     
     def get_network_wireless_usage(self, network_id: str, timespan: int = 86400):
         """Get wireless usage history - REAL method."""
+        # This API requires apTags, bands, ssids, or clients parameter
+        # Using empty apTags will fail - need actual AP tags or other params
         return self.dashboard.wireless.getNetworkWirelessUsageHistory(network_id, timespan=timespan)
     
     def update_network_wireless_ssid(self, network_id: str, number: int, name: str = None, enabled: bool = None):
@@ -194,7 +199,7 @@ class MerakiClient:
         device = self.dashboard.devices.getDevice(serial)
         network_id = device.get('networkId')
         if network_id:
-            return self.dashboard.networks.getNetworkVlans(network_id)
+            return self.dashboard.appliance.getNetworkApplianceVlans(network_id)
         return []
     
     def create_device_switch_vlan(self, serial: str, vlan_id: str, name: str, subnet: str = None) -> Dict[str, Any]:
@@ -217,20 +222,20 @@ class MerakiClient:
     
     # REAL Alert & Webhook Methods
     def get_organization_webhooks(self, org_id: str):
-        """Get organization webhooks - REAL method."""
-        return self.dashboard.organizations.getOrganizationWebhooks(org_id)
+        """Get organization webhook alert types - REAL method."""
+        return self.dashboard.organizations.getOrganizationWebhooksAlertTypes(org_id)
     
     def create_organization_webhook(self, org_id: str, **kwargs):
-        """Create organization webhook - REAL method."""
-        return self.dashboard.organizations.createOrganizationWebhook(org_id, **kwargs)
+        """Create organization webhook HTTP server - REAL method."""
+        return self.dashboard.organizations.createOrganizationWebhooksHttpServer(org_id, **kwargs)
     
     def get_network_webhook_http_servers(self, network_id: str):
-        """Get network webhook HTTP servers - REAL method."""
-        return self.dashboard.networks.getNetworkWebhookHttpServers(network_id)
+        """Get network webhook payload templates - REAL method."""
+        return self.dashboard.networks.getNetworkWebhooksPayloadTemplates(network_id)
     
     def create_network_webhook_http_server(self, network_id: str, **kwargs):
-        """Create network webhook HTTP server - REAL method."""
-        return self.dashboard.networks.createNetworkWebhookHttpServer(network_id, **kwargs)
+        """Create network webhook payload template - REAL method."""
+        return self.dashboard.networks.createNetworkWebhooksPayloadTemplate(network_id, **kwargs)
     
     def get_network_alerts_settings(self, network_id: str):
         """Get network alerts settings - REAL method."""
@@ -300,8 +305,11 @@ class MerakiClient:
     
     def get_network_wireless_bluetooth_clients(self, network_id: str):
         """Get Bluetooth clients - REAL method."""
-        return self.dashboard.wireless.getNetworkWirelessBluetoothClients(network_id)
+        # This returns Bluetooth settings, not clients
+        return self.dashboard.wireless.getNetworkWirelessBluetoothSettings(network_id)
     
     def get_network_wireless_channel_utilization(self, network_id: str, timespan: int = 3600):
         """Get channel utilization history - REAL method."""
+        # This API requires apTags, bands, ssids, or clients parameter
+        # Using empty apTags will fail - need actual AP tags or other params
         return self.dashboard.wireless.getNetworkWirelessChannelUtilizationHistory(network_id, timespan=timespan)

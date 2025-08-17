@@ -253,7 +253,10 @@ def register_alert_tool_handlers():
         name="update_network_alerts_settings",
         description="⚠️ Update alert settings for a network"
     )
-    def update_network_alerts_settings(network_id: str, emails: str = None, all_admins: bool = None):
+    def update_network_alerts_settings(network_id: str, emails: str = None, all_admins: bool = None, 
+                                     enable_device_down: bool = None, enable_gateway_down: bool = None,
+                                     enable_dhcp_failure: bool = None, enable_high_usage: bool = None,
+                                     enable_ip_conflict: bool = None):
         """
         Update alert settings for a network.
         
@@ -261,6 +264,11 @@ def register_alert_tool_handlers():
             network_id: Network ID
             emails: Comma-separated email addresses for alerts
             all_admins: Send alerts to all admins
+            enable_device_down: Enable device down alerts
+            enable_gateway_down: Enable gateway connectivity alerts
+            enable_dhcp_failure: Enable DHCP failure alerts
+            enable_high_usage: Enable high wireless usage alerts
+            enable_ip_conflict: Enable IP conflict detection alerts
             
         Returns:
             Updated alert settings
@@ -268,6 +276,7 @@ def register_alert_tool_handlers():
         try:
             update_data = {}
             
+            # Set default destinations
             if emails is not None or all_admins is not None:
                 default_dest = {}
                 
@@ -278,10 +287,114 @@ def register_alert_tool_handlers():
                     default_dest['allAdmins'] = all_admins
                     
                 update_data['defaultDestinations'] = default_dest
+            
+            # Configure specific alerts
+            alerts = []
+            
+            # Device down alerts
+            if enable_device_down is not None:
+                alerts.append({
+                    'type': 'gatewayDown',
+                    'enabled': enable_device_down,
+                    'alertDestinations': {
+                        'allAdmins': True
+                    }
+                })
+                alerts.append({
+                    'type': 'repeaterDown',
+                    'enabled': enable_device_down,
+                    'alertDestinations': {
+                        'allAdmins': True
+                    }
+                })
+                alerts.append({
+                    'type': 'switchDown',
+                    'enabled': enable_device_down,
+                    'alertDestinations': {
+                        'allAdmins': True
+                    }
+                })
+                alerts.append({
+                    'type': 'wirelessDown',
+                    'enabled': enable_device_down,
+                    'alertDestinations': {
+                        'allAdmins': True
+                    }
+                })
+            
+            # Gateway connectivity issues
+            if enable_gateway_down is not None:
+                alerts.append({
+                    'type': 'vpnConnectivityChange',
+                    'enabled': enable_gateway_down,
+                    'alertDestinations': {
+                        'allAdmins': True
+                    }
+                })
+                alerts.append({
+                    'type': 'uplinkStatusChange',
+                    'enabled': enable_gateway_down,
+                    'alertDestinations': {
+                        'allAdmins': True
+                    }
+                })
+            
+            # DHCP failures
+            if enable_dhcp_failure is not None:
+                alerts.append({
+                    'type': 'dhcpNoLeases',
+                    'enabled': enable_dhcp_failure,
+                    'alertDestinations': {
+                        'allAdmins': True
+                    }
+                })
+                alerts.append({
+                    'type': 'dhcpServerProblem',
+                    'enabled': enable_dhcp_failure,
+                    'alertDestinations': {
+                        'allAdmins': True
+                    }
+                })
+            
+            # High wireless usage
+            if enable_high_usage is not None:
+                alerts.append({
+                    'type': 'usageAlert',
+                    'enabled': enable_high_usage,
+                    'alertDestinations': {
+                        'allAdmins': True
+                    }
+                })
+            
+            # IP conflict detection
+            if enable_ip_conflict is not None:
+                alerts.append({
+                    'type': 'ipConflict',
+                    'enabled': enable_ip_conflict,
+                    'alertDestinations': {
+                        'allAdmins': True
+                    }
+                })
+            
+            if alerts:
+                update_data['alerts'] = alerts
                 
             settings = meraki_client.update_network_alerts_settings(network_id, **update_data)
             
-            return "✅ Alert settings updated successfully!"
+            result = "✅ Alert settings updated successfully!\n\n"
+            result += "Enabled alerts:\n"
+            if enable_device_down:
+                result += "- Device down alerts (gateway, repeater, switch, wireless)\n"
+            if enable_gateway_down:
+                result += "- Gateway connectivity issues (VPN, uplink status)\n"
+            if enable_dhcp_failure:
+                result += "- DHCP failures (no leases, server problems)\n"
+            if enable_high_usage:
+                result += "- High wireless usage\n"
+            if enable_ip_conflict:
+                result += "- IP conflict detection\n"
+            
+            return result
             
         except Exception as e:
             return f"Error updating alert settings: {str(e)}"

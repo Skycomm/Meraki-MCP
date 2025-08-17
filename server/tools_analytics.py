@@ -28,13 +28,13 @@ def register_analytics_tool_handlers():
         name="get_organization_uplinks_loss_and_latency", 
         description="🚨 Get REAL packet loss and latency for all organization uplinks"
     )
-    def get_organization_uplinks_loss_and_latency(org_id: str, timespan: int = 86400):
+    def get_organization_uplinks_loss_and_latency(org_id: str, timespan: int = 300):
         """
         Get REAL packet loss and latency data for all uplinks in organization.
         
         Args:
             org_id: Organization ID
-            timespan: Timespan in seconds (default: 86400 = 24 hours)
+            timespan: Timespan in seconds (default: 300 = 5 minutes, max: 300)
             
         Returns:
             Formatted uplink loss and latency data
