@@ -148,19 +148,21 @@ def register_network_tool_handlers():
         name="create_network",
         description="Create a new Meraki network in an organization"
     )
-    def create_network(organization_id: str, name: str, type: str = "wireless"):
+    def create_network(organization_id: str, name: str, product_types: str = "wireless"):
         """
         Create a new Meraki network in an organization.
         
         Args:
             organization_id: ID of the organization to create the network in
             name: Name for the new network
-            type: Type of network (default: wireless)
+            product_types: Comma-separated product types (appliance,switch,wireless,camera,sensor)
             
         Returns:
             New network details
         """
-        return meraki_client.create_network(organization_id, name, type)
+        # Convert comma-separated string to list
+        types_list = [t.strip() for t in product_types.split(',')]
+        return meraki_client.create_network(organization_id, name, types_list)
     
     @app.tool(
         name="delete_network",

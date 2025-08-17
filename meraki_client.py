@@ -123,3 +123,94 @@ class MerakiClient:
         if enabled is not None:
             kwargs['enabled'] = enabled
         return self.dashboard.wireless.updateNetworkWirelessSsid(network_id, number, **kwargs)
+    
+    # REAL Network Management Methods
+    def update_network(self, network_id: str, name: str = None, tags: List[str] = None) -> Dict[str, Any]:
+        """Update a network - REAL method."""
+        kwargs = {}
+        if name is not None:
+            kwargs['name'] = name
+        if tags is not None:
+            kwargs['tags'] = tags
+        return self.dashboard.networks.updateNetwork(network_id, **kwargs)
+    
+    def create_network(self, organization_id: str, name: str, productTypes: List[str]) -> Dict[str, Any]:
+        """Create a new network - REAL method."""
+        return self.dashboard.organizations.createOrganizationNetwork(
+            organization_id, 
+            name=name, 
+            productTypes=productTypes
+        )
+    
+    def delete_network(self, network_id: str) -> None:
+        """Delete a network - REAL method."""
+        return self.dashboard.networks.deleteNetwork(network_id)
+    
+    # REAL Device Management Methods  
+    def update_device(self, serial: str, name: str = None, tags: List[str] = None, address: str = None) -> Dict[str, Any]:
+        """Update a device - REAL method."""
+        kwargs = {}
+        if name is not None:
+            kwargs['name'] = name
+        if tags is not None:
+            kwargs['tags'] = tags
+        if address is not None:
+            kwargs['address'] = address
+        return self.dashboard.devices.updateDevice(serial, **kwargs)
+    
+    def get_device_clients(self, serial: str, timespan: int = 86400) -> List[Dict[str, Any]]:
+        """Get clients for a specific device - REAL method."""
+        return self.dashboard.devices.getDeviceClients(serial, timespan=timespan)
+    
+    def get_device_status(self, serial: str) -> Dict[str, Any]:
+        """Get device status - REAL method."""
+        return self.dashboard.devices.getDevice(serial)
+    
+    def reboot_device(self, serial: str) -> Dict[str, Any]:
+        """Reboot a device - REAL method."""
+        return self.dashboard.devices.rebootDevice(serial)
+    
+    # REAL Organization Management Methods
+    def create_organization(self, name: str) -> Dict[str, Any]:
+        """Create a new organization - REAL method."""
+        return self.dashboard.organizations.createOrganization(name=name)
+    
+    def update_organization(self, organization_id: str, name: str) -> Dict[str, Any]:
+        """Update an organization - REAL method."""
+        return self.dashboard.organizations.updateOrganization(organization_id, name=name)
+    
+    def delete_organization(self, organization_id: str) -> None:
+        """Delete an organization - REAL method."""
+        return self.dashboard.organizations.deleteOrganization(organization_id)
+    
+    # REAL Switch Management Methods
+    def get_device_switch_port_statuses(self, serial: str) -> List[Dict[str, Any]]:
+        """Get switch port statuses - REAL method."""
+        return self.dashboard.switch.getDeviceSwitchPortsStatuses(serial)
+    
+    def get_device_switch_vlans(self, serial: str) -> List[Dict[str, Any]]:
+        """Get switch VLANs - This is not a per-device API, getting network VLANs instead."""
+        # Note: Meraki API doesn't have per-device VLAN endpoint, VLANs are network-wide
+        device = self.dashboard.devices.getDevice(serial)
+        network_id = device.get('networkId')
+        if network_id:
+            return self.dashboard.networks.getNetworkVlans(network_id)
+        return []
+    
+    def create_device_switch_vlan(self, serial: str, vlan_id: str, name: str, subnet: str = None) -> Dict[str, Any]:
+        """Create a VLAN - VLANs are network-wide in Meraki, not per-device."""
+        # Get the network ID from the device
+        device = self.dashboard.devices.getDevice(serial)
+        network_id = device.get('networkId')
+        if not network_id:
+            raise ValueError(f"Device {serial} is not in a network")
+        
+        kwargs = {
+            'id': vlan_id,
+            'name': name
+        }
+        if subnet:
+            kwargs['subnet'] = subnet
+            kwargs['applianceIp'] = subnet.split('/')[0]  # Use first IP as gateway
+        
+        return self.dashboard.networks.createNetworkVlan(network_id, **kwargs)
