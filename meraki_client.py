@@ -214,3 +214,94 @@ class MerakiClient:
             kwargs['applianceIp'] = subnet.split('/')[0]  # Use first IP as gateway
         
         return self.dashboard.networks.createNetworkVlan(network_id, **kwargs)
+    
+    # REAL Alert & Webhook Methods
+    def get_organization_webhooks(self, org_id: str):
+        """Get organization webhooks - REAL method."""
+        return self.dashboard.organizations.getOrganizationWebhooks(org_id)
+    
+    def create_organization_webhook(self, org_id: str, **kwargs):
+        """Create organization webhook - REAL method."""
+        return self.dashboard.organizations.createOrganizationWebhook(org_id, **kwargs)
+    
+    def get_network_webhook_http_servers(self, network_id: str):
+        """Get network webhook HTTP servers - REAL method."""
+        return self.dashboard.networks.getNetworkWebhookHttpServers(network_id)
+    
+    def create_network_webhook_http_server(self, network_id: str, **kwargs):
+        """Create network webhook HTTP server - REAL method."""
+        return self.dashboard.networks.createNetworkWebhookHttpServer(network_id, **kwargs)
+    
+    def get_network_alerts_settings(self, network_id: str):
+        """Get network alerts settings - REAL method."""
+        return self.dashboard.networks.getNetworkAlertsSettings(network_id)
+    
+    def update_network_alerts_settings(self, network_id: str, **kwargs):
+        """Update network alerts settings - REAL method."""
+        return self.dashboard.networks.updateNetworkAlertsSettings(network_id, **kwargs)
+    
+    # REAL Security Appliance Methods
+    def get_network_appliance_firewall_l3_rules(self, network_id: str):
+        """Get L3 firewall rules - REAL method."""
+        return self.dashboard.appliance.getNetworkApplianceFirewallL3FirewallRules(network_id)
+    
+    def update_network_appliance_firewall_l3_rules(self, network_id: str, **kwargs):
+        """Update L3 firewall rules - REAL method."""
+        return self.dashboard.appliance.updateNetworkApplianceFirewallL3FirewallRules(network_id, **kwargs)
+    
+    def get_network_appliance_content_filtering(self, network_id: str):
+        """Get content filtering settings - REAL method."""
+        return self.dashboard.appliance.getNetworkApplianceContentFiltering(network_id)
+    
+    def get_network_appliance_vpn_site_to_site(self, network_id: str):
+        """Get site-to-site VPN settings - REAL method."""
+        return self.dashboard.appliance.getNetworkApplianceVpnSiteToSiteVpn(network_id)
+    
+    def get_network_appliance_security_malware(self, network_id: str):
+        """Get malware protection settings - REAL method."""
+        return self.dashboard.appliance.getNetworkApplianceSecurityMalware(network_id)
+    
+    def get_network_appliance_security_intrusion(self, network_id: str):
+        """Get intrusion detection settings - REAL method."""
+        return self.dashboard.appliance.getNetworkApplianceSecurityIntrusion(network_id)
+    
+    # REAL Camera Methods (additional to existing)
+    def get_device_camera_snapshot(self, serial: str, timestamp: str = None):
+        """Generate camera snapshot - REAL method."""
+        kwargs = {}
+        if timestamp:
+            kwargs['timestamp'] = timestamp
+        return self.dashboard.camera.generateDeviceCameraSnapshot(serial, **kwargs)
+    
+    def get_device_camera_video_settings(self, serial: str):
+        """Get camera video settings - REAL method."""
+        return self.dashboard.camera.getDeviceCameraVideoSettings(serial)
+    
+    def update_device_camera_video_settings(self, serial: str, **kwargs):
+        """Update camera video settings - REAL method."""
+        return self.dashboard.camera.updateDeviceCameraVideoSettings(serial, **kwargs)
+    
+    def get_device_camera_analytics_zones(self, serial: str):
+        """Get camera analytics zones - REAL method."""
+        return self.dashboard.camera.getDeviceCameraAnalyticsZones(serial)
+    
+    def get_device_camera_sense(self, serial: str):
+        """Get camera motion detection settings - REAL method."""
+        return self.dashboard.camera.getDeviceCameraSense(serial)
+    
+    # More REAL Wireless Methods
+    def get_network_wireless_rf_profiles(self, network_id: str):
+        """Get wireless RF profiles - REAL method."""
+        return self.dashboard.wireless.getNetworkWirelessRfProfiles(network_id)
+    
+    def get_network_wireless_air_marshal(self, network_id: str, timespan: int = 3600):
+        """Get Air Marshal (rogue AP) data - REAL method."""
+        return self.dashboard.wireless.getNetworkWirelessAirMarshal(network_id, timespan=timespan)
+    
+    def get_network_wireless_bluetooth_clients(self, network_id: str):
+        """Get Bluetooth clients - REAL method."""
+        return self.dashboard.wireless.getNetworkWirelessBluetoothClients(network_id)
+    
+    def get_network_wireless_channel_utilization(self, network_id: str, timespan: int = 3600):
+        """Get channel utilization history - REAL method."""
+        return self.dashboard.wireless.getNetworkWirelessChannelUtilizationHistory(network_id, timespan=timespan)

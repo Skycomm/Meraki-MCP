@@ -225,3 +225,195 @@ def register_wireless_tool_handlers():
             
         except Exception as e:
             return f"Failed to get wireless usage statistics for network {network_id}: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_rf_profiles",
+        description="📡 Get RF profiles for a wireless network"
+    )
+    def get_network_wireless_rf_profiles(network_id: str):
+        """
+        Get RF profiles for a wireless network.
+        
+        Args:
+            network_id: ID of the network
+            
+        Returns:
+            RF profiles configuration
+        """
+        try:
+            profiles = meraki_client.get_network_wireless_rf_profiles(network_id)
+            
+            if not profiles:
+                return f"No RF profiles found for network {network_id}."
+                
+            result = f"# 📡 RF Profiles for Network {network_id}\n\n"
+            
+            for profile in profiles:
+                result += f"## {profile.get('name', 'Unnamed Profile')}\n"
+                result += f"- **ID**: {profile.get('id')}\n"
+                result += f"- **Band Selection**: {profile.get('bandSelectionType', 'N/A')}\n"
+                result += f"- **Min Bitrate (2.4GHz)**: {profile.get('minBitrate', 'N/A')}\n"
+                result += f"- **Min Bitrate (5GHz)**: {profile.get('minBitrate5', 'N/A')}\n"
+                
+                # Client balancing
+                client_balancing = profile.get('clientBalancingEnabled')
+                if client_balancing is not None:
+                    result += f"- **Client Balancing**: {'✅ Enabled' if client_balancing else '❌ Disabled'}\n"
+                    
+                result += "\n"
+                
+            return result
+            
+        except Exception as e:
+            return f"Error retrieving RF profiles: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_air_marshal",
+        description="🛡️ Get Air Marshal security scan results"
+    )
+    def get_network_wireless_air_marshal(network_id: str, timespan: int = 3600):
+        """
+        Get Air Marshal (rogue AP detection) results for a network.
+        
+        Args:
+            network_id: ID of the network
+            timespan: Timespan in seconds (default: 1 hour)
+            
+        Returns:
+            Air Marshal security scan results
+        """
+        try:
+            air_marshal = meraki_client.get_network_wireless_air_marshal(network_id, timespan)
+            
+            if not air_marshal:
+                return f"No Air Marshal data found for network {network_id}."
+                
+            result = f"# 🛡️ Air Marshal Security Scan - Network {network_id}\n"
+            result += f"**Time Period**: Last {timespan/3600:.1f} hours\n\n"
+            
+            # Group by classification
+            rogues = []
+            neighbors = []
+            others = []
+            
+            for ap in air_marshal:
+                classification = ap.get('wiredMacClassification', 'Unknown')
+                if 'Rogue' in classification:
+                    rogues.append(ap)
+                elif 'Neighbor' in classification:
+                    neighbors.append(ap)
+                else:
+                    others.append(ap)
+                    
+            if rogues:
+                result += f"## 🚨 ROGUE APs DETECTED ({len(rogues)})\n"
+                for ap in rogues[:5]:  # Show first 5
+                    result += f"- **SSID**: {ap.get('ssid', 'Hidden')}\n"
+                    result += f"  - MAC: {ap.get('bssid')}\n"
+                    result += f"  - Channel: {ap.get('channel')}\n"
+                    result += f"  - RSSI: {ap.get('rssi')} dBm\n"
+                    result += f"  - First Seen: {ap.get('firstSeen')}\n"
+                    result += f"  - Last Seen: {ap.get('lastSeen')}\n\n"
+                    
+            if neighbors:
+                result += f"## 📶 Neighbor APs ({len(neighbors)})\n"
+                result += f"Detected {len(neighbors)} neighboring networks.\n\n"
+                
+            return result
+            
+        except Exception as e:
+            return f"Error retrieving Air Marshal data: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_bluetooth_clients", 
+        description="📱 Get Bluetooth clients in a wireless network"
+    )
+    def get_network_wireless_bluetooth_clients(network_id: str):
+        """
+        Get Bluetooth clients detected in a wireless network.
+        
+        Args:
+            network_id: ID of the network
+            
+        Returns:
+            List of Bluetooth clients
+        """
+        try:
+            bt_clients = meraki_client.get_network_wireless_bluetooth_clients(network_id)
+            
+            if not bt_clients:
+                return f"No Bluetooth clients found in network {network_id}."
+                
+            result = f"# 📱 Bluetooth Clients in Network {network_id}\n\n"
+            result += f"**Total Clients**: {len(bt_clients)}\n\n"
+            
+            for client in bt_clients[:20]:  # Show first 20
+                result += f"- **{client.get('name', 'Unknown Device')}**\n"
+                result += f"  - MAC: {client.get('mac')}\n"
+                result += f"  - Manufacturer: {client.get('manufacturer', 'Unknown')}\n"
+                result += f"  - RSSI: {client.get('rssi')} dBm\n"
+                result += f"  - Last Seen: {client.get('lastSeen')}\n"
+                
+                tags = client.get('tags', [])
+                if tags:
+                    result += f"  - Tags: {', '.join(tags)}\n"
+                    
+                result += "\n"
+                
+            if len(bt_clients) > 20:
+                result += f"... and {len(bt_clients) - 20} more clients\n"
+                
+            return result
+            
+        except Exception as e:
+            return f"Error retrieving Bluetooth clients: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_channel_utilization",
+        description="📊 Get channel utilization history"
+    )
+    def get_network_wireless_channel_utilization(network_id: str, timespan: int = 3600):
+        """
+        Get wireless channel utilization history for a network.
+        
+        Args:
+            network_id: ID of the network
+            timespan: Timespan in seconds (default: 1 hour)
+            
+        Returns:
+            Channel utilization statistics
+        """
+        try:
+            utilization = meraki_client.get_network_wireless_channel_utilization(network_id, timespan)
+            
+            if not utilization:
+                return f"No channel utilization data found for network {network_id}."
+                
+            result = f"# 📊 Channel Utilization - Network {network_id}\n"
+            result += f"**Time Period**: Last {timespan/3600:.1f} hours\n\n"
+            
+            for entry in utilization:
+                timestamp = entry.get('startTs', 'Unknown')
+                result += f"## {timestamp}\n"
+                
+                # WiFi utilization
+                wifi = entry.get('wifi', {})
+                if wifi:
+                    result += f"- **WiFi Utilization**: {wifi.get('utilization', 0)}%\n"
+                    
+                # Non-WiFi utilization  
+                non_wifi = entry.get('nonWifi', {})
+                if non_wifi:
+                    result += f"- **Non-WiFi Interference**: {non_wifi.get('utilization', 0)}%\n"
+                    
+                # Total utilization
+                total = entry.get('total', {})
+                if total:
+                    result += f"- **Total Utilization**: {total.get('utilization', 0)}%\n"
+                    
+                result += "\n"
+                
+            return result
+            
+        except Exception as e:
+            return f"Error retrieving channel utilization: {str(e)}"
