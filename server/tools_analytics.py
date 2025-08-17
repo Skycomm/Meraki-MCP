@@ -48,51 +48,82 @@ def register_analytics_tool_handlers():
             result = f"# 🚨 UPLINK LOSS & LATENCY REPORT - Organization {org_id}\n\n"
             result += f"**Time Period**: Last {timespan/3600:.1f} hours\n\n"
             
-            # Group by network for better organization
+            # Group by network and device
             networks = {}
             for entry in loss_latency:
                 network_id = entry.get('networkId', 'Unknown')
-                network_name = entry.get('networkName', network_id)
-                if network_name not in networks:
-                    networks[network_name] = []
-                networks[network_name].append(entry)
-            
-            for network_name, entries in networks.items():
-                result += f"## 🌐 Network: {network_name}\n"
+                if network_id not in networks:
+                    networks[network_id] = {'devices': {}}
                 
-                for entry in entries:
-                    serial = entry.get('serial', 'Unknown')
+                serial = entry.get('serial', 'Unknown')
+                if serial not in networks[network_id]['devices']:
+                    networks[network_id]['devices'][serial] = []
+                
+                networks[network_id]['devices'][serial].append(entry)
+            
+            # Format the output
+            for network_id, network_data in networks.items():
+                result += f"## 🌐 Network: {network_id}\n"
+                
+                for serial, uplinks in network_data['devices'].items():
                     result += f"### 📱 Device: {serial}\n"
                     
-                    # Uplink information
-                    uplinks = entry.get('uplinks', [])
-                    for uplink in uplinks:
-                        interface = uplink.get('interface', 'Unknown')
-                        result += f"#### 🔗 {interface}\n"
-                        result += f"- **IP**: {uplink.get('ip', 'N/A')}\n"
+                    for uplink_data in uplinks:
+                        uplink_name = uplink_data.get('uplink', 'Unknown')
+                        ip = uplink_data.get('ip', 'N/A')
+                        result += f"#### 🔗 {uplink_name.upper()}\n"
+                        result += f"- **IP**: {ip}\n"
                         
-                        # CRITICAL: Packet Loss Data
-                        loss_percent = uplink.get('lossPercent', 'N/A')
-                        if loss_percent != 'N/A' and loss_percent > 0:
-                            result += f"- **🚨 PACKET LOSS**: {loss_percent}% ❌\n"
+                        # Get time series data
+                        time_series = uplink_data.get('timeSeries', [])
+                        
+                        if time_series:
+                            # Get the most recent data point
+                            latest = time_series[-1]
+                            timestamp = latest.get('ts', 'Unknown')
+                            loss_percent = latest.get('lossPercent', None)
+                            latency_ms = latest.get('latencyMs', None)
+                            
+                            # Calculate averages for the period
+                            total_loss = sum(ts.get('lossPercent', 0) for ts in time_series)
+                            total_latency = sum(ts.get('latencyMs', 0) for ts in time_series)
+                            avg_loss = total_loss / len(time_series) if time_series else 0
+                            avg_latency = total_latency / len(time_series) if time_series else 0
+                            
+                            # Display current values
+                            result += f"- **Last Update**: {timestamp}\n"
+                            
+                            # Packet Loss
+                            if loss_percent is not None:
+                                if loss_percent > 5:
+                                    result += f"- **🚨 PACKET LOSS**: {loss_percent:.1f}% ❌ CRITICAL\n"
+                                elif loss_percent > 1:
+                                    result += f"- **⚠️ Packet Loss**: {loss_percent:.1f}% ⚠️ WARNING\n"
+                                else:
+                                    result += f"- **Packet Loss**: {loss_percent:.1f}% ✅\n"
+                            
+                            # Latency
+                            if latency_ms is not None:
+                                if latency_ms > 150:
+                                    result += f"- **🐌 LATENCY**: {latency_ms:.1f}ms ❌ HIGH\n"
+                                elif latency_ms > 50:
+                                    result += f"- **Latency**: {latency_ms:.1f}ms ⚠️\n"
+                                else:
+                                    result += f"- **Latency**: {latency_ms:.1f}ms ✅\n"
+                            
+                            # Show averages
+                            result += f"\n**Period Averages**:\n"
+                            result += f"- Average Loss: {avg_loss:.1f}%\n"
+                            result += f"- Average Latency: {avg_latency:.1f}ms\n"
+                            result += f"- Data Points: {len(time_series)}\n"
+                            
+                            # Show trend if multiple data points
+                            if len(time_series) > 1:
+                                first_loss = time_series[0].get('lossPercent', 0)
+                                trend = "📈 Increasing" if loss_percent > first_loss else "📉 Decreasing" if loss_percent < first_loss else "➡️ Stable"
+                                result += f"- Loss Trend: {trend}\n"
                         else:
-                            result += f"- **Packet Loss**: {loss_percent}% ✅\n"
-                        
-                        # Latency Data  
-                        latency = uplink.get('latencyMs', 'N/A')
-                        if latency != 'N/A':
-                            if latency > 100:
-                                result += f"- **🐌 LATENCY**: {latency}ms ⚠️\n"
-                            elif latency > 50:
-                                result += f"- **Latency**: {latency}ms ⚠️\n"
-                            else:
-                                result += f"- **Latency**: {latency}ms ✅\n"
-                        else:
-                            result += f"- **Latency**: {latency}ms\n"
-                        
-                        # Jitter
-                        if uplink.get('jitter'):
-                            result += f"- **Jitter**: {uplink['jitter']}ms\n"
+                            result += "- **Status**: No data available\n"
                             
                         result += "\n"
                 
