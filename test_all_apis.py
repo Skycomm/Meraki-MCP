@@ -90,6 +90,7 @@ network_id = None
 device_serial = None
 switch_serial = None
 camera_serial = None
+wireless_client_mac = None
 
 # ============ ORGANIZATION TESTS (8 tools) ============
 print("\n\n📁 TESTING ORGANIZATION TOOLS (8)")
@@ -172,21 +173,35 @@ if network_id:
         devices = client.get_network_devices(network_id)
         if devices:
             device_serial = devices[0]['serial']
-            # Find switch and camera if available
+            # Find switch, camera, and AP if available
+            ap_serial = None
             for device in devices:
                 if 'MS' in device.get('model', ''):
                     switch_serial = device['serial']
                 elif 'MV' in device.get('model', ''):
                     camera_serial = device['serial']
+                elif 'MR' in device.get('model', ''):
+                    ap_serial = device['serial']
             print(f"  📌 Device Serial: {device_serial}")
             if switch_serial:
                 print(f"  📌 Switch Serial: {switch_serial}")
             if camera_serial:
                 print(f"  📌 Camera Serial: {camera_serial}")
+            if ap_serial:
+                print(f"  📌 AP Serial: {ap_serial}")
     
-    test_api_method("get_network_clients",
-                   lambda: client.get_network_clients(network_id, timespan=3600),
-                   list)
+    # Get clients and find a wireless one
+    clients = []
+    if test_api_method("get_network_clients",
+                      lambda: client.get_network_clients(network_id, timespan=3600),
+                      list):
+        clients = client.get_network_clients(network_id, timespan=3600)
+        # Find a wireless client
+        for c in clients:
+            if c.get('ssid'):  # Has SSID = wireless client
+                wireless_client_mac = c.get('mac')
+                print(f"  📌 Wireless Client MAC: {wireless_client_mac}")
+                break
     
     test_api_method("get_network_vlans",
                    lambda: client.get_network_vlans(network_id),
@@ -239,9 +254,16 @@ if network_id:
                    lambda: client.get_network_wireless_clients(network_id, timespan=3600),
                    list)
     
-    test_api_method("get_network_wireless_usage",
-                   lambda: client.get_network_wireless_usage(network_id, timespan=3600),
-                   (dict, list))
+    # Test with client MAC if available, otherwise will return empty
+    if wireless_client_mac:
+        test_api_method("get_network_wireless_usage",
+                       lambda: client.get_network_wireless_usage(network_id, timespan=3600, client_mac=wireless_client_mac),
+                       list)
+    else:
+        # This will return empty list as API requires device/client
+        test_api_method("get_network_wireless_usage",
+                       lambda: client.get_network_wireless_usage(network_id, timespan=3600),
+                       list)
     
     test_api_method("get_network_wireless_rf_profiles",
                    lambda: client.get_network_wireless_rf_profiles(network_id),
@@ -255,9 +277,16 @@ if network_id:
                    lambda: client.get_network_wireless_bluetooth_clients(network_id),
                    dict)
     
-    test_api_method("get_network_wireless_channel_utilization",
-                   lambda: client.get_network_wireless_channel_utilization(network_id, timespan=3600),
-                   list)
+    # Test with client MAC if available, otherwise will return empty
+    if wireless_client_mac:
+        test_api_method("get_network_wireless_channel_utilization",
+                       lambda: client.get_network_wireless_channel_utilization(network_id, timespan=3600, client_mac=wireless_client_mac),
+                       list)
+    else:
+        # This will return empty list as API requires device/client
+        test_api_method("get_network_wireless_channel_utilization",
+                       lambda: client.get_network_wireless_channel_utilization(network_id, timespan=3600),
+                       list)
     
     print("\n⏭️  Skipping update_network_wireless_ssid (would modify production)")
 

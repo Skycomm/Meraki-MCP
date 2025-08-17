@@ -114,11 +114,25 @@ class MerakiClient:
         # Use the general network clients endpoint and filter for wireless
         return self.dashboard.networks.getNetworkClients(network_id, timespan=timespan)
     
-    def get_network_wireless_usage(self, network_id: str, timespan: int = 86400):
+    def get_network_wireless_usage(self, network_id: str, timespan: int = 86400, device_serial: str = None, ssid_number: int = None, client_mac: str = None):
         """Get wireless usage history - REAL method."""
-        # This API requires apTags, bands, ssids, or clients parameter
-        # Using empty apTags will fail - need actual AP tags or other params
-        return self.dashboard.wireless.getNetworkWirelessUsageHistory(network_id, timespan=timespan)
+        # This API requires deviceSerial or clientId parameter
+        kwargs = {'timespan': timespan}
+        
+        if device_serial:
+            kwargs['deviceSerial'] = device_serial
+        elif client_mac:
+            kwargs['clientId'] = client_mac
+        elif ssid_number is not None:
+            # SSID alone won't work - need device or client
+            kwargs['ssid'] = ssid_number
+            # Return empty result since API requires device/client
+            return []
+        else:
+            # API requires device or client - can't get aggregate data
+            return []
+            
+        return self.dashboard.wireless.getNetworkWirelessUsageHistory(network_id, **kwargs)
     
     def update_network_wireless_ssid(self, network_id: str, number: int, name: str = None, enabled: bool = None):
         """Update wireless SSID - REAL method."""
@@ -308,8 +322,22 @@ class MerakiClient:
         # This returns Bluetooth settings, not clients
         return self.dashboard.wireless.getNetworkWirelessBluetoothSettings(network_id)
     
-    def get_network_wireless_channel_utilization(self, network_id: str, timespan: int = 3600):
+    def get_network_wireless_channel_utilization(self, network_id: str, timespan: int = 3600, device_serial: str = None, ssid_number: int = None, client_mac: str = None):
         """Get channel utilization history - REAL method."""
-        # This API requires apTags, bands, ssids, or clients parameter
-        # Using empty apTags will fail - need actual AP tags or other params
-        return self.dashboard.wireless.getNetworkWirelessChannelUtilizationHistory(network_id, timespan=timespan)
+        # This API requires deviceSerial or clientId parameter
+        kwargs = {'timespan': timespan}
+        
+        if device_serial:
+            kwargs['deviceSerial'] = device_serial
+        elif client_mac:
+            kwargs['clientId'] = client_mac
+        elif ssid_number is not None:
+            # SSID alone won't work - need device or client
+            kwargs['ssid'] = ssid_number
+            # Return empty result since API requires device/client
+            return []
+        else:
+            # API requires device or client - can't get aggregate data
+            return []
+            
+        return self.dashboard.wireless.getNetworkWirelessChannelUtilizationHistory(network_id, **kwargs)

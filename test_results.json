@@ -1,16 +1,11 @@
 {
-  "timestamp": "2025-08-17T19:06:15.248670",
+  "timestamp": "2025-08-17T19:14:58.450668",
   "results": {
-    "passed": 33,
-    "failed": 2,
-    "errors": [
-      "get_network_wireless_usage: wireless, getNetworkWirelessUsageHistory - 400 Bad Request, {'errors': ['Must specify a device or network client']}",
-      "get_network_wireless_channel_utilization: wireless, getNetworkWirelessChannelUtilizationHistory - 400 Bad Request, {'errors': ['Must specify a device or network client']}"
-    ],
+    "passed": 35,
+    "failed": 0,
+    "errors": [],
     "warnings": [
       "Skipped update_device and reboot_device to avoid production changes",
-      "get_network_wireless_usage: Bad request (400) - check parameters",
-      "get_network_wireless_channel_utilization: Bad request (400) - check parameters",
       "No camera device found for testing camera-specific APIs"
     ]
   },

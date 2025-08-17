@@ -191,18 +191,24 @@ def register_wireless_tool_handlers():
         name="get_network_wireless_usage",
         description="Get wireless usage statistics for a Meraki network"
     )
-    def get_network_wireless_usage(network_id: str):
+    def get_network_wireless_usage(network_id: str, ssid_number: int = None, device_serial: str = None):
         """
         Get wireless usage statistics for a Meraki network.
         
         Args:
             network_id: ID of the network
+            ssid_number: Optional SSID number to filter (0-14)
+            device_serial: Optional device serial to filter by specific AP
             
         Returns:
             Formatted wireless usage statistics
         """
         try:
-            usage = meraki_client.get_network_wireless_usage(network_id)
+            usage = meraki_client.get_network_wireless_usage(
+                network_id, 
+                ssid_number=ssid_number,
+                device_serial=device_serial
+            )
             
             if not usage:
                 return f"No wireless usage statistics found for network {network_id}."
@@ -372,19 +378,26 @@ def register_wireless_tool_handlers():
         name="get_network_wireless_channel_utilization",
         description="📊 Get channel utilization history"
     )
-    def get_network_wireless_channel_utilization(network_id: str, timespan: int = 3600):
+    def get_network_wireless_channel_utilization(network_id: str, timespan: int = 3600, ssid_number: int = None, device_serial: str = None):
         """
         Get wireless channel utilization history for a network.
         
         Args:
             network_id: ID of the network
             timespan: Timespan in seconds (default: 1 hour)
+            ssid_number: Optional SSID number to filter (0-14)
+            device_serial: Optional device serial to filter by specific AP
             
         Returns:
             Channel utilization statistics
         """
         try:
-            utilization = meraki_client.get_network_wireless_channel_utilization(network_id, timespan)
+            utilization = meraki_client.get_network_wireless_channel_utilization(
+                network_id, 
+                timespan,
+                ssid_number=ssid_number,
+                device_serial=device_serial
+            )
             
             if not utilization:
                 return f"No channel utilization data found for network {network_id}."
