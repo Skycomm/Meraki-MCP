@@ -2,6 +2,17 @@
 
 An MCP (Model Context Protocol) server that integrates with Cisco Meraki's API, allowing AI assistants to interact with and manage Meraki network infrastructure.
 
+## Branch Structure
+
+This repository has two main implementations:
+
+- **`stdio` branch**: Original stdio-based MCP server for Claude Desktop (local use)
+- **`sse` branch**: HTTP/SSE-based server for network access (n8n, remote clients)
+
+Choose the appropriate branch based on your use case:
+- Use `stdio` for Claude Desktop integration
+- Use `sse` for n8n MCP Client Tool or remote access
+
 ## Author Information
 - **Author:** Tomas Vince
 - **Version:** 1.0.0
