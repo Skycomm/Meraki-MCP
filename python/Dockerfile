@@ -13,9 +13,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY src/ ./src/
+COPY src/hybrid_server.py ./
 
 # Set Python path
-ENV PYTHONPATH=/app/src
+ENV PYTHONPATH=/app/src:/app
 
 # Run as non-root user
 RUN useradd -m -u 1000 mcp && chown -R mcp:mcp /app

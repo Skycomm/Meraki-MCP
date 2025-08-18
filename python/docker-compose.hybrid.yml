@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  meraki-mcp:
+    build: .
+    ports:
+      - "8000:8000"  # Accessible on your network
+    environment:
+      # REQUIRED: Add your Meraki API key here
+      - MERAKI_API_KEY=${MERAKI_API_KEY}
+      
+      # OPTIONAL: Add privileged users (comma-separated)
+      - PRIVILEGED_USERS=${PRIVILEGED_USERS:-admin@example.com}
+      
+      # Server configuration
+      - HOST=0.0.0.0
+      - PORT=8000
+      
+      # Optional settings
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - CACHE_TTL=${CACHE_TTL:-300}
+      - RATE_LIMIT_REQUESTS=${RATE_LIMIT_REQUESTS:-100}
+      - RATE_LIMIT_WINDOW=${RATE_LIMIT_WINDOW:-60}
+    
+    # Run the hybrid server
+    command: python -m hybrid_server
+    
+    # Keep it running
+    restart: unless-stopped
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
