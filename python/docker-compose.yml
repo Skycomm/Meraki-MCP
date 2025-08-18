@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  meraki-mcp:
+    build: .
+    environment:
+      - MERAKI_API_KEY=${MERAKI_API_KEY}
+      - PRIVILEGED_USERS=${PRIVILEGED_USERS}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - CACHE_TTL=${CACHE_TTL:-300}
+      - RATE_LIMIT_REQUESTS=${RATE_LIMIT_REQUESTS:-100}
+      - RATE_LIMIT_WINDOW=${RATE_LIMIT_WINDOW:-60}
+    volumes:
+      - ./src:/app/src:ro
+    restart: unless-stopped
+    
+  # Optional: Redis for distributed caching and rate limiting
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+
+volumes:
+  redis-data:
