@@ -1,0 +1,19 @@
+{
+  "name": "remote-meraki-mcp",
+  "version": "1.0.0",
+  "description": "Remote MCP server for Cisco Meraki with GitHub authentication",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "latest"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241011.0",
+    "typescript": "^5.0.0",
+    "wrangler": "^3.0.0"
+  }
+}

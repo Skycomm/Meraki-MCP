@@ -1,0 +1,16 @@
+name = "remote-meraki-mcp"
+main = "src/index.ts"
+compatibility_date = "2024-11-16"
+
+# Environment variables
+[vars]
+GITHUB_CLIENT_ID = "your-github-oauth-app-client-id"
+GITHUB_CLIENT_SECRET = "your-github-oauth-app-client-secret"
+MERAKI_API_KEY = "your-meraki-api-key"
+# Add your staff GitHub usernames here
+PRIVILEGED_USERS = "daviduser,staffuser1,staffuser2"
+
+# KV namespace for storing auth tokens
+[[kv_namespaces]]
+binding = "KV"
+id = "your-kv-namespace-id"
