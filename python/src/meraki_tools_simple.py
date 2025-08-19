@@ -7,6 +7,9 @@ def set_meraki_client(client):
     """Set the global meraki_client"""
     global meraki_client
     meraki_client = client
+    # Also set it in the DHCP tools module
+    import dhcp_tools_impl
+    dhcp_tools_impl.meraki_client = client
 
 # Create placeholder functions for all 97 tools
 # These will call the appropriate Meraki API endpoints
@@ -164,7 +167,39 @@ ALL_TOOLS = {
     "get_network_wireless_air_marshal": lambda network_id, **kwargs: f"Tool get_network_wireless_air_marshal not fully implemented yet",
     "get_network_wireless_bluetooth_clients": lambda network_id, **kwargs: f"Tool get_network_wireless_bluetooth_clients not fully implemented yet",
     "get_network_wireless_channel_utilization": lambda network_id, **kwargs: f"Tool get_network_wireless_channel_utilization not fully implemented yet",
+    
+    # DHCP Tools (11) - Import from implementation module
 }
+
+# Import DHCP implementations
+from dhcp_tools_impl import (
+    get_vlan_dhcp_settings,
+    update_vlan_dhcp_server,
+    configure_dhcp_relay,
+    disable_vlan_dhcp,
+    add_dhcp_fixed_assignment,
+    remove_dhcp_fixed_assignment,
+    add_dhcp_reserved_range,
+    configure_dhcp_boot_options,
+    add_custom_dhcp_option,
+    enable_mandatory_dhcp,
+    get_appliance_dhcp_subnets
+)
+
+# Add DHCP tools to ALL_TOOLS
+ALL_TOOLS.update({
+    "get_vlan_dhcp_settings": get_vlan_dhcp_settings,
+    "update_vlan_dhcp_server": update_vlan_dhcp_server,
+    "configure_dhcp_relay": configure_dhcp_relay,
+    "disable_vlan_dhcp": disable_vlan_dhcp,
+    "add_dhcp_fixed_assignment": add_dhcp_fixed_assignment,
+    "remove_dhcp_fixed_assignment": remove_dhcp_fixed_assignment,
+    "add_dhcp_reserved_range": add_dhcp_reserved_range,
+    "configure_dhcp_boot_options": configure_dhcp_boot_options,
+    "add_custom_dhcp_option": add_custom_dhcp_option,
+    "enable_mandatory_dhcp": enable_mandatory_dhcp,
+    "get_appliance_dhcp_subnets": get_appliance_dhcp_subnets,
+})
 
 # Convert all lambdas to async functions
 import asyncio
