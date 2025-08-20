@@ -271,12 +271,12 @@ def get_uplink_bandwidth_summary(
                                 max_received = max(data['received'])
                                 
                                 output.append(f"     📤 Upload:")
-                                output.append(f"        Average: {avg_sent/1000000:.2f} Mbps")
-                                output.append(f"        Peak: {max_sent/1000000:.2f} Mbps")
+                                output.append(f"        Average: {(avg_sent * 8)/1000000:.2f} Mbps")
+                                output.append(f"        Peak: {(max_sent * 8)/1000000:.2f} Mbps")
                                 
                                 output.append(f"     📥 Download:")
-                                output.append(f"        Average: {avg_received/1000000:.2f} Mbps")
-                                output.append(f"        Peak: {max_received/1000000:.2f} Mbps")
+                                output.append(f"        Average: {(avg_received * 8)/1000000:.2f} Mbps")
+                                output.append(f"        Peak: {(max_received * 8)/1000000:.2f} Mbps")
                                 
                                 # Show recent trend
                                 if len(data['sent']) >= 3:

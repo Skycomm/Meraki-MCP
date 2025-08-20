@@ -44,7 +44,7 @@ def get_uplink_status(network_id: str) -> str:
         with safe_api_call("get uplink status"):
             # Get uplink settings
             uplinks = meraki.dashboard.appliance.getNetworkApplianceUplinksSettings(
-                networkId=network_id
+                network_id
             )
             
             result = f"""🌐 WAN Uplink Status
@@ -53,14 +53,14 @@ def get_uplink_status(network_id: str) -> str:
 """
             
             # Get device to check uplink status
-            devices = meraki.dashboard.networks.getNetworkDevices(networkId=network_id)
+            devices = meraki.dashboard.networks.getNetworkDevices(network_id)
             mx_device = next((d for d in devices if d['model'].startswith('MX')), None)
             
             if mx_device:
                 # Get uplink statuses
                 try:
                     statuses = meraki.dashboard.appliance.getDeviceApplianceUplinksSettings(
-                        serial=mx_device['serial']
+                        mx_device['serial']
                     )
                     
                     # WAN 1
@@ -153,7 +153,7 @@ def get_uplink_bandwidth_history(
         with safe_api_call("get bandwidth history"):
             # Get loss and latency history
             history = meraki.dashboard.appliance.getNetworkApplianceLossAndLatencyHistory(
-                networkId=network_id,
+                network_id,
                 timespan=timespan,
                 resolution=resolution,
                 uplink='wan1'
@@ -168,7 +168,7 @@ Resolution: {resolution // 60} minutes
 """
             
             # Try to get actual bandwidth data
-            devices = meraki.dashboard.networks.getNetworkDevices(networkId=network_id)
+            devices = meraki.dashboard.networks.getNetworkDevices(network_id)
             mx_device = next((d for d in devices if d['model'].startswith('MX')), None)
             
             if mx_device:
@@ -245,6 +245,76 @@ Resolution: {resolution // 60} minutes
             
     except Exception as e:
         return format_error("get bandwidth history", e)
+
+
+def get_realtime_bandwidth_usage(network_id: str) -> str:
+    """
+    📊 Get real-time bandwidth usage for all uplinks.
+    
+    Shows current bandwidth utilization in real-time.
+    
+    Args:
+        network_id: Network ID
+        
+    Returns:
+        Real-time bandwidth usage
+    """
+    try:
+        with safe_api_call("get real-time bandwidth"):
+            # Get the last 2 minutes of data with 1-minute resolution
+            usage = meraki.dashboard.appliance.getNetworkApplianceUplinksUsageHistory(
+                network_id,
+                timespan=120,  # 2 minutes
+                resolution=60  # 1 minute
+            )
+            
+            output = ["📊 Real-Time Bandwidth Usage", "=" * 50, ""]
+            
+            if usage:
+                # Get the most recent data point
+                latest = usage[-1] if usage else None
+                
+                if latest:
+                    interface = latest.get('interface', 'Unknown')
+                    sent_bytes = latest.get('sent', 0)
+                    recv_bytes = latest.get('received', 0)
+                    
+                    # Convert bytes to Mbps (bytes * 8 / 1,000,000)
+                    sent_mbps = (sent_bytes * 8) / 1_000_000
+                    recv_mbps = (recv_bytes * 8) / 1_000_000
+                    
+                    output.append(f"Interface: {interface}")
+                    output.append(f"Time: {latest.get('t', 'Unknown')}")
+                    output.append(f"📤 Upload: {sent_mbps:.2f} Mbps")
+                    output.append(f"📥 Download: {recv_mbps:.2f} Mbps")
+                    output.append(f"📊 Total: {(sent_mbps + recv_mbps):.2f} Mbps")
+                    
+                    # Show all interfaces if available
+                    if len(usage) > 0:
+                        output.append("\n📈 All Interfaces:")
+                        interfaces_seen = set()
+                        for entry in usage[-5:]:  # Last 5 entries
+                            iface = entry.get('interface', 'Unknown')
+                            if iface not in interfaces_seen:
+                                interfaces_seen.add(iface)
+                                sent = entry.get('sent', 0)
+                                recv = entry.get('received', 0)
+                                sent_mbps = (sent * 8) / 1_000_000
+                                recv_mbps = (recv * 8) / 1_000_000
+                                output.append(f"   {iface}: ↑{sent_mbps:.2f} ↓{recv_mbps:.2f} Mbps")
+                else:
+                    output.append("No recent bandwidth data available")
+            else:
+                output.append("No bandwidth monitoring data available")
+                output.append("\n💡 Troubleshooting:")
+                output.append("• Ensure the device has been online for at least 2 minutes")
+                output.append("• Check if traffic analytics is enabled")
+                output.append("• Verify WAN connections are active")
+                
+            return "\n".join(output)
+            
+    except Exception as e:
+        return format_error("get real-time bandwidth", e)
 
 
 def get_failover_events(
@@ -648,6 +718,133 @@ Analysis Period: Last {timespan // 3600} hours
         return format_error("analyze uplink health", e)
 
 
+def run_throughput_test(network_id: str) -> str:
+    """
+    🚀 Run a throughput test on WAN uplinks.
+    
+    Performs active bandwidth testing to measure actual speeds.
+    
+    Args:
+        network_id: Network ID
+        
+    Returns:
+        Throughput test results or status
+    """
+    try:
+        with safe_api_call("run throughput test"):
+            devices = meraki.dashboard.networks.getNetworkDevices(network_id)
+            mx_device = next((d for d in devices if d.get('model', '').startswith('MX')), None)
+            
+            if not mx_device:
+                return "❌ No MX device found in this network"
+            
+            output = ["🚀 Throughput Test", "=" * 50, ""]
+            
+            try:
+                # Trigger throughput test
+                result = meraki.dashboard.appliance.createDeviceApplianceThroughputTest(
+                    mx_device['serial']
+                )
+                
+                output.append(f"✅ Throughput test initiated on {mx_device.get('name', mx_device['serial'])}")
+                output.append(f"   Model: {mx_device['model']}")
+                output.append("")
+                output.append("⏱️ Test Status:")
+                output.append("   • Test duration: 30-60 seconds")
+                output.append("   • Testing both upload and download speeds")
+                output.append("   • Results will be available shortly")
+                output.append("")
+                output.append("💡 Next Steps:")
+                output.append("   1. Wait 60 seconds for test completion")
+                output.append("   2. Run 'get_throughput_test_results' to see results")
+                output.append("   3. Compare with ISP provisioned speeds")
+                
+            except Exception as e:
+                # Try to get existing test results instead
+                try:
+                    existing_results = meraki.dashboard.appliance.getDeviceApplianceThroughputTest(
+                        mx_device['serial']
+                    )
+                    
+                    if existing_results:
+                        output.append("📊 Previous Test Results:")
+                        for test in existing_results[:3]:  # Show last 3 tests
+                            output.append(f"\n   Test Time: {test.get('testTime', 'Unknown')}")
+                            output.append(f"   ↓ Download: {test.get('downstream', 0)} Mbps")
+                            output.append(f"   ↑ Upload: {test.get('upstream', 0)} Mbps")
+                        output.append("\n⚠️ Could not start new test - showing previous results")
+                    else:
+                        output.append(f"⚠️ Could not start test: {str(e)}")
+                        
+                except:
+                    output.append(f"⚠️ Could not start test: {str(e)}")
+                    output.append("\nPossible reasons:")
+                    output.append("• Test already in progress")
+                    output.append("• Device offline or unreachable")
+                    output.append("• Insufficient permissions")
+            
+            return "\n".join(output)
+            
+    except Exception as e:
+        return format_error("run throughput test", e)
+
+
+def get_throughput_test_results(network_id: str) -> str:
+    """
+    📈 Get results from throughput tests.
+    
+    Shows bandwidth test results for WAN connections.
+    
+    Args:
+        network_id: Network ID
+        
+    Returns:
+        Throughput test results
+    """
+    try:
+        with safe_api_call("get throughput test results"):
+            devices = meraki.dashboard.networks.getNetworkDevices(network_id)
+            mx_device = next((d for d in devices if d.get('model', '').startswith('MX')), None)
+            
+            if not mx_device:
+                return "❌ No MX device found in this network"
+            
+            output = ["📈 Throughput Test Results", "=" * 50, ""]
+            
+            # Get test results
+            results = meraki.dashboard.appliance.getDeviceApplianceThroughputTest(
+                mx_device['serial']
+            )
+            
+            if results:
+                output.append(f"Device: {mx_device.get('name', mx_device['serial'])} ({mx_device['model']})")
+                output.append("")
+                
+                for i, test in enumerate(results[:5]):  # Show last 5 tests
+                    output.append(f"Test #{i+1}:")
+                    output.append(f"   Time: {test.get('testTime', 'Unknown')}")
+                    output.append(f"   📥 Download: {test.get('downstream', 0)} Mbps")
+                    output.append(f"   📤 Upload: {test.get('upstream', 0)} Mbps")
+                    output.append("")
+                
+                # Calculate averages if multiple tests
+                if len(results) > 1:
+                    avg_down = sum(t.get('downstream', 0) for t in results) / len(results)
+                    avg_up = sum(t.get('upstream', 0) for t in results) / len(results)
+                    output.append("📊 Average Speeds:")
+                    output.append(f"   Download: {avg_down:.2f} Mbps")
+                    output.append(f"   Upload: {avg_up:.2f} Mbps")
+                    
+            else:
+                output.append("No throughput test results available")
+                output.append("\n💡 Run 'run_throughput_test' first to measure speeds")
+            
+            return "\n".join(output)
+            
+    except Exception as e:
+        return format_error("get throughput test results", e)
+
+
 def uplink_monitoring_help() -> str:
     """
     ❓ Get help with uplink monitoring tools.
@@ -692,6 +889,21 @@ Available tools for WAN monitoring:
    - Performance analysis
    - Get recommendations
 
+7. get_realtime_bandwidth_usage()
+   - Real-time bandwidth monitoring
+   - Current upload/download speeds
+   - Per-interface usage
+
+8. run_throughput_test()
+   - Active bandwidth testing
+   - Measure actual WAN speeds
+   - Test upload and download
+
+9. get_throughput_test_results()
+   - View test results
+   - Historical test data
+   - Average speeds
+
 Common Monitoring Tasks:
 
 📊 "Check WAN performance"
@@ -735,10 +947,13 @@ def register_uplink_monitoring_tools(app: FastMCP, meraki_client: MerakiClient):
     tools = [
         (get_uplink_status, "View current WAN uplink status"),
         (get_uplink_bandwidth_history, "Get historical bandwidth usage"),
+        (get_realtime_bandwidth_usage, "Get real-time bandwidth usage"),
         (get_failover_events, "View WAN failover event history"),
         (configure_uplink_settings, "Configure load balancing and failover"),
         (set_bandwidth_limits, "Set bandwidth limits per interface"),
         (analyze_uplink_health, "Analyze overall uplink health"),
+        (run_throughput_test, "Run active bandwidth speed test"),
+        (get_throughput_test_results, "Get throughput test results"),
         (uplink_monitoring_help, "Get help with uplink monitoring"),
     ]
     
