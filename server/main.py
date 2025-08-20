@@ -50,6 +50,7 @@ from server.tools_uplink_monitoring import register_uplink_monitoring_tools
 from server.tools_change_tracking import register_change_tracking_tools
 from server.tools_diagnostic_reports import register_diagnostic_reports_tools
 from server.tools_firmware_management import register_firmware_management_tools
+from server.tools_helpers import register_helper_tools
 
 # Register resources and tools
 register_resources(app, meraki)
@@ -83,6 +84,7 @@ register_uplink_monitoring_tools(app, meraki)
 register_change_tracking_tools(app, meraki)
 register_diagnostic_reports_tools(app, meraki)
 register_firmware_management_tools(app, meraki)
+register_helper_tools(app, meraki)
 
 # When run directly, start the server
 if __name__ == "__main__":
