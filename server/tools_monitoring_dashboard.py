@@ -204,15 +204,15 @@ def get_network_health_summary(network_id: str, timespan: Optional[int] = 300) -
         return format_error("get network health summary", e)
 
 
-def get_uplink_bandwidth_history(
+def get_uplink_bandwidth_summary(
     network_id: str,
     timespan: Optional[int] = 3600,
     resolution: Optional[int] = 300
 ) -> str:
     """
-    📈 Get historical bandwidth usage for WAN uplinks.
+    📈 Get bandwidth usage summary for WAN uplinks.
     
-    Shows bandwidth trends over time.
+    Shows bandwidth trends overview.
     
     Args:
         network_id: Network ID to monitor
@@ -220,7 +220,7 @@ def get_uplink_bandwidth_history(
         resolution: Data resolution in seconds (300, 600, 1800, 3600, 86400)
         
     Returns:
-        Bandwidth usage history
+        Bandwidth usage summary
     """
     try:
         output = ["📈 Uplink Bandwidth History", "=" * 50, ""]
@@ -647,7 +647,7 @@ def get_vpn_performance_stats(network_id: str, timespan: Optional[int] = 3600) -
         return format_error("get VPN performance stats", e)
 
 
-def generate_network_health_report(
+def generate_monitoring_dashboard_report(
     network_id: str,
     include_bandwidth: bool = True,
     include_vpn: bool = True,
@@ -655,7 +655,7 @@ def generate_network_health_report(
     timespan: Optional[int] = 3600
 ) -> str:
     """
-    📊 Generate comprehensive network health report.
+    📊 Generate comprehensive monitoring dashboard report.
     
     Combines all monitoring data into a single report.
     
@@ -667,7 +667,7 @@ def generate_network_health_report(
         timespan: Time period in seconds (default: 3600 = 1 hour)
         
     Returns:
-        Comprehensive health report
+        Comprehensive monitoring report
     """
     try:
         output = ["📊 COMPREHENSIVE NETWORK HEALTH REPORT", "=" * 60, ""]
@@ -696,7 +696,7 @@ def generate_network_health_report(
         if include_bandwidth:
             output.append("\n📈 BANDWIDTH ANALYSIS")
             output.append("-" * 40)
-            bandwidth = get_uplink_bandwidth_history(network_id, timespan)
+            bandwidth = get_uplink_bandwidth_summary(network_id, timespan)
             output.append(bandwidth)
             output.append("")
         
@@ -827,9 +827,9 @@ def register_monitoring_dashboard_tools(app: FastMCP, client: MerakiClient):
     
     # Register all tools
     app.tool()(get_network_health_summary)
-    app.tool()(get_uplink_bandwidth_history)
+    app.tool()(get_uplink_bandwidth_summary)
     app.tool()(get_critical_alerts)
     app.tool()(get_device_utilization)
     app.tool()(get_vpn_performance_stats)
-    app.tool()(generate_network_health_report)
+    app.tool()(generate_monitoring_dashboard_report)
     app.tool()(check_monitoring_prerequisites)
