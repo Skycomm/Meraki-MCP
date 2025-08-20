@@ -703,7 +703,7 @@ def check_configuration_conflicts(network_id: str) -> str:
         return format_error("check configuration", e)
 
 
-def generate_troubleshooting_report(
+def generate_troubleshooting_dashboard(
     network_id: str,
     include_connectivity: bool = True,
     include_performance: bool = True,
@@ -711,7 +711,7 @@ def generate_troubleshooting_report(
     client_mac: Optional[str] = None
 ) -> str:
     """
-    📊 Generate comprehensive troubleshooting report.
+    📊 Generate comprehensive troubleshooting dashboard.
     
     Combines all diagnostic tools into a single report.
     
@@ -723,7 +723,7 @@ def generate_troubleshooting_report(
         client_mac: Specific client to analyze (optional)
         
     Returns:
-        Comprehensive troubleshooting report
+        Comprehensive troubleshooting dashboard
     """
     try:
         output = ["📊 COMPREHENSIVE TROUBLESHOOTING REPORT", "=" * 60, ""]
@@ -1073,10 +1073,10 @@ def troubleshooting_help() -> str:
             "   Checks: VLAN conflicts, firewall rules, DHCP settings",
             "   Example: check_configuration_conflicts(network_id)",
             "",
-            "4. **generate_troubleshooting_report()**",
+            "4. **generate_troubleshooting_dashboard()**",
             "   Use when: Need comprehensive analysis",
             "   Includes: All diagnostics in one report",
-            "   Example: generate_troubleshooting_report(network_id)",
+            "   Example: generate_troubleshooting_dashboard(network_id)",
             "",
             "5. **suggest_remediation_steps()**",
             "   Use when: Need fixing instructions",
@@ -1104,7 +1104,7 @@ def troubleshooting_help() -> str:
             "4. Test rollback in lab",
             "",
             "**Need Help for Support?**",
-            "1. Run: generate_troubleshooting_report(network_id)",
+            "1. Run: generate_troubleshooting_dashboard(network_id)",
             "2. Save report output",
             "3. Include in support ticket",
             "4. Follow remediation steps",
@@ -1133,6 +1133,6 @@ def register_troubleshooting_tools(app: FastMCP, client: MerakiClient):
     app.tool()(diagnose_connectivity_issues)
     app.tool()(analyze_performance_bottlenecks)
     app.tool()(check_configuration_conflicts)
-    app.tool()(generate_troubleshooting_report)
+    app.tool()(generate_troubleshooting_dashboard)
     app.tool()(suggest_remediation_steps)
     app.tool()(troubleshooting_help)
