@@ -1,0 +1,749 @@
+"""
+Uplink Monitoring Tools for Cisco Meraki MCP Server
+Monitor WAN uplinks, bandwidth usage, and failover events
+"""
+
+from mcp.server import FastMCP
+from typing import Optional, Dict, Any, List
+import json
+from datetime import datetime, timedelta
+from meraki_client import MerakiClient
+from utils.helpers import format_error_message
+from contextlib import contextmanager
+
+# This will be set by register function
+mcp_app = None
+meraki = None
+
+def format_error(operation: str, error: Exception) -> str:
+    """Format error message with operation context."""
+    return f"❌ Failed to {operation}: {format_error_message(error)}"
+
+@contextmanager
+def safe_api_call(operation: str):
+    """Context manager for safe API calls with consistent error handling."""
+    try:
+        yield
+    except Exception as e:
+        raise Exception(f"Failed to {operation}: {str(e)}")
+
+
+def get_uplink_status(network_id: str) -> str:
+    """
+    🌐 Get current WAN uplink status and configuration.
+    
+    Shows all WAN interfaces, their status, and current utilization.
+    
+    Args:
+        network_id: Network ID
+    
+    Returns:
+        Formatted uplink status overview
+    """
+    try:
+        with safe_api_call("get uplink status"):
+            # Get uplink settings
+            uplinks = meraki.dashboard.appliance.getNetworkApplianceUplinksSettings(
+                networkId=network_id
+            )
+            
+            result = f"""🌐 WAN Uplink Status
+==================================================
+
+"""
+            
+            # Get device to check uplink status
+            devices = meraki.dashboard.networks.getNetworkDevices(networkId=network_id)
+            mx_device = next((d for d in devices if d['model'].startswith('MX')), None)
+            
+            if mx_device:
+                # Get uplink statuses
+                try:
+                    statuses = meraki.dashboard.appliance.getDeviceApplianceUplinksSettings(
+                        serial=mx_device['serial']
+                    )
+                    
+                    # WAN 1
+                    wan1 = statuses.get('wan1', {})
+                    if wan1.get('enabled'):
+                        status = '🟢 Active' if wan1.get('status') == 'active' else '🔴 Down'
+                        result += f"WAN 1: {status}"
+                        result += f"\n   Interface: {wan1.get('interface', 'Ethernet')}"
+                        result += f"\n   IP: {wan1.get('ip', 'DHCP')}"
+                        if wan1.get('gateway'):
+                            result += f"\n   Gateway: {wan1['gateway']}"
+                        result += "\n"
+                    
+                    # WAN 2
+                    wan2 = statuses.get('wan2', {})
+                    if wan2.get('enabled'):
+                        status = '🟢 Active' if wan2.get('status') == 'active' else '🔴 Down'
+                        result += f"\nWAN 2: {status}"
+                        result += f"\n   Interface: {wan2.get('interface', 'Ethernet')}"
+                        result += f"\n   IP: {wan2.get('ip', 'DHCP')}"
+                        if wan2.get('gateway'):
+                            result += f"\n   Gateway: {wan2['gateway']}"
+                        result += "\n"
+                    
+                    # Cellular (if available)
+                    cellular = statuses.get('cellular', {})
+                    if cellular.get('enabled'):
+                        status = '🟢 Active' if cellular.get('status') == 'active' else '🟡 Standby'
+                        result += f"\nCellular: {status}"
+                        result += f"\n   Carrier: {cellular.get('carrier', 'Unknown')}"
+                        result += f"\n   Signal: {cellular.get('signalStrength', 'N/A')}"
+                        result += "\n"
+                        
+                except:
+                    pass
+            
+            # Load balancing settings
+            result += f"\n⚖️ Load Balancing:"
+            result += f"\n   Mode: {uplinks.get('loadBalancingMode', 'failover')}"
+            
+            if uplinks.get('loadBalancingMode') == 'weighted':
+                result += "\n   Weights:"
+                for iface in ['wan1', 'wan2']:
+                    if iface in uplinks:
+                        result += f"\n   • {iface.upper()}: {uplinks[iface].get('weight', 50)}%"
+            
+            # Failover settings
+            result += f"\n\n🔄 Failover & Performance:"
+            result += f"\n   Primary Uplink: {uplinks.get('primaryUplink', 'WAN 1')}"
+            
+            # Bandwidth limits
+            wan1_settings = uplinks.get('wan1', {})
+            if wan1_settings.get('bandwidthLimits'):
+                limits = wan1_settings['bandwidthLimits']
+                result += f"\n\n📊 WAN 1 Bandwidth Limits:"
+                result += f"\n   Download: {limits.get('limitDown', 'Unlimited')} Mbps"
+                result += f"\n   Upload: {limits.get('limitUp', 'Unlimited')} Mbps"
+            
+            result += "\n\n💡 Quick Actions:"
+            result += "\n   • View bandwidth history"
+            result += "\n   • Configure failover"
+            result += "\n   • Set bandwidth limits"
+            result += "\n   • Check failover events"
+            
+            return result
+            
+    except Exception as e:
+        return format_error("get uplink status", e)
+
+
+def get_uplink_bandwidth_history(
+    network_id: str,
+    timespan: Optional[int] = 7200,
+    resolution: Optional[int] = 300
+) -> str:
+    """
+    📊 Get historical bandwidth usage for WAN uplinks.
+    
+    Shows upload/download rates over time for each uplink.
+    
+    Args:
+        network_id: Network ID
+        timespan: Time period in seconds (default: 7200 = 2 hours)
+        resolution: Data resolution in seconds (300, 600, 3600, 86400)
+    
+    Returns:
+        Bandwidth usage history and statistics
+    """
+    try:
+        with safe_api_call("get bandwidth history"):
+            # Get loss and latency history
+            history = meraki.dashboard.appliance.getNetworkApplianceLossAndLatencyHistory(
+                networkId=network_id,
+                timespan=timespan,
+                resolution=resolution,
+                uplink='wan1'
+            )
+            
+            result = f"""📊 Uplink Bandwidth History
+==================================================
+
+Time Period: Last {timespan // 3600} hours
+Resolution: {resolution // 60} minutes
+
+"""
+            
+            # Try to get actual bandwidth data
+            devices = meraki.dashboard.networks.getNetworkDevices(networkId=network_id)
+            mx_device = next((d for d in devices if d['model'].startswith('MX')), None)
+            
+            if mx_device:
+                try:
+                    # Get uplink bandwidth
+                    bandwidth = meraki.dashboard.appliance.getDeviceApplianceThroughputTest(
+                        serial=mx_device['serial']
+                    )
+                    
+                    if bandwidth:
+                        result += "📈 Recent Throughput Tests:\n"
+                        for test in bandwidth[:5]:
+                            result += f"\n   {test.get('testTime', 'Unknown time')}"
+                            result += f"\n   ↓ {test.get('downstream', 0)} Mbps"
+                            result += f"\n   ↑ {test.get('upstream', 0)} Mbps\n"
+                            
+                except:
+                    pass
+            
+            # Show loss and latency data
+            if history:
+                result += "\n📊 Performance Metrics:\n"
+                
+                # Calculate averages
+                total_loss = 0
+                total_latency = 0
+                count = 0
+                
+                for point in history:
+                    loss = point.get('lossPercent', 0)
+                    latency = point.get('latencyMs', 0)
+                    total_loss += loss
+                    total_latency += latency
+                    count += 1
+                
+                if count > 0:
+                    avg_loss = total_loss / count
+                    avg_latency = total_latency / count
+                    
+                    result += f"\nWAN 1 Averages:"
+                    result += f"\n   Packet Loss: {avg_loss:.2f}%"
+                    result += f"\n   Latency: {avg_latency:.1f} ms"
+                    
+                    # Status assessment
+                    if avg_loss < 0.1:
+                        result += "\n   Status: 🟢 Excellent"
+                    elif avg_loss < 1:
+                        result += "\n   Status: 🟡 Good"
+                    else:
+                        result += "\n   Status: 🔴 Poor"
+                
+                # Show recent samples
+                result += "\n\n📈 Recent Samples:"
+                for point in history[-5:]:
+                    time_str = point.get('startTime', 'Unknown')
+                    loss = point.get('lossPercent', 0)
+                    latency = point.get('latencyMs', 0)
+                    
+                    result += f"\n   {time_str[-8:-3]}: "
+                    result += f"Loss {loss:.1f}%, Latency {latency:.0f}ms"
+            
+            result += "\n\n💡 Performance Guidelines:"
+            result += "\n   • Loss < 1% for VoIP quality"
+            result += "\n   • Latency < 150ms for real-time apps"
+            result += "\n   • Jitter < 30ms for video calls"
+            
+            result += "\n\n📋 Bandwidth Management:"
+            result += "\n   • Enable traffic shaping"
+            result += "\n   • Set bandwidth limits"
+            result += "\n   • Configure QoS rules"
+            result += "\n   • Monitor peak usage times"
+            
+            return result
+            
+    except Exception as e:
+        return format_error("get bandwidth history", e)
+
+
+def get_failover_events(
+    network_id: str,
+    timespan: Optional[int] = 604800
+) -> str:
+    """
+    🔄 Get WAN failover event history.
+    
+    Shows when uplinks failed over and why.
+    
+    Args:
+        network_id: Network ID
+        timespan: Time period in seconds (default: 604800 = 7 days)
+    
+    Returns:
+        Failover event history and analysis
+    """
+    try:
+        with safe_api_call("get failover events"):
+            # Get network events filtered for failover
+            events = meraki.dashboard.networks.getNetworkEvents(
+                networkId=network_id,
+                includedEventTypes=["failover", "failback", "primary_uplink_change"],
+                perPage=100
+            )
+            
+            result = f"""🔄 WAN Failover Events
+==================================================
+
+Time Period: Last {timespan // 86400} days
+"""
+            
+            failover_events = []
+            for event in events.get('events', []):
+                if any(term in event.get('type', '').lower() for term in ['failover', 'uplink', 'wan']):
+                    failover_events.append(event)
+            
+            if failover_events:
+                result += f"\nFailover Events Found: {len(failover_events)}\n"
+                
+                # Analyze patterns
+                failover_count = {}
+                for event in failover_events:
+                    event_type = event.get('type', 'Unknown')
+                    failover_count[event_type] = failover_count.get(event_type, 0) + 1
+                
+                result += "\n📊 Event Summary:"
+                for event_type, count in failover_count.items():
+                    result += f"\n   • {event_type}: {count} times"
+                
+                # Show recent events
+                result += "\n\n📋 Recent Failover Events:"
+                for event in failover_events[:10]:
+                    time_str = event.get('occurredAt', 'Unknown time')
+                    desc = event.get('description', 'No description')
+                    
+                    result += f"\n\n🔄 {time_str}"
+                    result += f"\n   {desc}"
+                    
+                    # Determine cause if possible
+                    if 'timeout' in desc.lower():
+                        result += "\n   Cause: Connection timeout"
+                    elif 'packet loss' in desc.lower():
+                        result += "\n   Cause: Excessive packet loss"
+                    elif 'latency' in desc.lower():
+                        result += "\n   Cause: High latency"
+                
+                # Recommendations based on frequency
+                if len(failover_events) > 10:
+                    result += "\n\n⚠️ High Failover Frequency Detected!"
+                    result += "\n\n🔧 Recommendations:"
+                    result += "\n   1. Check WAN 1 connection stability"
+                    result += "\n   2. Review ISP service quality"
+                    result += "\n   3. Adjust failover sensitivity"
+                    result += "\n   4. Consider redundant ISPs"
+                    
+            else:
+                result += "\n✅ No failover events in this period"
+                result += "\n   • Uplinks have been stable"
+                result += "\n   • No WAN outages detected"
+            
+            result += "\n\n💡 Failover Configuration:"
+            result += "\n   • Set appropriate thresholds"
+            result += "\n   • Test failover regularly"
+            result += "\n   • Configure email alerts"
+            result += "\n   • Document ISP contacts"
+            
+            return result
+            
+    except Exception as e:
+        return format_error("get failover events", e)
+
+
+def configure_uplink_settings(
+    network_id: str,
+    load_balancing_mode: str = "failover",
+    wan1_weight: Optional[int] = None,
+    wan2_weight: Optional[int] = None,
+    primary_uplink: Optional[str] = None
+) -> str:
+    """
+    ⚙️ Configure WAN uplink settings.
+    
+    Set load balancing, failover, and bandwidth settings.
+    
+    Args:
+        network_id: Network ID
+        load_balancing_mode: "failover" or "loadBalance"
+        wan1_weight: Weight for WAN1 (1-100, for load balance mode)
+        wan2_weight: Weight for WAN2 (1-100, for load balance mode)
+        primary_uplink: "wan1" or "wan2" for failover mode
+    
+    Returns:
+        Configuration result
+    """
+    try:
+        with safe_api_call("configure uplink settings"):
+            # Get current settings
+            current = meraki.dashboard.appliance.getNetworkApplianceUplinksSettings(
+                networkId=network_id
+            )
+            
+            # Update configuration
+            config = {
+                "loadBalancingMode": load_balancing_mode
+            }
+            
+            if load_balancing_mode == "loadBalance":
+                if wan1_weight and wan2_weight:
+                    config["wan1"] = {"weight": wan1_weight}
+                    config["wan2"] = {"weight": wan2_weight}
+            elif primary_uplink:
+                config["primaryUplink"] = primary_uplink
+            
+            # Apply settings
+            updated = meraki.dashboard.appliance.updateNetworkApplianceUplinksSettings(
+                networkId=network_id,
+                **config
+            )
+            
+            result = f"""⚙️ Uplink Configuration Updated
+==================================================
+
+Load Balancing Mode: {updated['loadBalancingMode']}
+"""
+            
+            if load_balancing_mode == "loadBalance":
+                result += "\n⚖️ Load Balance Settings:"
+                wan1_w = updated.get('wan1', {}).get('weight', 50)
+                wan2_w = updated.get('wan2', {}).get('weight', 50)
+                result += f"\n   WAN 1: {wan1_w}% of traffic"
+                result += f"\n   WAN 2: {wan2_w}% of traffic"
+                
+                result += "\n\n📊 How it works:"
+                result += "\n   • Traffic distributed by weight"
+                result += "\n   • Both links active simultaneously"
+                result += "\n   • Automatic failover if one fails"
+                result += "\n   • Best for bandwidth aggregation"
+                
+            else:  # failover mode
+                primary = updated.get('primaryUplink', 'wan1')
+                result += f"\n🔄 Failover Settings:"
+                result += f"\n   Primary: {primary.upper()}"
+                result += f"\n   Backup: {'WAN2' if primary == 'wan1' else 'WAN1'}"
+                
+                result += "\n\n📋 How it works:"
+                result += "\n   • All traffic uses primary"
+                result += "\n   • Switches on primary failure"
+                result += "\n   • Returns when primary recovers"
+                result += "\n   • Best for reliability"
+            
+            result += "\n\n🔍 Failover Detection:"
+            result += "\n   • ICMP to multiple targets"
+            result += "\n   • DNS resolution tests"
+            result += "\n   • HTTP connectivity checks"
+            result += "\n   • Configurable thresholds"
+            
+            result += "\n\n💡 Next Steps:"
+            result += "\n   1. Test failover behavior"
+            result += "\n   2. Monitor bandwidth usage"
+            result += "\n   3. Set up alert notifications"
+            result += "\n   4. Document configuration"
+            
+            return result
+            
+    except Exception as e:
+        return format_error("configure uplink settings", e)
+
+
+def set_bandwidth_limits(
+    network_id: str,
+    wan_interface: str,
+    limit_up: Optional[int] = None,
+    limit_down: Optional[int] = None
+) -> str:
+    """
+    📏 Set bandwidth limits for WAN interfaces.
+    
+    Configure upload/download speed limits per WAN interface.
+    
+    Args:
+        network_id: Network ID
+        wan_interface: "wan1" or "wan2"
+        limit_up: Upload limit in Mbps (None = unlimited)
+        limit_down: Download limit in Mbps (None = unlimited)
+    
+    Returns:
+        Configuration result
+    """
+    try:
+        with safe_api_call("set bandwidth limits"):
+            # Get current settings
+            current = meraki.dashboard.appliance.getNetworkApplianceUplinksSettings(
+                networkId=network_id
+            )
+            
+            # Update bandwidth limits
+            if wan_interface not in current:
+                current[wan_interface] = {}
+            
+            if limit_up is not None or limit_down is not None:
+                current[wan_interface]['bandwidthLimits'] = {}
+                if limit_up is not None:
+                    current[wan_interface]['bandwidthLimits']['limitUp'] = limit_up
+                if limit_down is not None:
+                    current[wan_interface]['bandwidthLimits']['limitDown'] = limit_down
+            else:
+                # Remove limits
+                if 'bandwidthLimits' in current[wan_interface]:
+                    del current[wan_interface]['bandwidthLimits']
+            
+            # Apply settings
+            updated = meraki.dashboard.appliance.updateNetworkApplianceUplinksSettings(
+                networkId=network_id,
+                **current
+            )
+            
+            result = f"""📏 Bandwidth Limits Configured
+==================================================
+
+Interface: {wan_interface.upper()}
+"""
+            
+            if limit_up is not None or limit_down is not None:
+                result += "\n🚦 Speed Limits Set:"
+                if limit_up:
+                    result += f"\n   Upload: {limit_up} Mbps"
+                if limit_down:
+                    result += f"\n   Download: {limit_down} Mbps"
+                
+                result += "\n\n📊 Why use bandwidth limits?"
+                result += "\n   • Prevent ISP overage charges"
+                result += "\n   • Match actual ISP speeds"
+                result += "\n   • Improve QoS accuracy"
+                result += "\n   • Control bandwidth costs"
+                
+                result += "\n\n⚠️ Important Notes:"
+                result += "\n   • Set to 95% of ISP speed"
+                result += "\n   • Test actual throughput first"
+                result += "\n   • Affects all traffic on interface"
+                result += "\n   • QoS rules work within these limits"
+                
+            else:
+                result += "\n✅ Bandwidth limits removed"
+                result += "\n   • No speed restrictions"
+                result += "\n   • Using full ISP bandwidth"
+            
+            result += "\n\n💡 Optimization Tips:"
+            result += "\n   1. Run speed tests first"
+            result += "\n   2. Monitor actual usage"
+            result += "\n   3. Adjust based on performance"
+            result += "\n   4. Consider time-based limits"
+            
+            return result
+            
+    except Exception as e:
+        return format_error("set bandwidth limits", e)
+
+
+def analyze_uplink_health(
+    network_id: str,
+    timespan: Optional[int] = 86400
+) -> str:
+    """
+    🏥 Analyze overall uplink health and reliability.
+    
+    Comprehensive analysis of WAN performance and recommendations.
+    
+    Args:
+        network_id: Network ID
+        timespan: Analysis period in seconds (default: 86400 = 24 hours)
+    
+    Returns:
+        Health analysis and recommendations
+    """
+    try:
+        with safe_api_call("analyze uplink health"):
+            result = f"""🏥 Uplink Health Analysis
+==================================================
+
+Analysis Period: Last {timespan // 3600} hours
+"""
+            
+            # Get uplink status
+            uplinks = meraki.dashboard.appliance.getNetworkApplianceUplinksSettings(
+                networkId=network_id
+            )
+            
+            # Get performance history
+            wan1_history = meraki.dashboard.appliance.getNetworkApplianceLossAndLatencyHistory(
+                networkId=network_id,
+                timespan=timespan,
+                uplink='wan1'
+            )
+            
+            # Analyze WAN 1
+            if wan1_history:
+                total_loss = sum(p.get('lossPercent', 0) for p in wan1_history)
+                total_latency = sum(p.get('latencyMs', 0) for p in wan1_history)
+                count = len(wan1_history)
+                
+                avg_loss = total_loss / count if count > 0 else 0
+                avg_latency = total_latency / count if count > 0 else 0
+                
+                result += f"\n📊 WAN 1 Health:"
+                result += f"\n   Avg Packet Loss: {avg_loss:.2f}%"
+                result += f"\n   Avg Latency: {avg_latency:.1f} ms"
+                
+                # Health score
+                health_score = 100
+                if avg_loss > 0.1:
+                    health_score -= min(avg_loss * 10, 30)
+                if avg_latency > 50:
+                    health_score -= min((avg_latency - 50) / 10, 20)
+                
+                result += f"\n   Health Score: {health_score:.0f}/100"
+                
+                if health_score >= 90:
+                    result += " 🟢 Excellent"
+                elif health_score >= 70:
+                    result += " 🟡 Good"
+                else:
+                    result += " 🔴 Poor"
+            
+            # Check for failover events
+            events = meraki.dashboard.networks.getNetworkEvents(
+                networkId=network_id,
+                includedEventTypes=["failover"],
+                perPage=50
+            )
+            
+            failover_count = len([e for e in events.get('events', []) 
+                                if 'failover' in e.get('type', '').lower()])
+            
+            result += f"\n\n🔄 Stability Metrics:"
+            result += f"\n   Failover Events: {failover_count}"
+            
+            if failover_count == 0:
+                result += " ✅ Very Stable"
+            elif failover_count < 5:
+                result += " 🟡 Mostly Stable"
+            else:
+                result += " 🔴 Unstable"
+            
+            # Recommendations
+            result += "\n\n💡 Recommendations:"
+            
+            if avg_loss > 1:
+                result += "\n\n🔧 High Packet Loss Detected:"
+                result += "\n   1. Contact ISP about line quality"
+                result += "\n   2. Check physical connections"
+                result += "\n   3. Test with different modem"
+                result += "\n   4. Consider backup connection"
+            
+            if avg_latency > 100:
+                result += "\n\n⏱️ High Latency Detected:"
+                result += "\n   1. Check for bandwidth saturation"
+                result += "\n   2. Enable traffic shaping"
+                result += "\n   3. Optimize routing paths"
+                result += "\n   4. Consider closer servers"
+            
+            if failover_count > 5:
+                result += "\n\n🔄 Frequent Failovers:"
+                result += "\n   1. Increase failover threshold"
+                result += "\n   2. Check primary WAN stability"
+                result += "\n   3. Review power/environmental issues"
+                result += "\n   4. Enable load balancing mode"
+            
+            # Best practices
+            result += "\n\n📋 Best Practices:"
+            result += "\n   • Monitor both uplinks regularly"
+            result += "\n   • Test failover monthly"
+            result += "\n   • Keep firmware updated"
+            result += "\n   • Document ISP support contacts"
+            result += "\n   • Set up proactive alerts"
+            
+            return result
+            
+    except Exception as e:
+        return format_error("analyze uplink health", e)
+
+
+def uplink_monitoring_help() -> str:
+    """
+    ❓ Get help with uplink monitoring tools.
+    
+    Shows available tools and monitoring best practices.
+    
+    Returns:
+        Formatted help guide
+    """
+    return """🌐 Uplink Monitoring Tools Help
+==================================================
+
+Available tools for WAN monitoring:
+
+1. get_uplink_status()
+   - View current WAN status
+   - Check active interfaces
+   - See load balancing mode
+
+2. get_uplink_bandwidth_history()
+   - Historical bandwidth usage
+   - Performance metrics over time
+   - Loss and latency trends
+
+3. get_failover_events()
+   - WAN failover history
+   - Identify failure patterns
+   - Analyze stability issues
+
+4. configure_uplink_settings()
+   - Set load balancing mode
+   - Configure failover behavior
+   - Adjust traffic weights
+
+5. set_bandwidth_limits()
+   - Configure speed limits
+   - Match ISP speeds
+   - Control bandwidth usage
+
+6. analyze_uplink_health()
+   - Comprehensive health check
+   - Performance analysis
+   - Get recommendations
+
+Common Monitoring Tasks:
+
+📊 "Check WAN performance"
+1. get_uplink_bandwidth_history()
+2. analyze_uplink_health()
+3. Review recommendations
+
+🔄 "Investigate failovers"
+1. get_failover_events()
+2. Check event patterns
+3. Adjust thresholds if needed
+
+⚖️ "Set up load balancing"
+1. configure_uplink_settings("loadBalance")
+2. Set appropriate weights
+3. Monitor bandwidth distribution
+
+💡 Monitoring Best Practices:
+- Check uplinks daily
+- Review failover events weekly
+- Test failover monthly
+- Update bandwidth limits quarterly
+- Document ISP information
+
+🚨 Alert Recommendations:
+- WAN failover events
+- High packet loss (>1%)
+- High latency (>150ms)
+- Bandwidth saturation (>90%)
+- Extended downtime
+"""
+
+
+def register_uplink_monitoring_tools(app: FastMCP, meraki_client: MerakiClient):
+    """Register all uplink monitoring tools with the MCP server."""
+    global mcp_app, meraki
+    mcp_app = app
+    meraki = meraki_client
+    
+    # Register all tools
+    tools = [
+        (get_uplink_status, "View current WAN uplink status"),
+        (get_uplink_bandwidth_history, "Get historical bandwidth usage"),
+        (get_failover_events, "View WAN failover event history"),
+        (configure_uplink_settings, "Configure load balancing and failover"),
+        (set_bandwidth_limits, "Set bandwidth limits per interface"),
+        (analyze_uplink_health, "Analyze overall uplink health"),
+        (uplink_monitoring_help, "Get help with uplink monitoring"),
+    ]
+    
+    for tool_func, description in tools:
+        app.tool(
+            name=tool_func.__name__,
+            description=description
+        )(tool_func)

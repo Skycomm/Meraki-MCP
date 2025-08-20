@@ -44,6 +44,11 @@ from server.tools_monitoring_dashboard import register_monitoring_dashboard_tool
 from server.tools_troubleshooting import register_troubleshooting_tools
 from server.tools_event_analysis import register_event_analysis_tools
 from server.tools_client_troubleshooting import register_client_troubleshooting_tools
+from server.tools_alert_configuration import register_alert_configuration_tools
+from server.tools_vpn_configuration import register_vpn_configuration_tools
+from server.tools_uplink_monitoring import register_uplink_monitoring_tools
+from server.tools_change_tracking import register_change_tracking_tools
+from server.tools_diagnostic_reports import register_diagnostic_reports_tools
 
 # Register resources and tools
 register_resources(app, meraki)
@@ -71,6 +76,11 @@ register_monitoring_dashboard_tools(app, meraki)
 register_troubleshooting_tools(app, meraki)
 register_event_analysis_tools(app, meraki)
 register_client_troubleshooting_tools(app, meraki)
+register_alert_configuration_tools(app, meraki)
+register_vpn_configuration_tools(app, meraki)
+register_uplink_monitoring_tools(app, meraki)
+register_change_tracking_tools(app, meraki)
+register_diagnostic_reports_tools(app, meraki)
 
 # When run directly, start the server
 if __name__ == "__main__":
