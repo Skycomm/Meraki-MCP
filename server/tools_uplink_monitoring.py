@@ -41,92 +41,94 @@ def get_uplink_status(network_id: str) -> str:
         Formatted uplink status overview
     """
     try:
-        with safe_api_call("get uplink status"):
-            # Get uplink settings
-            uplinks = meraki.dashboard.appliance.getNetworkApplianceUplinksSettings(
-                network_id
-            )
+        output = ["🌐 WAN Uplink Status", "=" * 50, ""]
+        
+        # Get network info
+        try:
+            network = meraki.dashboard.networks.getNetwork(network_id)
+            org_id = network.get('organizationId')
+            output.append(f"Network: {network['name']}")
+            output.append("")
+        except:
+            return "❌ Could not retrieve network information"
+        
+        # Get devices
+        devices = meraki.dashboard.networks.getNetworkDevices(network_id)
+        mx_device = next((d for d in devices if d['model'].startswith('MX')), None)
+        
+        if mx_device:
+            output.append(f"Device: {mx_device.get('name', mx_device['serial'])} ({mx_device['model']})")
+            output.append("")
             
-            result = f"""🌐 WAN Uplink Status
-==================================================
-
-"""
+            # Get uplink configuration from device
+            try:
+                settings = meraki.dashboard.appliance.getDeviceApplianceUplinksSettings(
+                    mx_device['serial']
+                )
+                
+                # WAN 1
+                wan1 = settings.get('interfaces', {}).get('wan1', {})
+                if wan1.get('enabled'):
+                    output.append("WAN 1: Enabled ✅")
+                    output.append(f"   Assignment: {wan1.get('svis', {}).get('ipv4', {}).get('assignmentMode', 'Unknown')}")
+                    if wan1.get('pppoe', {}).get('enabled'):
+                        output.append("   PPPoE: Enabled")
+                else:
+                    output.append("WAN 1: Disabled ❌")
+                output.append("")
+                
+                # WAN 2  
+                wan2 = settings.get('interfaces', {}).get('wan2', {})
+                if wan2.get('enabled'):
+                    output.append("WAN 2: Enabled ✅")
+                    output.append(f"   Assignment: {wan2.get('svis', {}).get('ipv4', {}).get('assignmentMode', 'Unknown')}")
+                    if wan2.get('pppoe', {}).get('enabled'):
+                        output.append("   PPPoE: Enabled")
+                else:
+                    output.append("WAN 2: Disabled ❌")
+                output.append("")
+                    
+            except Exception as e:
+                output.append(f"⚠️ Could not get uplink configuration: {str(e)}")
+                output.append("")
+        
+        # Try to get actual uplink status from organization API
+        try:
+            uplink_statuses = meraki.dashboard.appliance.getOrganizationApplianceUplinkStatuses(org_id)
             
-            # Get device to check uplink status
-            devices = meraki.dashboard.networks.getNetworkDevices(network_id)
-            mx_device = next((d for d in devices if d['model'].startswith('MX')), None)
-            
-            if mx_device:
-                # Get uplink statuses
-                try:
-                    statuses = meraki.dashboard.appliance.getDeviceApplianceUplinksSettings(
-                        mx_device['serial']
-                    )
+            for status in uplink_statuses:
+                if status.get('networkId') == network_id:
+                    output.append("📡 Current Uplink Status:")
                     
-                    # WAN 1
-                    wan1 = statuses.get('wan1', {})
-                    if wan1.get('enabled'):
-                        status = '🟢 Active' if wan1.get('status') == 'active' else '🔴 Down'
-                        result += f"WAN 1: {status}"
-                        result += f"\n   Interface: {wan1.get('interface', 'Ethernet')}"
-                        result += f"\n   IP: {wan1.get('ip', 'DHCP')}"
-                        if wan1.get('gateway'):
-                            result += f"\n   Gateway: {wan1['gateway']}"
-                        result += "\n"
-                    
-                    # WAN 2
-                    wan2 = statuses.get('wan2', {})
-                    if wan2.get('enabled'):
-                        status = '🟢 Active' if wan2.get('status') == 'active' else '🔴 Down'
-                        result += f"\nWAN 2: {status}"
-                        result += f"\n   Interface: {wan2.get('interface', 'Ethernet')}"
-                        result += f"\n   IP: {wan2.get('ip', 'DHCP')}"
-                        if wan2.get('gateway'):
-                            result += f"\n   Gateway: {wan2['gateway']}"
-                        result += "\n"
-                    
-                    # Cellular (if available)
-                    cellular = statuses.get('cellular', {})
-                    if cellular.get('enabled'):
-                        status = '🟢 Active' if cellular.get('status') == 'active' else '🟡 Standby'
-                        result += f"\nCellular: {status}"
-                        result += f"\n   Carrier: {cellular.get('carrier', 'Unknown')}"
-                        result += f"\n   Signal: {cellular.get('signalStrength', 'N/A')}"
-                        result += "\n"
+                    for uplink in status.get('uplinks', []):
+                        interface = uplink.get('interface', 'Unknown')
+                        is_active = uplink.get('status') == 'active'
+                        status_icon = '🟢' if is_active else '🔴'
                         
-                except:
-                    pass
-            
-            # Load balancing settings
-            result += f"\n⚖️ Load Balancing:"
-            result += f"\n   Mode: {uplinks.get('loadBalancingMode', 'failover')}"
-            
-            if uplinks.get('loadBalancingMode') == 'weighted':
-                result += "\n   Weights:"
-                for iface in ['wan1', 'wan2']:
-                    if iface in uplinks:
-                        result += f"\n   • {iface.upper()}: {uplinks[iface].get('weight', 50)}%"
-            
-            # Failover settings
-            result += f"\n\n🔄 Failover & Performance:"
-            result += f"\n   Primary Uplink: {uplinks.get('primaryUplink', 'WAN 1')}"
-            
-            # Bandwidth limits
-            wan1_settings = uplinks.get('wan1', {})
-            if wan1_settings.get('bandwidthLimits'):
-                limits = wan1_settings['bandwidthLimits']
-                result += f"\n\n📊 WAN 1 Bandwidth Limits:"
-                result += f"\n   Download: {limits.get('limitDown', 'Unlimited')} Mbps"
-                result += f"\n   Upload: {limits.get('limitUp', 'Unlimited')} Mbps"
-            
-            result += "\n\n💡 Quick Actions:"
-            result += "\n   • View bandwidth history"
-            result += "\n   • Configure failover"
-            result += "\n   • Set bandwidth limits"
-            result += "\n   • Check failover events"
-            
-            return result
-            
+                        output.append(f"\n{interface.upper()}: {status_icon} {uplink.get('status', 'Unknown').title()}")
+                        if uplink.get('ip'):
+                            output.append(f"   IP: {uplink['ip']}")
+                        if uplink.get('gateway'):
+                            output.append(f"   Gateway: {uplink['gateway']}")
+                        if uplink.get('dns'):
+                            output.append(f"   DNS: {uplink['dns']}")
+                    break
+        except:
+            # Fallback - just show basic info
+            pass
+        
+        # Show quick actions
+        output.extend([
+            "",
+            "💡 Quick Actions:",
+            "• Run get_realtime_bandwidth_usage() for current bandwidth",
+            "• Run get_uplink_bandwidth_history() for historical data",
+            "• Run analyze_uplink_health() for health analysis",
+            "• Run run_throughput_test() to test speeds"
+        ])
+        
+        return "\n".join(output)
+        
     except Exception as e:
         return format_error("get uplink status", e)
 
@@ -274,34 +276,41 @@ def get_realtime_bandwidth_usage(network_id: str) -> str:
                 # Get the most recent data point
                 latest = usage[-1] if usage else None
                 
-                if latest:
-                    interface = latest.get('interface', 'Unknown')
-                    sent_bytes = latest.get('sent', 0)
-                    recv_bytes = latest.get('received', 0)
+                if latest and 'byInterface' in latest:
+                    output.append(f"Time Period: {latest.get('startTime', '')} to {latest.get('endTime', '')}")
+                    output.append("")
                     
-                    # Convert bytes to Mbps (bytes * 8 / 1,000,000)
-                    sent_mbps = (sent_bytes * 8) / 1_000_000
-                    recv_mbps = (recv_bytes * 8) / 1_000_000
+                    # Process each interface
+                    total_sent = 0
+                    total_recv = 0
                     
-                    output.append(f"Interface: {interface}")
-                    output.append(f"Time: {latest.get('t', 'Unknown')}")
-                    output.append(f"📤 Upload: {sent_mbps:.2f} Mbps")
-                    output.append(f"📥 Download: {recv_mbps:.2f} Mbps")
-                    output.append(f"📊 Total: {(sent_mbps + recv_mbps):.2f} Mbps")
+                    for iface_data in latest.get('byInterface', []):
+                        interface = iface_data.get('interface', 'Unknown')
+                        sent_bytes = iface_data.get('sent', 0)
+                        recv_bytes = iface_data.get('received', 0)
+                        
+                        # Skip interfaces with no traffic
+                        if sent_bytes == 0 and recv_bytes == 0:
+                            continue
+                        
+                        # Convert bytes to Mbps (bytes * 8 / 1,000,000)
+                        # Also divide by time period (60 seconds) to get rate
+                        sent_mbps = (sent_bytes * 8) / 1_000_000 / 60
+                        recv_mbps = (recv_bytes * 8) / 1_000_000 / 60
+                        
+                        total_sent += sent_mbps
+                        total_recv += recv_mbps
+                        
+                        output.append(f"Interface: {interface}")
+                        output.append(f"📤 Upload: {sent_mbps:.2f} Mbps")
+                        output.append(f"📥 Download: {recv_mbps:.2f} Mbps")
+                        output.append("")
                     
-                    # Show all interfaces if available
-                    if len(usage) > 0:
-                        output.append("\n📈 All Interfaces:")
-                        interfaces_seen = set()
-                        for entry in usage[-5:]:  # Last 5 entries
-                            iface = entry.get('interface', 'Unknown')
-                            if iface not in interfaces_seen:
-                                interfaces_seen.add(iface)
-                                sent = entry.get('sent', 0)
-                                recv = entry.get('received', 0)
-                                sent_mbps = (sent * 8) / 1_000_000
-                                recv_mbps = (recv * 8) / 1_000_000
-                                output.append(f"   {iface}: ↑{sent_mbps:.2f} ↓{recv_mbps:.2f} Mbps")
+                    if total_sent > 0 or total_recv > 0:
+                        output.append(f"📊 Total Bandwidth:")
+                        output.append(f"   Upload: {total_sent:.2f} Mbps")
+                        output.append(f"   Download: {total_recv:.2f} Mbps")
+                        output.append(f"   Combined: {(total_sent + total_recv):.2f} Mbps")
                 else:
                     output.append("No recent bandwidth data available")
             else:

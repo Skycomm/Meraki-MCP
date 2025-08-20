@@ -248,17 +248,19 @@ def get_uplink_bandwidth_summary(
                         # Group by interface
                         by_interface = {}
                         for entry in bandwidth:
-                            interface = entry.get('interface', 'Unknown')
-                            if interface not in by_interface:
-                                by_interface[interface] = {
-                                    'sent': [],
-                                    'received': [],
-                                    'timestamps': []
-                                }
-                            
-                            by_interface[interface]['sent'].append(entry.get('sent', 0))
-                            by_interface[interface]['received'].append(entry.get('received', 0))
-                            by_interface[interface]['timestamps'].append(entry.get('t', ''))
+                            # Each entry has a byInterface array
+                            for iface_data in entry.get('byInterface', []):
+                                interface = iface_data.get('interface', 'Unknown')
+                                if interface not in by_interface:
+                                    by_interface[interface] = {
+                                        'sent': [],
+                                        'received': [],
+                                        'timestamps': []
+                                    }
+                                
+                                by_interface[interface]['sent'].append(iface_data.get('sent', 0))
+                                by_interface[interface]['received'].append(iface_data.get('received', 0))
+                                by_interface[interface]['timestamps'].append(entry.get('startTime', ''))
                         
                         # Display summary for each interface
                         for interface, data in by_interface.items():
@@ -270,13 +272,17 @@ def get_uplink_bandwidth_summary(
                                 avg_received = sum(data['received']) / len(data['received'])
                                 max_received = max(data['received'])
                                 
+                                # Convert bytes to Mbps: (bytes * 8) / 1_000_000 / time_period_seconds
+                                # Resolution is in seconds, so divide by it to get rate
+                                time_divisor = resolution  # Time period in seconds
+                                
                                 output.append(f"     📤 Upload:")
-                                output.append(f"        Average: {(avg_sent * 8)/1000000:.2f} Mbps")
-                                output.append(f"        Peak: {(max_sent * 8)/1000000:.2f} Mbps")
+                                output.append(f"        Average: {(avg_sent * 8)/1000000/time_divisor:.2f} Mbps")
+                                output.append(f"        Peak: {(max_sent * 8)/1000000/time_divisor:.2f} Mbps")
                                 
                                 output.append(f"     📥 Download:")
-                                output.append(f"        Average: {(avg_received * 8)/1000000:.2f} Mbps")
-                                output.append(f"        Peak: {(max_received * 8)/1000000:.2f} Mbps")
+                                output.append(f"        Average: {(avg_received * 8)/1000000/time_divisor:.2f} Mbps")
+                                output.append(f"        Peak: {(max_received * 8)/1000000/time_divisor:.2f} Mbps")
                                 
                                 # Show recent trend
                                 if len(data['sent']) >= 3:
