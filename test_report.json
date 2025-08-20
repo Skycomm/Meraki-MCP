@@ -1,0 +1,59 @@
+{
+  "total_tools": 144,
+  "tested_tools": 37,
+  "passed_tools": 0,
+  "failed_tools": 37,
+  "categories": {
+    "organizations": {
+      "total": 3,
+      "passed": 0,
+      "failed": 3
+    },
+    "networks": {
+      "total": 4,
+      "passed": 0,
+      "failed": 4
+    },
+    "devices": {
+      "total": 4,
+      "passed": 0,
+      "failed": 4
+    },
+    "wireless": {
+      "total": 5,
+      "passed": 0,
+      "failed": 5
+    },
+    "switch": {
+      "total": 3,
+      "passed": 0,
+      "failed": 3
+    },
+    "dhcp": {
+      "total": 4,
+      "passed": 0,
+      "failed": 4
+    },
+    "firewall": {
+      "total": 4,
+      "passed": 0,
+      "failed": 4
+    },
+    "monitoring": {
+      "total": 4,
+      "passed": 0,
+      "failed": 4
+    },
+    "traffic_shaping": {
+      "total": 3,
+      "passed": 0,
+      "failed": 3
+    },
+    "live": {
+      "total": 3,
+      "passed": 0,
+      "failed": 3
+    }
+  },
+  "errors": []
+}

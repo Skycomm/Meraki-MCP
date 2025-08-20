@@ -3,7 +3,11 @@
 Cisco Meraki MCP Server - Modern implementation using FastMCP.
 """
 
-from mcp.server.fastmcp import FastMCP
+from mcp.server import FastMCP
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from meraki_client import MerakiClient
 from config import SERVER_NAME, SERVER_VERSION
 from utils.helpers import create_resource, create_content, format_error_message
@@ -32,6 +36,14 @@ from server.tools_monitoring import register_monitoring_tools
 from server.tools_beta import register_beta_tools
 from server.tools_live import register_live_tools
 from server.tools_dhcp import register_dhcp_tools
+from server.tools_dhcp_singlelan import register_single_lan_dhcp_tools
+from server.tools_dhcp_helper import register_dhcp_helper_tools
+from server.tools_traffic_shaping import register_traffic_shaping_tools
+from server.tools_firewall import register_firewall_tools
+from server.tools_monitoring_dashboard import register_monitoring_dashboard_tools
+from server.tools_troubleshooting import register_troubleshooting_tools
+from server.tools_event_analysis import register_event_analysis_tools
+from server.tools_client_troubleshooting import register_client_troubleshooting_tools
 
 # Register resources and tools
 register_resources(app, meraki)
@@ -50,7 +62,15 @@ register_policy_tools(app, meraki)
 register_monitoring_tools(app, meraki)
 register_beta_tools(app, meraki)
 register_live_tools(app, meraki)
+register_dhcp_helper_tools(app, meraki)
 register_dhcp_tools(app, meraki)
+register_single_lan_dhcp_tools(app, meraki)
+register_traffic_shaping_tools(app, meraki)
+register_firewall_tools(app, meraki)
+register_monitoring_dashboard_tools(app, meraki)
+register_troubleshooting_tools(app, meraki)
+register_event_analysis_tools(app, meraki)
+register_client_troubleshooting_tools(app, meraki)
 
 # When run directly, start the server
 if __name__ == "__main__":

@@ -285,6 +285,22 @@ class MerakiClient:
         """Get site-to-site VPN settings - REAL method."""
         return self.dashboard.appliance.getNetworkApplianceVpnSiteToSiteVpn(network_id)
     
+    def get_network_appliance_settings(self, network_id: str):
+        """Get network appliance settings - REAL method."""
+        return self.dashboard.appliance.getNetworkApplianceSettings(network_id)
+    
+    def update_network_appliance_settings(self, network_id: str, **kwargs):
+        """Update network appliance settings - REAL method."""
+        return self.dashboard.appliance.updateNetworkApplianceSettings(network_id, **kwargs)
+    
+    def get_network_appliance_single_lan(self, network_id: str):
+        """Get Single LAN configuration - REAL method."""
+        return self.dashboard.appliance.getNetworkApplianceSingleLan(network_id)
+    
+    def update_network_appliance_single_lan(self, network_id: str, **kwargs):
+        """Update Single LAN configuration - REAL method."""
+        return self.dashboard.appliance.updateNetworkApplianceSingleLan(network_id, **kwargs)
+    
     def get_network_appliance_security_malware(self, network_id: str):
         """Get malware protection settings - REAL method."""
         return self.dashboard.appliance.getNetworkApplianceSecurityMalware(network_id)

@@ -1,0 +1,1058 @@
+{
+  "total_tools": 144,
+  "categories": 21,
+  "tools": [
+    {
+      "name": "get_organization_webhooks",
+      "function": "get_organization_webhooks",
+      "description": "Get all webhooks configured for an organization.",
+      "category": "alerts"
+    },
+    {
+      "name": "create_organization_webhook",
+      "function": "create_organization_webhook",
+      "description": "Create a new webhook HTTP server for an organization.",
+      "category": "alerts"
+    },
+    {
+      "name": "get_network_webhook_http_servers",
+      "function": "get_network_webhook_http_servers",
+      "description": "Get webhook HTTP servers configured for a network.",
+      "category": "alerts"
+    },
+    {
+      "name": "create_network_webhook_http_server",
+      "function": "create_network_webhook_http_server",
+      "description": "Create a webhook HTTP server for a network.",
+      "category": "alerts"
+    },
+    {
+      "name": "get_network_alerts_settings",
+      "function": "get_network_alerts_settings",
+      "description": "Get alert settings for a network.",
+      "category": "alerts"
+    },
+    {
+      "name": "update_network_alerts_settings",
+      "function": "update_network_alerts_settings",
+      "description": "Update alert settings for a network.",
+      "category": "alerts"
+    },
+    {
+      "name": "get_organization_uplinks_loss_and_latency",
+      "function": "get_organization_uplinks_loss_and_latency",
+      "description": "Get REAL packet loss and latency data for all uplinks in organization.",
+      "category": "analytics"
+    },
+    {
+      "name": "get_organization_appliance_uplink_statuses",
+      "function": "get_organization_appliance_uplink_statuses",
+      "description": "Get REAL uplink status for all appliances in organization.",
+      "category": "analytics"
+    },
+    {
+      "name": "get_network_connection_stats",
+      "function": "get_network_connection_stats",
+      "description": "Get REAL network connection statistics.",
+      "category": "analytics"
+    },
+    {
+      "name": "get_network_latency_stats",
+      "function": "get_network_latency_stats",
+      "description": "Get REAL network latency statistics.",
+      "category": "analytics"
+    },
+    {
+      "name": "get_network_appliance_firewall_l3_rules",
+      "function": "get_network_appliance_firewall_l3_rules",
+      "description": "Get Layer 3 firewall rules for a network appliance.",
+      "category": "appliance"
+    },
+    {
+      "name": "update_network_appliance_firewall_l3_rules",
+      "function": "update_network_appliance_firewall_l3_rules",
+      "description": "Add a new L3 firewall rule to a network (existing rules are preserved).",
+      "category": "appliance"
+    },
+    {
+      "name": "get_network_appliance_content_filtering",
+      "function": "get_network_appliance_content_filtering",
+      "description": "Get content filtering settings for a network appliance.",
+      "category": "appliance"
+    },
+    {
+      "name": "get_network_appliance_vpn_site_to_site",
+      "function": "get_network_appliance_vpn_site_to_site",
+      "description": "Get site-to-site VPN settings for a network appliance.",
+      "category": "appliance"
+    },
+    {
+      "name": "get_network_appliance_security_malware",
+      "function": "get_network_appliance_security_malware",
+      "description": "Get malware protection settings for a network appliance.",
+      "category": "appliance"
+    },
+    {
+      "name": "get_network_appliance_security_intrusion",
+      "function": "get_network_appliance_security_intrusion",
+      "description": "Get intrusion detection and prevention settings for a network.",
+      "category": "appliance"
+    },
+    {
+      "name": "get_organization_early_access_features",
+      "function": "get_organization_early_access_features",
+      "description": "List all available early access features for an organization.",
+      "category": "beta"
+    },
+    {
+      "name": "get_organization_early_access_opt_ins",
+      "function": "get_organization_early_access_opt_ins",
+      "description": "List all early access features that the organization has opted into.",
+      "category": "beta"
+    },
+    {
+      "name": "enable_organization_early_access_feature",
+      "function": "enable_organization_early_access_feature",
+      "description": "Opt into an early access feature for the organization.",
+      "category": "beta"
+    },
+    {
+      "name": "disable_organization_early_access_feature",
+      "function": "disable_organization_early_access_feature",
+      "description": "Opt out of an early access feature for the organization.",
+      "category": "beta"
+    },
+    {
+      "name": "get_organization_api_analytics",
+      "function": "get_organization_api_analytics",
+      "description": "Get API analytics for the organization (new 2025 feature).",
+      "category": "beta"
+    },
+    {
+      "name": "check_beta_apis_status",
+      "function": "check_beta_apis_status",
+      "description": "Check the status of beta APIs mentioned in the 2025 documentation.",
+      "category": "beta"
+    },
+    {
+      "name": "get_device_camera_video_link",
+      "function": "get_device_camera_video_link",
+      "description": "Get video link for a camera device.",
+      "category": "camera"
+    },
+    {
+      "name": "get_device_camera_snapshot",
+      "function": "get_device_camera_snapshot",
+      "description": "Generate a snapshot from a camera.",
+      "category": "camera"
+    },
+    {
+      "name": "get_device_camera_video_settings",
+      "function": "get_device_camera_video_settings",
+      "description": "Get video settings for a camera device.",
+      "category": "camera"
+    },
+    {
+      "name": "update_device_camera_video_settings",
+      "function": "update_device_camera_video_settings",
+      "description": "Update video settings for a camera device.",
+      "category": "camera"
+    },
+    {
+      "name": "get_device_camera_analytics_zones",
+      "function": "get_device_camera_analytics_zones",
+      "description": "Get analytics zones configured on a camera.",
+      "category": "camera"
+    },
+    {
+      "name": "get_device_camera_sense",
+      "function": "get_device_camera_sense",
+      "description": "Get motion detection (sense) settings for a camera.",
+      "category": "camera"
+    },
+    {
+      "name": "get_device",
+      "function": "get_device",
+      "description": "Get details about a specific Meraki device.",
+      "category": "devices"
+    },
+    {
+      "name": "update_device",
+      "function": "update_device",
+      "description": "Update a Meraki device.",
+      "category": "devices"
+    },
+    {
+      "name": "reboot_device",
+      "function": "reboot_device",
+      "description": "Reboot a Meraki device.",
+      "category": "devices"
+    },
+    {
+      "name": "confirm_reboot_device",
+      "function": "confirm_reboot_device",
+      "description": "Actually reboot a device after explicit confirmation.",
+      "category": "devices"
+    },
+    {
+      "name": "get_device_clients",
+      "function": "get_device_clients",
+      "description": "List clients connected to a specific Meraki device.",
+      "category": "devices"
+    },
+    {
+      "name": "get_device_status",
+      "function": "get_device_status",
+      "description": "Get status information for a specific Meraki device.",
+      "category": "devices"
+    },
+    {
+      "name": "get_vlan_dhcp_settings",
+      "function": "get_vlan_dhcp_settings",
+      "description": "\ud83d\udd27 [VLAN Networks] Get DHCP settings for a specific VLAN.",
+      "category": "dhcp"
+    },
+    {
+      "name": "update_vlan_dhcp_server",
+      "function": "update_vlan_dhcp_server",
+      "description": "\ud83d\udd27 [VLAN Networks] Configure VLAN to run DHCP server with basic settings.",
+      "category": "dhcp"
+    },
+    {
+      "name": "configure_dhcp_relay",
+      "function": "configure_dhcp_relay",
+      "description": "\ud83d\udd27 Configure VLAN to relay DHCP to another server.",
+      "category": "dhcp"
+    },
+    {
+      "name": "disable_vlan_dhcp",
+      "function": "disable_vlan_dhcp",
+      "description": "\ud83d\udd27 Disable DHCP on a VLAN.",
+      "category": "dhcp"
+    },
+    {
+      "name": "add_dhcp_fixed_assignment",
+      "function": "add_dhcp_fixed_assignment",
+      "description": "\ud83d\udd27 [VLAN Networks] Add a fixed IP assignment (DHCP reservation) for a MAC address.",
+      "category": "dhcp"
+    },
+    {
+      "name": "remove_dhcp_fixed_assignment",
+      "function": "remove_dhcp_fixed_assignment",
+      "description": "\ud83d\udd27 Remove a fixed IP assignment (DHCP reservation).",
+      "category": "dhcp"
+    },
+    {
+      "name": "add_dhcp_reserved_range",
+      "function": "add_dhcp_reserved_range",
+      "description": "\ud83d\udd27 Add a reserved IP range to exclude from DHCP pool.",
+      "category": "dhcp"
+    },
+    {
+      "name": "configure_dhcp_boot_options",
+      "function": "configure_dhcp_boot_options",
+      "description": "\ud83d\udd27 Configure DHCP boot options for PXE booting.",
+      "category": "dhcp"
+    },
+    {
+      "name": "add_custom_dhcp_option",
+      "function": "add_custom_dhcp_option",
+      "description": "\ud83d\udd27 Add a custom DHCP option.",
+      "category": "dhcp"
+    },
+    {
+      "name": "enable_mandatory_dhcp",
+      "function": "enable_mandatory_dhcp",
+      "description": "\ud83d\udd27 Enable mandatory DHCP (clients must use DHCP-assigned IPs).",
+      "category": "dhcp"
+    },
+    {
+      "name": "get_appliance_dhcp_subnets",
+      "function": "get_appliance_dhcp_subnets",
+      "description": "\ud83d\udd27 Get DHCP subnet information for an appliance.",
+      "category": "dhcp"
+    },
+    {
+      "name": "check_dhcp_network_type",
+      "function": "check_dhcp_network_type",
+      "description": "\ud83d\udd0d Check network type to determine which DHCP tools to use.",
+      "category": "dhcp_helper"
+    },
+    {
+      "name": "dhcp_tools_help",
+      "function": "dhcp_tools_help",
+      "description": "\ud83d\udcda Get help on using DHCP tools correctly.",
+      "category": "dhcp_helper"
+    },
+    {
+      "name": "get_single_lan_dhcp_settings",
+      "function": "get_single_lan_dhcp_settings",
+      "description": "\ud83d\udd27 [Single LAN] Get DHCP settings for Single LAN network.",
+      "category": "dhcp_singlelan"
+    },
+    {
+      "name": "add_single_lan_fixed_ip",
+      "function": "add_single_lan_fixed_ip",
+      "description": "\ud83d\udd27 [Single LAN] Add a fixed IP assignment to Single LAN network.",
+      "category": "dhcp_singlelan"
+    },
+    {
+      "name": "add_single_lan_dhcp_option",
+      "function": "add_single_lan_dhcp_option",
+      "description": "\ud83d\udd27 Add a custom DHCP option to Single LAN network.",
+      "category": "dhcp_singlelan"
+    },
+    {
+      "name": "remove_single_lan_fixed_ip",
+      "function": "remove_single_lan_fixed_ip",
+      "description": "\ud83d\udd27 Remove a fixed IP assignment from Single LAN network.",
+      "category": "dhcp_singlelan"
+    },
+    {
+      "name": "list_single_lan_fixed_ips",
+      "function": "list_single_lan_fixed_ips",
+      "description": "\ud83d\udd27 [Single LAN] List all fixed IP assignments in Single LAN network.",
+      "category": "dhcp_singlelan"
+    },
+    {
+      "name": "remove_single_lan_dhcp_option",
+      "function": "remove_single_lan_dhcp_option",
+      "description": "\ud83d\udd27 Remove a custom DHCP option from Single LAN network.",
+      "category": "dhcp_singlelan"
+    },
+    {
+      "name": "get_firewall_l3_rules",
+      "function": "get_firewall_l3_rules",
+      "description": "\ud83d\udd25 Get Layer 3 firewall rules for a network.",
+      "category": "firewall"
+    },
+    {
+      "name": "update_firewall_l3_rules",
+      "function": "update_firewall_l3_rules",
+      "description": "\ud83d\udee1\ufe0f Update Layer 3 firewall rules for a network.",
+      "category": "firewall"
+    },
+    {
+      "name": "get_firewall_l7_rules",
+      "function": "get_firewall_l7_rules",
+      "description": "\ud83c\udf10 Get Layer 7 firewall rules for a network.",
+      "category": "firewall"
+    },
+    {
+      "name": "update_firewall_l7_rules",
+      "function": "update_firewall_l7_rules",
+      "description": "\ud83d\udee1\ufe0f Update Layer 7 firewall rules for a network.",
+      "category": "firewall"
+    },
+    {
+      "name": "get_firewall_port_forwarding_rules",
+      "function": "get_firewall_port_forwarding_rules",
+      "description": "\u2197\ufe0f Get port forwarding rules for a network.",
+      "category": "firewall"
+    },
+    {
+      "name": "update_firewall_port_forwarding_rules",
+      "function": "update_firewall_port_forwarding_rules",
+      "description": "\ud83d\udd04 Update port forwarding rules for a network.",
+      "category": "firewall"
+    },
+    {
+      "name": "get_firewall_inbound_cellular_rules",
+      "function": "get_firewall_inbound_cellular_rules",
+      "description": "\ud83d\udcf6 Get inbound cellular firewall rules.",
+      "category": "firewall"
+    },
+    {
+      "name": "get_firewall_services",
+      "function": "get_firewall_services",
+      "description": "\ud83d\udd27 Get firewall service settings.",
+      "category": "firewall"
+    },
+    {
+      "name": "update_firewall_services",
+      "function": "update_firewall_services",
+      "description": "\ud83d\udd27 Update firewall service settings.",
+      "category": "firewall"
+    },
+    {
+      "name": "get_layer7_application_categories",
+      "function": "get_layer7_application_categories",
+      "description": "\ud83d\udcf1 Get all available Layer 7 application categories.",
+      "category": "firewall"
+    },
+    {
+      "name": "check_firewall_prerequisites",
+      "function": "check_firewall_prerequisites",
+      "description": "\ud83d\udd0d Check firewall configuration prerequisites.",
+      "category": "firewall"
+    },
+    {
+      "name": "get_organization_licenses",
+      "function": "get_organization_licenses",
+      "description": "List all licenses for an organization.",
+      "category": "licensing"
+    },
+    {
+      "name": "get_organization_licensing_coterm",
+      "function": "get_organization_licensing_coterm",
+      "description": "Get co-termination licensing model information.",
+      "category": "licensing"
+    },
+    {
+      "name": "claim_organization_license",
+      "function": "claim_organization_license",
+      "description": "Claim a new license key for an organization.",
+      "category": "licensing"
+    },
+    {
+      "name": "update_organization_license",
+      "function": "update_organization_license",
+      "description": "Update a license (typically to assign/unassign to a device).",
+      "category": "licensing"
+    },
+    {
+      "name": "move_organization_licenses",
+      "function": "move_organization_licenses",
+      "description": "Move licenses from one organization to another.",
+      "category": "licensing"
+    },
+    {
+      "name": "renew_organization_licenses_seats",
+      "function": "renew_organization_licenses_seats",
+      "description": "Renew Systems Manager seats by combining licenses.",
+      "category": "licensing"
+    },
+    {
+      "name": "create_device_ping_test",
+      "function": "create_device_ping_test",
+      "description": "Create a ping test from a device.",
+      "category": "live"
+    },
+    {
+      "name": "get_device_ping_test",
+      "function": "get_device_ping_test",
+      "description": "Get results of a ping test.",
+      "category": "live"
+    },
+    {
+      "name": "create_device_throughput_test",
+      "function": "create_device_throughput_test",
+      "description": "Create a throughput test between two devices.",
+      "category": "live"
+    },
+    {
+      "name": "get_device_throughput_test",
+      "function": "get_device_throughput_test",
+      "description": "Get results of a throughput test.",
+      "category": "live"
+    },
+    {
+      "name": "create_switch_cable_test",
+      "function": "create_switch_cable_test",
+      "description": "Run cable diagnostic test on a switch port.",
+      "category": "live"
+    },
+    {
+      "name": "get_switch_cable_test",
+      "function": "get_switch_cable_test",
+      "description": "Get results of a cable test.",
+      "category": "live"
+    },
+    {
+      "name": "create_device_wake_on_lan",
+      "function": "create_device_wake_on_lan",
+      "description": "Send Wake-on-LAN packet to wake up a device.",
+      "category": "live"
+    },
+    {
+      "name": "create_switch_mac_table",
+      "function": "create_switch_mac_table",
+      "description": "Request MAC address table from a switch.",
+      "category": "live"
+    },
+    {
+      "name": "get_switch_mac_table",
+      "function": "get_switch_mac_table",
+      "description": "Get MAC address table results.",
+      "category": "live"
+    },
+    {
+      "name": "blink_device_leds",
+      "function": "blink_device_leds",
+      "description": "Blink device LEDs to help identify it physically.",
+      "category": "live"
+    },
+    {
+      "name": "get_device_memory_history",
+      "function": "get_device_memory_history",
+      "description": "Get memory utilization history for a device.",
+      "category": "monitoring"
+    },
+    {
+      "name": "get_device_cpu_power_mode_history",
+      "function": "get_device_cpu_power_mode_history",
+      "description": "Get CPU power mode history for a wireless device.",
+      "category": "monitoring"
+    },
+    {
+      "name": "get_device_wireless_cpu_load",
+      "function": "get_device_wireless_cpu_load",
+      "description": "Get current CPU load for a wireless device.",
+      "category": "monitoring"
+    },
+    {
+      "name": "get_organization_switch_ports_history",
+      "function": "get_organization_switch_ports_history",
+      "description": "Get aggregated switch port statistics history for entire organization.",
+      "category": "monitoring"
+    },
+    {
+      "name": "get_organization_devices_migration_status",
+      "function": "get_organization_devices_migration_status",
+      "description": "Get migration status for devices being migrated in the organization.",
+      "category": "monitoring"
+    },
+    {
+      "name": "get_organization_api_usage",
+      "function": "get_organization_api_usage",
+      "description": "Get API usage statistics for monitoring API consumption.",
+      "category": "monitoring"
+    },
+    {
+      "name": "get_network_health_summary",
+      "function": "get_network_health_summary",
+      "description": "\ud83c\udfe5 Get comprehensive network health summary.",
+      "category": "monitoring_dashboard"
+    },
+    {
+      "name": "get_uplink_bandwidth_history",
+      "function": "get_uplink_bandwidth_history",
+      "description": "\ud83d\udcc8 Get historical bandwidth usage for WAN uplinks.",
+      "category": "monitoring_dashboard"
+    },
+    {
+      "name": "get_critical_alerts",
+      "function": "get_critical_alerts",
+      "description": "\ud83d\udea8 Get critical alerts and events.",
+      "category": "monitoring_dashboard"
+    },
+    {
+      "name": "get_device_utilization",
+      "function": "get_device_utilization",
+      "description": "\ud83d\udcbb Get device CPU and memory utilization.",
+      "category": "monitoring_dashboard"
+    },
+    {
+      "name": "get_vpn_performance_stats",
+      "function": "get_vpn_performance_stats",
+      "description": "\ud83d\udd12 Get VPN tunnel performance statistics.",
+      "category": "monitoring_dashboard"
+    },
+    {
+      "name": "generate_network_health_report",
+      "function": "generate_network_health_report",
+      "description": "\ud83d\udcca Generate comprehensive network health report.",
+      "category": "monitoring_dashboard"
+    },
+    {
+      "name": "check_monitoring_prerequisites",
+      "function": "check_monitoring_prerequisites",
+      "description": "\ud83d\udd0d Check monitoring capabilities for this network.",
+      "category": "monitoring_dashboard"
+    },
+    {
+      "name": "get_network",
+      "function": "get_network",
+      "description": "Get details about a specific Meraki network.",
+      "category": "networks"
+    },
+    {
+      "name": "update_network",
+      "function": "update_network",
+      "description": "Update a Meraki network.",
+      "category": "networks"
+    },
+    {
+      "name": "get_network_devices",
+      "function": "get_network_devices",
+      "description": "List devices in a Meraki network.",
+      "category": "networks"
+    },
+    {
+      "name": "get_network_clients",
+      "function": "get_network_clients",
+      "description": "List clients in a Meraki network.",
+      "category": "networks"
+    },
+    {
+      "name": "create_network",
+      "function": "create_network",
+      "description": "Create a new Meraki network in an organization.",
+      "category": "networks"
+    },
+    {
+      "name": "delete_network",
+      "function": "delete_network",
+      "description": "Delete a Meraki network.",
+      "category": "networks"
+    },
+    {
+      "name": "list_organizations",
+      "function": "list_organizations",
+      "description": "List all Meraki organizations the API key has access to.",
+      "category": "organizations"
+    },
+    {
+      "name": "get_organization",
+      "function": "get_organization",
+      "description": "Get details about a specific Meraki organization.",
+      "category": "organizations"
+    },
+    {
+      "name": "get_organization_networks",
+      "function": "get_organization_networks",
+      "description": "List networks in a Meraki organization.",
+      "category": "organizations"
+    },
+    {
+      "name": "get_organization_alerts",
+      "function": "get_organization_alerts",
+      "description": "Get alert settings for a Meraki organization.",
+      "category": "organizations"
+    },
+    {
+      "name": "create_organization",
+      "function": "create_organization",
+      "description": "Create a new Meraki organization.",
+      "category": "organizations"
+    },
+    {
+      "name": "update_organization",
+      "function": "update_organization",
+      "description": "Update a Meraki organization.",
+      "category": "organizations"
+    },
+    {
+      "name": "delete_organization",
+      "function": "delete_organization",
+      "description": "Delete a Meraki organization.",
+      "category": "organizations"
+    },
+    {
+      "name": "get_organization_firmware",
+      "function": "get_organization_firmware",
+      "description": "Get firmware upgrades for a Meraki organization.",
+      "category": "organizations"
+    },
+    {
+      "name": "get_organization_policy_objects",
+      "function": "get_organization_policy_objects",
+      "description": "List all policy objects for an organization.",
+      "category": "policy"
+    },
+    {
+      "name": "create_organization_policy_object",
+      "function": "create_organization_policy_object",
+      "description": "Create a new policy object.",
+      "category": "policy"
+    },
+    {
+      "name": "update_organization_policy_object",
+      "function": "update_organization_policy_object",
+      "description": "Update an existing policy object.",
+      "category": "policy"
+    },
+    {
+      "name": "delete_organization_policy_object",
+      "function": "delete_organization_policy_object",
+      "description": "Delete a policy object.",
+      "category": "policy"
+    },
+    {
+      "name": "get_organization_policy_objects_groups",
+      "function": "get_organization_policy_objects_groups",
+      "description": "List all policy object groups for an organization.",
+      "category": "policy"
+    },
+    {
+      "name": "create_organization_policy_objects_group",
+      "function": "create_organization_policy_objects_group",
+      "description": "Create a new policy object group.",
+      "category": "policy"
+    },
+    {
+      "name": "get_network_sm_devices",
+      "function": "get_network_sm_devices",
+      "description": "List all devices enrolled in Systems Manager for a network.",
+      "category": "sm"
+    },
+    {
+      "name": "get_network_sm_device_detail",
+      "function": "get_network_sm_device_detail",
+      "description": "Get detailed information for a specific Systems Manager device.",
+      "category": "sm"
+    },
+    {
+      "name": "get_network_sm_device_apps",
+      "function": "get_network_sm_device_apps",
+      "description": "List all apps installed on a Systems Manager device.",
+      "category": "sm"
+    },
+    {
+      "name": "reboot_network_sm_devices",
+      "function": "reboot_network_sm_devices",
+      "description": "Reboot one or more Systems Manager devices.",
+      "category": "sm"
+    },
+    {
+      "name": "confirm_reboot_network_sm_devices",
+      "function": "confirm_reboot_network_sm_devices",
+      "description": "Actually reboot SM devices after explicit confirmation.",
+      "category": "sm"
+    },
+    {
+      "name": "get_network_sm_profiles",
+      "function": "get_network_sm_profiles",
+      "description": "List all Systems Manager profiles for a network.",
+      "category": "sm"
+    },
+    {
+      "name": "get_network_sm_performance_history",
+      "function": "get_network_sm_performance_history",
+      "description": "Get performance history for a Systems Manager device.",
+      "category": "sm"
+    },
+    {
+      "name": "get_device_switch_ports",
+      "function": "get_device_switch_ports",
+      "description": "List switch ports for a Meraki switch.",
+      "category": "switch"
+    },
+    {
+      "name": "update_device_switch_port",
+      "function": "update_device_switch_port",
+      "description": "Update a switch port for a Meraki switch.",
+      "category": "switch"
+    },
+    {
+      "name": "get_device_switch_port_statuses",
+      "function": "get_device_switch_port_statuses",
+      "description": "Get status information for switch ports.",
+      "category": "switch"
+    },
+    {
+      "name": "get_device_switch_vlans",
+      "function": "get_device_switch_vlans",
+      "description": "List VLANs for a Meraki switch.",
+      "category": "switch"
+    },
+    {
+      "name": "create_device_switch_vlan",
+      "function": "create_device_switch_vlan",
+      "description": "Create a new VLAN for a Meraki switch.",
+      "category": "switch"
+    },
+    {
+      "name": "get_network_traffic_shaping_rules",
+      "function": "get_network_traffic_shaping_rules",
+      "description": "\ud83d\udcca Get traffic shaping rules for a network.",
+      "category": "traffic_shaping"
+    },
+    {
+      "name": "update_network_traffic_shaping_rules",
+      "function": "update_network_traffic_shaping_rules",
+      "description": "\ud83c\udf9b\ufe0f Update traffic shaping rules for a network.",
+      "category": "traffic_shaping"
+    },
+    {
+      "name": "get_network_traffic_shaping_uplink_selection",
+      "function": "get_network_traffic_shaping_uplink_selection",
+      "description": "\ud83d\udd04 Get uplink selection settings for traffic shaping.",
+      "category": "traffic_shaping"
+    },
+    {
+      "name": "update_network_traffic_shaping_uplink_selection",
+      "function": "update_network_traffic_shaping_uplink_selection",
+      "description": "\ud83c\udf9b\ufe0f Update uplink selection for traffic shaping.",
+      "category": "traffic_shaping"
+    },
+    {
+      "name": "get_network_traffic_shaping_dscp_tagging",
+      "function": "get_network_traffic_shaping_dscp_tagging",
+      "description": "\ud83c\udff7\ufe0f Get DSCP tagging options for traffic shaping.",
+      "category": "traffic_shaping"
+    },
+    {
+      "name": "get_network_traffic_shaping_custom_performance_classes",
+      "function": "get_network_traffic_shaping_custom_performance_classes",
+      "description": "\u26a1 Get custom performance classes for traffic shaping.",
+      "category": "traffic_shaping"
+    },
+    {
+      "name": "create_traffic_shaping_custom_performance_class",
+      "function": "create_traffic_shaping_custom_performance_class",
+      "description": "\u2795 Create a custom performance class for traffic shaping.",
+      "category": "traffic_shaping"
+    },
+    {
+      "name": "update_traffic_shaping_vpn_exclusions",
+      "function": "update_traffic_shaping_vpn_exclusions",
+      "description": "\ud83d\udeab Update VPN exclusion rules for split tunneling.",
+      "category": "traffic_shaping"
+    },
+    {
+      "name": "get_traffic_shaping_application_categories",
+      "function": "get_traffic_shaping_application_categories",
+      "description": "\ud83d\udcf1 Get all available application categories for traffic shaping.",
+      "category": "traffic_shaping"
+    },
+    {
+      "name": "check_traffic_shaping_prerequisites",
+      "function": "check_traffic_shaping_prerequisites",
+      "description": "\ud83d\udd0d Check if traffic shaping is supported on this network.",
+      "category": "traffic_shaping"
+    },
+    {
+      "name": "get_network_wireless_ssids",
+      "function": "get_network_wireless_ssids",
+      "description": "List wireless SSIDs for a Meraki network.",
+      "category": "wireless"
+    },
+    {
+      "name": "get_network_wireless_passwords",
+      "function": "get_network_wireless_passwords",
+      "description": "Get WiFi passwords/PSK for wireless networks.",
+      "category": "wireless"
+    },
+    {
+      "name": "update_network_wireless_ssid",
+      "function": "update_network_wireless_ssid",
+      "description": "Update a wireless SSID for a Meraki network.",
+      "category": "wireless"
+    },
+    {
+      "name": "get_network_wireless_clients",
+      "function": "get_network_wireless_clients",
+      "description": "List wireless clients for a Meraki network.",
+      "category": "wireless"
+    },
+    {
+      "name": "get_network_wireless_usage",
+      "function": "get_network_wireless_usage",
+      "description": "Get wireless usage statistics for a Meraki network.",
+      "category": "wireless"
+    },
+    {
+      "name": "get_network_wireless_rf_profiles",
+      "function": "get_network_wireless_rf_profiles",
+      "description": "Get RF profiles for a wireless network.",
+      "category": "wireless"
+    },
+    {
+      "name": "get_network_wireless_air_marshal",
+      "function": "get_network_wireless_air_marshal",
+      "description": "Get Air Marshal (rogue AP detection) results for a network.",
+      "category": "wireless"
+    },
+    {
+      "name": "get_network_wireless_bluetooth_clients",
+      "function": "get_network_wireless_bluetooth_clients",
+      "description": "Get Bluetooth clients detected in a wireless network.",
+      "category": "wireless"
+    },
+    {
+      "name": "get_network_wireless_channel_utilization",
+      "function": "get_network_wireless_channel_utilization",
+      "description": "Get wireless channel utilization history for a network.",
+      "category": "wireless"
+    }
+  ],
+  "by_category": {
+    "alerts": [
+      "get_organization_webhooks",
+      "create_organization_webhook",
+      "get_network_webhook_http_servers",
+      "create_network_webhook_http_server",
+      "get_network_alerts_settings",
+      "update_network_alerts_settings"
+    ],
+    "analytics": [
+      "get_organization_uplinks_loss_and_latency",
+      "get_organization_appliance_uplink_statuses",
+      "get_network_connection_stats",
+      "get_network_latency_stats"
+    ],
+    "appliance": [
+      "get_network_appliance_firewall_l3_rules",
+      "update_network_appliance_firewall_l3_rules",
+      "get_network_appliance_content_filtering",
+      "get_network_appliance_vpn_site_to_site",
+      "get_network_appliance_security_malware",
+      "get_network_appliance_security_intrusion"
+    ],
+    "beta": [
+      "get_organization_early_access_features",
+      "get_organization_early_access_opt_ins",
+      "enable_organization_early_access_feature",
+      "disable_organization_early_access_feature",
+      "get_organization_api_analytics",
+      "check_beta_apis_status"
+    ],
+    "camera": [
+      "get_device_camera_video_link",
+      "get_device_camera_snapshot",
+      "get_device_camera_video_settings",
+      "update_device_camera_video_settings",
+      "get_device_camera_analytics_zones",
+      "get_device_camera_sense"
+    ],
+    "devices": [
+      "get_device",
+      "update_device",
+      "reboot_device",
+      "confirm_reboot_device",
+      "get_device_clients",
+      "get_device_status"
+    ],
+    "dhcp": [
+      "get_vlan_dhcp_settings",
+      "update_vlan_dhcp_server",
+      "configure_dhcp_relay",
+      "disable_vlan_dhcp",
+      "add_dhcp_fixed_assignment",
+      "remove_dhcp_fixed_assignment",
+      "add_dhcp_reserved_range",
+      "configure_dhcp_boot_options",
+      "add_custom_dhcp_option",
+      "enable_mandatory_dhcp",
+      "get_appliance_dhcp_subnets"
+    ],
+    "dhcp_helper": [
+      "check_dhcp_network_type",
+      "dhcp_tools_help"
+    ],
+    "dhcp_singlelan": [
+      "get_single_lan_dhcp_settings",
+      "add_single_lan_fixed_ip",
+      "add_single_lan_dhcp_option",
+      "remove_single_lan_fixed_ip",
+      "list_single_lan_fixed_ips",
+      "remove_single_lan_dhcp_option"
+    ],
+    "firewall": [
+      "get_firewall_l3_rules",
+      "update_firewall_l3_rules",
+      "get_firewall_l7_rules",
+      "update_firewall_l7_rules",
+      "get_firewall_port_forwarding_rules",
+      "update_firewall_port_forwarding_rules",
+      "get_firewall_inbound_cellular_rules",
+      "get_firewall_services",
+      "update_firewall_services",
+      "get_layer7_application_categories",
+      "check_firewall_prerequisites"
+    ],
+    "licensing": [
+      "get_organization_licenses",
+      "get_organization_licensing_coterm",
+      "claim_organization_license",
+      "update_organization_license",
+      "move_organization_licenses",
+      "renew_organization_licenses_seats"
+    ],
+    "live": [
+      "create_device_ping_test",
+      "get_device_ping_test",
+      "create_device_throughput_test",
+      "get_device_throughput_test",
+      "create_switch_cable_test",
+      "get_switch_cable_test",
+      "create_device_wake_on_lan",
+      "create_switch_mac_table",
+      "get_switch_mac_table",
+      "blink_device_leds"
+    ],
+    "monitoring": [
+      "get_device_memory_history",
+      "get_device_cpu_power_mode_history",
+      "get_device_wireless_cpu_load",
+      "get_organization_switch_ports_history",
+      "get_organization_devices_migration_status",
+      "get_organization_api_usage"
+    ],
+    "monitoring_dashboard": [
+      "get_network_health_summary",
+      "get_uplink_bandwidth_history",
+      "get_critical_alerts",
+      "get_device_utilization",
+      "get_vpn_performance_stats",
+      "generate_network_health_report",
+      "check_monitoring_prerequisites"
+    ],
+    "networks": [
+      "get_network",
+      "update_network",
+      "get_network_devices",
+      "get_network_clients",
+      "create_network",
+      "delete_network"
+    ],
+    "organizations": [
+      "list_organizations",
+      "get_organization",
+      "get_organization_networks",
+      "get_organization_alerts",
+      "create_organization",
+      "update_organization",
+      "delete_organization",
+      "get_organization_firmware"
+    ],
+    "policy": [
+      "get_organization_policy_objects",
+      "create_organization_policy_object",
+      "update_organization_policy_object",
+      "delete_organization_policy_object",
+      "get_organization_policy_objects_groups",
+      "create_organization_policy_objects_group"
+    ],
+    "sm": [
+      "get_network_sm_devices",
+      "get_network_sm_device_detail",
+      "get_network_sm_device_apps",
+      "reboot_network_sm_devices",
+      "confirm_reboot_network_sm_devices",
+      "get_network_sm_profiles",
+      "get_network_sm_performance_history"
+    ],
+    "switch": [
+      "get_device_switch_ports",
+      "update_device_switch_port",
+      "get_device_switch_port_statuses",
+      "get_device_switch_vlans",
+      "create_device_switch_vlan"
+    ],
+    "traffic_shaping": [
+      "get_network_traffic_shaping_rules",
+      "update_network_traffic_shaping_rules",
+      "get_network_traffic_shaping_uplink_selection",
+      "update_network_traffic_shaping_uplink_selection",
+      "get_network_traffic_shaping_dscp_tagging",
+      "get_network_traffic_shaping_custom_performance_classes",
+      "create_traffic_shaping_custom_performance_class",
+      "update_traffic_shaping_vpn_exclusions",
+      "get_traffic_shaping_application_categories",
+      "check_traffic_shaping_prerequisites"
+    ],
+    "wireless": [
+      "get_network_wireless_ssids",
+      "get_network_wireless_passwords",
+      "update_network_wireless_ssid",
+      "get_network_wireless_clients",
+      "get_network_wireless_usage",
+      "get_network_wireless_rf_profiles",
+      "get_network_wireless_air_marshal",
+      "get_network_wireless_bluetooth_clients",
+      "get_network_wireless_channel_utilization"
+    ]
+  }
+}

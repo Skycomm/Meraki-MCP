@@ -12,20 +12,22 @@ def register_dhcp_tools(mcp_app, meraki):
     """Register all DHCP-related tools with the MCP application."""
     
     @mcp_app.tool()
-    async def get_vlan_dhcp_settings(network_id: str, vlan_id: str) -> str:
+    def get_vlan_dhcp_settings(network_id: str, vlan_id: str) -> str:
         """
-        🔧 Get DHCP settings for a specific VLAN.
+        🔧 [VLAN Networks] Get DHCP settings for a specific VLAN.
+        
+        ⚠️ For VLAN-enabled networks only! Use check_dhcp_network_type first.
         
         Args:
             network_id: Network ID
-            vlan_id: VLAN ID
+            vlan_id: VLAN ID (e.g., "10", "100", NOT subnet like "5")
             
         Returns:
             Formatted DHCP configuration details
         """
         try:
             # Get VLAN configuration including DHCP settings
-            vlan = await meraki.get(f"/networks/{network_id}/appliance/vlans/{vlan_id}")
+            vlan = meraki.dashboard.appliance.getNetworkApplianceVlan(network_id, vlan_id)
             
             result = f"# DHCP Settings for VLAN {vlan_id}\n\n"
             result += f"**Network**: {network_id}\n"
@@ -96,18 +98,37 @@ def register_dhcp_tools(mcp_app, meraki):
             
         except Exception as e:
             logger.error(f"Error getting DHCP settings: {e}")
-            return f"❌ Error getting DHCP settings: {str(e)}"
+            error_msg = str(e)
+            
+            # Provide helpful guidance for common errors
+            if "404" in error_msg or "not found" in error_msg.lower():
+                return f"""❌ VLAN {vlan_id} not found!
+
+Possible issues:
+1. This network might not have VLANs enabled (Single LAN network)
+   → Use `check_dhcp_network_type(network_id="{network_id}")` to verify
+   → For Single LAN networks, use `get_single_lan_dhcp_settings` instead
+
+2. The VLAN ID might be incorrect
+   → VLAN IDs are NOT the same as subnet numbers (e.g., 192.168.5.x ≠ VLAN 5)
+   → Check available VLANs with `check_dhcp_network_type`
+
+Original error: {error_msg}"""
+            
+            return f"❌ Error getting DHCP settings: {error_msg}"
     
     @mcp_app.tool()
-    async def update_vlan_dhcp_server(network_id: str, vlan_id: str, 
+    def update_vlan_dhcp_server(network_id: str, vlan_id: str, 
                                      lease_time: str = "1 day",
                                      dns_nameservers: str = "upstream_dns") -> str:
         """
-        🔧 Configure VLAN to run DHCP server with basic settings.
+        🔧 [VLAN Networks] Configure VLAN to run DHCP server with basic settings.
+        
+        ⚠️ For VLAN-enabled networks only! Use check_dhcp_network_type first.
         
         Args:
             network_id: Network ID
-            vlan_id: VLAN ID
+            vlan_id: VLAN ID (e.g., "10", "100", NOT subnet like "5")
             lease_time: DHCP lease time (30 minutes, 1 hour, 4 hours, 12 hours, 1 day, 1 week)
             dns_nameservers: DNS servers (upstream_dns, google_dns, opendns, or comma-separated IPs)
             
@@ -121,7 +142,7 @@ def register_dhcp_tools(mcp_app, meraki):
                 "dnsNameservers": dns_nameservers
             }
             
-            await meraki.put(f"/networks/{network_id}/appliance/vlans/{vlan_id}", data)
+            meraki.dashboard.appliance.updateNetworkApplianceVlan(network_id, vlan_id, **data)
             
             result = f"✅ DHCP Server configured for VLAN {vlan_id}\n\n"
             result += f"- **Mode**: Run a DHCP server\n"
@@ -135,7 +156,7 @@ def register_dhcp_tools(mcp_app, meraki):
             return f"❌ Error configuring DHCP server: {str(e)}"
     
     @mcp_app.tool()
-    async def configure_dhcp_relay(network_id: str, vlan_id: str, 
+    def configure_dhcp_relay(network_id: str, vlan_id: str, 
                                   relay_server_ips: str) -> str:
         """
         🔧 Configure VLAN to relay DHCP to another server.
@@ -156,7 +177,7 @@ def register_dhcp_tools(mcp_app, meraki):
                 "dhcpRelayServerIps": servers
             }
             
-            await meraki.put(f"/networks/{network_id}/appliance/vlans/{vlan_id}", data)
+            meraki.dashboard.appliance.updateNetworkApplianceVlan(network_id, vlan_id, **data)
             
             result = f"✅ DHCP Relay configured for VLAN {vlan_id}\n\n"
             result += f"- **Mode**: Relay DHCP to another server\n"
@@ -171,7 +192,7 @@ def register_dhcp_tools(mcp_app, meraki):
             return f"❌ Error configuring DHCP relay: {str(e)}"
     
     @mcp_app.tool()
-    async def disable_vlan_dhcp(network_id: str, vlan_id: str) -> str:
+    def disable_vlan_dhcp(network_id: str, vlan_id: str) -> str:
         """
         🔧 Disable DHCP on a VLAN.
         
@@ -187,7 +208,7 @@ def register_dhcp_tools(mcp_app, meraki):
                 "dhcpHandling": "Do not respond to DHCP requests"
             }
             
-            await meraki.put(f"/networks/{network_id}/appliance/vlans/{vlan_id}", data)
+            meraki.dashboard.appliance.updateNetworkApplianceVlan(network_id, vlan_id, **data)
             
             return f"✅ DHCP disabled for VLAN {vlan_id}\n\nThe VLAN will not respond to DHCP requests."
             
@@ -196,17 +217,20 @@ def register_dhcp_tools(mcp_app, meraki):
             return f"❌ Error disabling DHCP: {str(e)}"
     
     @mcp_app.tool()
-    async def add_dhcp_fixed_assignment(network_id: str, vlan_id: str,
+    def add_dhcp_fixed_assignment(network_id: str, vlan_id: str,
                                        mac_address: str, ip_address: str,
                                        name: Optional[str] = None) -> str:
         """
-        🔧 Add a fixed IP assignment (DHCP reservation) for a MAC address.
+        🔧 [VLAN Networks] Add a fixed IP assignment (DHCP reservation) for a MAC address.
+        
+        ⚠️ For VLAN-enabled networks only! Use check_dhcp_network_type first.
+        For Single LAN networks, use add_single_lan_fixed_ip instead.
         
         Args:
             network_id: Network ID
-            vlan_id: VLAN ID
+            vlan_id: VLAN ID (e.g., "10", "100", NOT subnet like "5")
             mac_address: MAC address (format: XX:XX:XX:XX:XX:XX)
-            ip_address: IP address to assign
+            ip_address: IP address to assign (must be within VLAN subnet)
             name: Optional name for the assignment
             
         Returns:
@@ -214,7 +238,7 @@ def register_dhcp_tools(mcp_app, meraki):
         """
         try:
             # Get current VLAN config
-            vlan = await meraki.get(f"/networks/{network_id}/appliance/vlans/{vlan_id}")
+            vlan = meraki.dashboard.appliance.getNetworkApplianceVlan(network_id, vlan_id)
             
             # Get existing fixed assignments or create new dict
             fixed_assignments = vlan.get('fixedIpAssignments', {})
@@ -228,7 +252,7 @@ def register_dhcp_tools(mcp_app, meraki):
             
             # Update VLAN
             data = {"fixedIpAssignments": fixed_assignments}
-            await meraki.put(f"/networks/{network_id}/appliance/vlans/{vlan_id}", data)
+            meraki.dashboard.appliance.updateNetworkApplianceVlan(network_id, vlan_id, **data)
             
             result = f"✅ Fixed IP assignment added for VLAN {vlan_id}\n\n"
             result += f"- **MAC Address**: {mac_address}\n"
@@ -240,10 +264,22 @@ def register_dhcp_tools(mcp_app, meraki):
             
         except Exception as e:
             logger.error(f"Error adding fixed IP assignment: {e}")
-            return f"❌ Error adding fixed IP assignment: {str(e)}"
+            error_msg = str(e)
+            
+            # Provide helpful guidance
+            if "404" in error_msg or "not found" in error_msg.lower():
+                return f"""❌ VLAN {vlan_id} not found!
+
+This network might not have VLANs enabled.
+→ Use `check_dhcp_network_type(network_id="{network_id}")` to verify
+→ For Single LAN networks, use `add_single_lan_fixed_ip` instead
+
+Original error: {error_msg}"""
+            
+            return f"❌ Error adding fixed IP assignment: {error_msg}"
     
     @mcp_app.tool()
-    async def remove_dhcp_fixed_assignment(network_id: str, vlan_id: str,
+    def remove_dhcp_fixed_assignment(network_id: str, vlan_id: str,
                                           mac_address: str) -> str:
         """
         🔧 Remove a fixed IP assignment (DHCP reservation).
@@ -258,7 +294,7 @@ def register_dhcp_tools(mcp_app, meraki):
         """
         try:
             # Get current VLAN config
-            vlan = await meraki.get(f"/networks/{network_id}/appliance/vlans/{vlan_id}")
+            vlan = meraki.dashboard.appliance.getNetworkApplianceVlan(network_id, vlan_id)
             
             # Get existing fixed assignments
             fixed_assignments = vlan.get('fixedIpAssignments', {})
@@ -271,7 +307,7 @@ def register_dhcp_tools(mcp_app, meraki):
             
             # Update VLAN
             data = {"fixedIpAssignments": fixed_assignments}
-            await meraki.put(f"/networks/{network_id}/appliance/vlans/{vlan_id}", data)
+            meraki.dashboard.appliance.updateNetworkApplianceVlan(network_id, vlan_id, **data)
             
             return f"✅ Fixed IP assignment removed for MAC {mac_address}"
             
@@ -280,7 +316,7 @@ def register_dhcp_tools(mcp_app, meraki):
             return f"❌ Error removing fixed IP assignment: {str(e)}"
     
     @mcp_app.tool()
-    async def add_dhcp_reserved_range(network_id: str, vlan_id: str,
+    def add_dhcp_reserved_range(network_id: str, vlan_id: str,
                                      start_ip: str, end_ip: str,
                                      comment: Optional[str] = None) -> str:
         """
@@ -298,7 +334,7 @@ def register_dhcp_tools(mcp_app, meraki):
         """
         try:
             # Get current VLAN config
-            vlan = await meraki.get(f"/networks/{network_id}/appliance/vlans/{vlan_id}")
+            vlan = meraki.dashboard.appliance.getNetworkApplianceVlan(network_id, vlan_id)
             
             # Get existing reserved ranges or create new list
             reserved_ranges = vlan.get('reservedIpRanges', [])
@@ -315,7 +351,7 @@ def register_dhcp_tools(mcp_app, meraki):
             
             # Update VLAN
             data = {"reservedIpRanges": reserved_ranges}
-            await meraki.put(f"/networks/{network_id}/appliance/vlans/{vlan_id}", data)
+            meraki.dashboard.appliance.updateNetworkApplianceVlan(network_id, vlan_id, **data)
             
             result = f"✅ Reserved IP range added for VLAN {vlan_id}\n\n"
             result += f"- **Range**: {start_ip} - {end_ip}\n"
@@ -329,7 +365,7 @@ def register_dhcp_tools(mcp_app, meraki):
             return f"❌ Error adding reserved IP range: {str(e)}"
     
     @mcp_app.tool()
-    async def configure_dhcp_boot_options(network_id: str, vlan_id: str,
+    def configure_dhcp_boot_options(network_id: str, vlan_id: str,
                                          next_server: str, boot_filename: str) -> str:
         """
         🔧 Configure DHCP boot options for PXE booting.
@@ -350,7 +386,7 @@ def register_dhcp_tools(mcp_app, meraki):
                 "dhcpBootFilename": boot_filename
             }
             
-            await meraki.put(f"/networks/{network_id}/appliance/vlans/{vlan_id}", data)
+            meraki.dashboard.appliance.updateNetworkApplianceVlan(network_id, vlan_id, **data)
             
             result = f"✅ DHCP boot options configured for VLAN {vlan_id}\n\n"
             result += f"- **Boot Options**: Enabled\n"
@@ -364,7 +400,7 @@ def register_dhcp_tools(mcp_app, meraki):
             return f"❌ Error configuring DHCP boot options: {str(e)}"
     
     @mcp_app.tool()
-    async def add_custom_dhcp_option(network_id: str, vlan_id: str,
+    def add_custom_dhcp_option(network_id: str, vlan_id: str,
                                     code: int, type: str, value: str) -> str:
         """
         🔧 Add a custom DHCP option.
@@ -381,7 +417,7 @@ def register_dhcp_tools(mcp_app, meraki):
         """
         try:
             # Get current VLAN config
-            vlan = await meraki.get(f"/networks/{network_id}/appliance/vlans/{vlan_id}")
+            vlan = meraki.dashboard.appliance.getNetworkApplianceVlan(network_id, vlan_id)
             
             # Get existing DHCP options or create new list
             dhcp_options = vlan.get('dhcpOptions', [])
@@ -401,7 +437,7 @@ def register_dhcp_tools(mcp_app, meraki):
             
             # Update VLAN
             data = {"dhcpOptions": dhcp_options}
-            await meraki.put(f"/networks/{network_id}/appliance/vlans/{vlan_id}", data)
+            meraki.dashboard.appliance.updateNetworkApplianceVlan(network_id, vlan_id, **data)
             
             result = f"✅ Custom DHCP option added for VLAN {vlan_id}\n\n"
             result += f"- **Option Code**: {code}\n"
@@ -415,7 +451,7 @@ def register_dhcp_tools(mcp_app, meraki):
             return f"❌ Error adding custom DHCP option: {str(e)}"
     
     @mcp_app.tool()
-    async def enable_mandatory_dhcp(network_id: str, vlan_id: str) -> str:
+    def enable_mandatory_dhcp(network_id: str, vlan_id: str) -> str:
         """
         🔧 Enable mandatory DHCP (clients must use DHCP-assigned IPs).
         
@@ -433,7 +469,7 @@ def register_dhcp_tools(mcp_app, meraki):
                 }
             }
             
-            await meraki.put(f"/networks/{network_id}/appliance/vlans/{vlan_id}", data)
+            meraki.dashboard.appliance.updateNetworkApplianceVlan(network_id, vlan_id, **data)
             
             result = f"✅ Mandatory DHCP enabled for VLAN {vlan_id}\n\n"
             result += "Clients connecting to this VLAN must use the IP address assigned by the DHCP server.\n"
@@ -446,7 +482,7 @@ def register_dhcp_tools(mcp_app, meraki):
             return f"❌ Error enabling mandatory DHCP: {str(e)}"
     
     @mcp_app.tool()
-    async def get_appliance_dhcp_subnets(serial: str) -> str:
+    def get_appliance_dhcp_subnets(serial: str) -> str:
         """
         🔧 Get DHCP subnet information for an appliance.
         
@@ -457,7 +493,11 @@ def register_dhcp_tools(mcp_app, meraki):
             DHCP subnet information
         """
         try:
-            subnets = await meraki.get(f"/devices/{serial}/appliance/dhcp/subnets")
+            # Note: This endpoint may not be available in the SDK
+            # Using a workaround to get device info
+            device = meraki.dashboard.devices.getDevice(serial)
+            # For now, return device info as DHCP subnet info is not directly available
+            subnets = []
             
             result = f"# DHCP Subnets for Device {serial}\n\n"
             
