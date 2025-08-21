@@ -105,7 +105,7 @@ def register_network_tool_handlers():
     
     @app.tool(
         name="get_network_clients",
-        description="List clients in a Meraki network"
+        description="List clients in a Meraki network (up to 1000 clients)"
     )
     def get_network_clients(network_id: str):
         """
@@ -115,7 +115,7 @@ def register_network_tool_handlers():
             network_id: ID of the network
             
         Returns:
-            Formatted list of clients
+            Formatted list of clients (up to 1000)
         """
         try:
             clients = meraki_client.get_network_clients(network_id)

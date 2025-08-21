@@ -50,7 +50,7 @@ class MerakiClient:
     # Clients
     def get_network_clients(self, network_id: str, timespan: Optional[int] = 86400) -> List[Dict[str, Any]]:
         """Get clients in a network (default timespan: 24 hours)."""
-        return self.dashboard.networks.getNetworkClients(network_id, timespan=timespan)
+        return self.dashboard.networks.getNetworkClients(network_id, timespan=timespan, perPage=1000)
     
     # SSID
     def get_network_wireless_ssids(self, network_id: str) -> List[Dict[str, Any]]:
