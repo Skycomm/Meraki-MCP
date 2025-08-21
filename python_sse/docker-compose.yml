@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  meraki-mcp-sse:
+    build: .
+    container_name: meraki-mcp-sse
+    ports:
+      - "8000:8000"
+    environment:
+      - MERAKI_API_KEY=${MERAKI_API_KEY}
+      - PRIVILEGED_USERS=${PRIVILEGED_USERS:-admin@example.com}
+      - RATE_LIMIT_REQUESTS=${RATE_LIMIT_REQUESTS:-100}
+      - RATE_LIMIT_WINDOW=${RATE_LIMIT_WINDOW:-60}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: mcpo proxy for OpenWebUI
+  mcpo:
+    image: python:3.11-slim
+    container_name: meraki-mcpo
+    ports:
+      - "8001:8001"
+    command: >
+      sh -c "pip install mcpo && 
+             mcpo --port 8001 --api-key 'openwebui-secret' -- 
+             curl -N -H 'Authorization: Bearer ${MCP_TOKEN}' 
+             http://meraki-mcp-sse:8000/sse"
+    depends_on:
+      - meraki-mcp-sse
+    restart: unless-stopped
+    profiles:
+      - openwebui
