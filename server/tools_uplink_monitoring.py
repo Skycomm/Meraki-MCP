@@ -751,9 +751,16 @@ def run_throughput_test(network_id: str) -> str:
             
             try:
                 # Trigger throughput test
-                result = meraki.dashboard.appliance.createDeviceApplianceThroughputTest(
-                    mx_device['serial']
-                )
+                try:
+                    # Try newer live tools API
+                    result = meraki.dashboard.devices.createDeviceLiveToolsThroughputTest(
+                        mx_device['serial']
+                    )
+                except:
+                    # Fallback to legacy API
+                    result = meraki.dashboard.appliance.createDeviceApplianceThroughputTest(
+                        mx_device['serial']
+                    )
                 
                 output.append(f"✅ Throughput test initiated on {mx_device.get('name', mx_device['serial'])}")
                 output.append(f"   Model: {mx_device['model']}")
@@ -771,21 +778,30 @@ def run_throughput_test(network_id: str) -> str:
             except Exception as e:
                 # Try to get existing test results instead
                 try:
-                    existing_results = meraki.dashboard.appliance.getDeviceApplianceThroughputTest(
-                        mx_device['serial']
+                    # Try newer API
+                    existing_results = meraki.dashboard.devices.getDeviceLiveToolsThroughputTest(
+                        mx_device['serial'],
+                        id=""  # Empty ID might return latest
                     )
-                    
-                    if existing_results:
-                        output.append("📊 Previous Test Results:")
-                        for test in existing_results[:3]:  # Show last 3 tests
-                            output.append(f"\n   Test Time: {test.get('testTime', 'Unknown')}")
-                            output.append(f"   ↓ Download: {test.get('downstream', 0)} Mbps")
-                            output.append(f"   ↑ Upload: {test.get('upstream', 0)} Mbps")
-                        output.append("\n⚠️ Could not start new test - showing previous results")
-                    else:
-                        output.append(f"⚠️ Could not start test: {str(e)}")
-                        
+                    if isinstance(existing_results, dict) and 'results' in existing_results:
+                        existing_results = existing_results.get('results', [])
                 except:
+                    # Fallback to legacy API
+                    try:
+                        existing_results = meraki.dashboard.appliance.getDeviceApplianceThroughputTest(
+                            mx_device['serial']
+                        )
+                    except:
+                        existing_results = None
+                    
+                if existing_results:
+                    output.append("📊 Previous Test Results:")
+                    for test in existing_results[:3]:  # Show last 3 tests
+                        output.append(f"\n   Test Time: {test.get('testTime', 'Unknown')}")
+                        output.append(f"   ↓ Download: {test.get('downstream', 0)} Mbps")
+                        output.append(f"   ↑ Upload: {test.get('upstream', 0)} Mbps")
+                    output.append("\n⚠️ Could not start new test - showing previous results")
+                else:
                     output.append(f"⚠️ Could not start test: {str(e)}")
                     output.append("\nPossible reasons:")
                     output.append("• Test already in progress")
@@ -821,9 +837,24 @@ def get_throughput_test_results(network_id: str) -> str:
             output = ["📈 Throughput Test Results", "=" * 50, ""]
             
             # Get test results
-            results = meraki.dashboard.appliance.getDeviceApplianceThroughputTest(
-                mx_device['serial']
-            )
+            try:
+                # Try the live tools API first (newer)
+                test_id = ""  # Would need to get from createDeviceLiveToolsThroughputTest
+                results = meraki.dashboard.devices.getDeviceLiveToolsThroughputTest(
+                    mx_device['serial'],
+                    id=test_id
+                )
+                # Convert to list format if needed
+                if isinstance(results, dict) and 'results' in results:
+                    results = results.get('results', [])
+            except:
+                # Fallback to legacy API
+                try:
+                    results = meraki.dashboard.appliance.getDeviceApplianceThroughputTest(
+                        mx_device['serial']
+                    )
+                except:
+                    results = None
             
             if results:
                 output.append(f"Device: {mx_device.get('name', mx_device['serial'])} ({mx_device['model']})")

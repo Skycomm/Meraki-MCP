@@ -51,6 +51,26 @@ from server.tools_change_tracking import register_change_tracking_tools
 from server.tools_diagnostic_reports import register_diagnostic_reports_tools
 from server.tools_firmware_management import register_firmware_management_tools
 from server.tools_helpers import register_helper_tools
+from server.tools_sensor import register_sensor_tools
+from server.tools_insight import register_insight_tools
+from server.tools_cellular_gateway import register_cellular_gateway_tools
+from server.tools_administered import register_administered_tools
+from server.tools_batch import register_batch_tools
+from server.tools_inventory import register_inventory_tools
+from server.tools_summary import register_summary_tools
+from server.tools_webhooks import register_webhooks_tools
+from server.tools_mqtt import register_mqtt_tools
+from server.tools_sdwan import register_sdwan_tools
+from server.tools_adaptivepolicy import register_adaptive_policy_tools
+from server.tools_syslog import register_syslog_tools
+from server.tools_snmp import register_snmp_tools
+from server.tools_saml import register_saml_tools
+from server.tools_branding import register_branding_tools
+from server.tools_licensing_v2 import register_enhanced_licensing_tools
+from server.tools_sm_v2 import register_enhanced_sm_tools
+from server.tools_oauth import register_oauth_tools
+from server.tools_api_analytics import register_api_analytics_tools
+from server.tools_config_templates import register_config_template_tools
 
 # Register resources and tools
 register_resources(app, meraki)
@@ -85,6 +105,26 @@ register_change_tracking_tools(app, meraki)
 register_diagnostic_reports_tools(app, meraki)
 register_firmware_management_tools(app, meraki)
 register_helper_tools(app, meraki)
+register_sensor_tools(app, meraki)
+register_insight_tools(app, meraki)
+register_cellular_gateway_tools(app, meraki)
+register_administered_tools(app, meraki)
+register_batch_tools(app, meraki)
+register_inventory_tools(app, meraki)
+register_summary_tools(app, meraki)
+register_webhooks_tools(app, meraki)
+register_mqtt_tools(app, meraki)
+register_sdwan_tools(app, meraki)
+register_adaptive_policy_tools(app, meraki)
+register_syslog_tools(app, meraki)
+register_snmp_tools(app, meraki)
+register_saml_tools(app, meraki)
+register_branding_tools(app, meraki)
+register_enhanced_licensing_tools(app, meraki)
+register_enhanced_sm_tools(app, meraki)
+register_oauth_tools(app, meraki)
+register_api_analytics_tools(app, meraki)
+register_config_template_tools(app, meraki)
 
 # When run directly, start the server
 if __name__ == "__main__":

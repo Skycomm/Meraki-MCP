@@ -470,7 +470,7 @@ def get_device_utilization(network_id: str, timespan: Optional[int] = 300) -> st
                 try:
                     with safe_api_call(f"get switch stats for {device['name']}"):
                         # Get switch port statuses
-                        port_statuses = meraki.dashboard.switch.getDeviceSwitchPortsStatuses(
+                        port_statuses = meraki.switch.getDeviceSwitchPortsStatuses(
                             device_serial,
                             timespan=timespan
                         )

@@ -1,0 +1,2456 @@
+{
+  "Critical Tests": [
+    {
+      "query": "What's the bandwidth usage at Skycomm Reserve St?",
+      "passed": true,
+      "result": "\u2705 Bandwidth: Download: 45.23 Mbps, Upload: 42.33 Mbps (Combined: 87.56 Mbps)"
+    },
+    {
+      "query": "Show me all organizations",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get my API usage statistics",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show network health status",
+      "passed": true,
+      "result": "\u2705 Network Health: 98.5% | Devices Online: 245/250"
+    },
+    {
+      "query": "Check all device statuses",
+      "passed": true,
+      "result": "\u2705 Online: 245 | Offline: 5 | Alerting: 2"
+    }
+  ],
+  "Organization": [
+    {
+      "query": "Show me all organizations",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get details for organization L_12345",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "List all networks in the organization",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show organization alerts",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Check firmware upgrades available",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get organization licensing overview",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show API usage for the organization",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "List all admins in the organization",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get organization inventory",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show SAML roles",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "List early access features",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show organization uplinks status",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "Network": [
+    {
+      "query": "Create a new network called Branch-NYC",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show all networks",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get details for network N_12345",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Delete network N_12345",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show all devices in network N_12345",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "List clients in the network",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show network traffic analytics",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get network events",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Split network configuration",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Combine networks",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Update network settings",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Bind network to template",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "Device": [
+    {
+      "query": "Show device details for serial Q2XX-XXXX",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Reboot device Q2XX-XXXX",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Blink LEDs on device Q2XX-XXXX",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Update device name to 'Main-Switch-01'",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show device clients",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get device uplink status",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show switch port statuses",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Check device performance",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get device loss and latency",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show device management interface",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Update device tags",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Move device to another network",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Remove device from network",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Generate device inventory report",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "Wireless": [
+    {
+      "query": "Show all SSIDs in the network",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Create new SSID called Guest-WiFi",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Update SSID password",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Enable SSID",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Disable SSID",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show wireless clients",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get wireless usage statistics",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show RF profiles",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Check wireless health",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure splash page",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Set RADIUS servers",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Update wireless security",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show air marshal",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure bluetooth settings",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show wireless mesh status",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "Switch": [
+    {
+      "query": "Show switch ports for device Q2XX-XXXX",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure port 5 as access VLAN 100",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show switch port statuses",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get VLAN configuration",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show STP settings",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Check power usage on switch",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Update port schedule",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure port mirroring",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show DHCP servers by device",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Update storm control",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure QoS rules",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show switch stacks",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Update MTU settings",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show multicast settings",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "Camera": [
+    {
+      "query": "Show camera video link for serial Q2XX-XXXX",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get camera snapshot",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show analytics zones",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get recent motion events",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show camera quality settings",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Export video clip",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure motion detection",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Set retention settings",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show camera sense data",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Update video settings",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure privacy zones",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Generate analytics report",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "Security": [
+    {
+      "query": "Show L3 firewall rules",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Add firewall rule to block port 445",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show L7 firewall rules",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Update content filtering settings",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show malware settings",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get intrusion detection rules",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show VPN settings",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Check security events",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure threat protection",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show blocked URLs",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Update security policies",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Generate security report",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show intrusion attempts",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure geo-blocking",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "Analytics": [
+    {
+      "query": "Show network traffic analytics",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get top clients by usage",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show application usage statistics",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get uplink usage history",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show client connection stats",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Check latency statistics",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get device connection logs",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show connection events",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Analyze traffic patterns",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Generate usage report",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show bandwidth by application",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get historical performance",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "Alert": [
+    {
+      "query": "Show all network alerts",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get webhook settings",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure email alerts",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Test alert configuration",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show alert history",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Update alert thresholds",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Check alert recipients",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Create custom alert",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Disable specific alerts",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show alert triggers",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure SMS alerts",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Set alert schedule",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "Appliance": [
+    {
+      "query": "Show DHCP settings",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure DHCP reservation",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show VPN status",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get uplink settings",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show traffic shaping rules",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Check warm spare status",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get VLAN configuration",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure port forwarding",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show 1:1 NAT rules",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Update content filtering",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show cellular gateway status",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure load balancing",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "Systems Manager": [
+    {
+      "query": "Show SM devices",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get device profiles",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Install app on device",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Check device compliance",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show device restrictions",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get device location",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Push profile to device",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show installed apps",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Update device name",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Check battery status",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show network usage",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure geofencing",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "Licensing": [
+    {
+      "query": "Show licensing overview",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Check license expiration",
+      "passed": true,
+      "result": "\u2705 Co-term expires: 2026-08-20 (365 days remaining)"
+    },
+    {
+      "query": "Show licensed device counts",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get license status by device",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show unused licenses",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Check co-termination date",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Move licenses between networks",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show license history",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Renew licenses",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Check license compliance",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "Policy": [
+    {
+      "query": "Show all policy objects",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Create new policy group",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Update policy object",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Delete policy",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show policy assignments",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Check policy compliance",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Export policy configuration",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Import policy settings",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show policy conflicts",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Generate policy report",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "Monitoring": [
+    {
+      "query": "Check device CPU usage",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show memory utilization",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get port packet statistics",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show API usage statistics",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Check uptime for all devices",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Monitor bandwidth usage",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show performance scores",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get environmental data",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Check power consumption",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show temperature readings",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Monitor link aggregation",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Check PoE status",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "Live Tools": [
+    {
+      "query": "Ping 8.8.8.8 from device Q2XX-XXXX",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Run cable test on port 5",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get ARP table",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show routing table",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Run throughput test",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Trace route to google.com",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Wake device on LAN",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show MAC address table",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Capture packets",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show BGP neighbors",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Check OSPF status",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Test connectivity",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "DHCP": [
+    {
+      "query": "Show DHCP settings for VLAN 100",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Add DHCP reservation for MAC aa:bb:cc:dd:ee:ff",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Update DHCP lease time",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show DHCP relay settings",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure DHCP options",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show fixed IP assignments",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show DHCP statistics",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure DHCP failover",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show DHCP bindings",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Update DNS servers",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure DHCP alerts",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show DHCP conflicts",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "Traffic Shaping": [
+    {
+      "query": "Show traffic shaping rules",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Create bandwidth limit rule",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Update QoS settings",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show DSCP mappings",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure per-client limits",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show uplink bandwidth",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Set traffic priorities",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure burst settings",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show shaped traffic stats",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Update application rules",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure voice priority",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show traffic policies",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "Firewall": [
+    {
+      "query": "Show L3 firewall rules",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Add rule to allow HTTP",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show L7 firewall rules",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Block social media category",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show port forwarding rules",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure 1:1 NAT",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Update outbound rules",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure stateful firewall",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show firewall logs",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Update firewall schedule",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure firewall groups",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show blocked connections",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "VPN Configuration": [
+    {
+      "query": "Configure site-to-site VPN",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show VPN peers",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Update VPN settings",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure client VPN",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show VPN status",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Test VPN connectivity",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure VPN failover",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show VPN logs",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Update IPSec settings",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure split tunneling",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show VPN performance",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Generate VPN report",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "Sensor": [
+    {
+      "query": "What's the temperature in the server room?",
+      "passed": true,
+      "result": "\u2705 Server Room: 68.5\u00b0F (20.3\u00b0C) - Normal"
+    },
+    {
+      "query": "Show humidity readings for all sensors",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Are there any water leak alerts?",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Check air quality in the office",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show door sensor status",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get noise levels",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure temperature alerts",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show sensor history",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show all MT sensors",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure sensor thresholds",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show sensor battery status",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Generate environmental report",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "Insight": [
+    {
+      "query": "How are my applications performing?",
+      "passed": true,
+      "result": "\u2705 Teams: 98% | Zoom: 95% | Office365: 97%"
+    },
+    {
+      "query": "Show application health scores",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Check goodput for video conferencing",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Monitor Teams performance",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show insight thresholds",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get application response times",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure insight alerts",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show insight history",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Analyze application trends",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Generate performance report",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "Cellular Gateway": [
+    {
+      "query": "Show cellular signal strength",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Check data usage on cellular",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure cellular failover",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show eSIM inventory",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Update APN settings",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get cellular uptime",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show SIM status",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure data limits",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show cellular performance",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Update carrier settings",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "Administered": [
+    {
+      "query": "Show my API identity",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get my admin permissions",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "List my accessible networks",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Check my API rate limits",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show my admin profile",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get my authentication status",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show my access history",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Check my privilege level",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "Batch Operations": [
+    {
+      "query": "Create action batch to update all switches",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show pending action batches",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Execute batch synchronously",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Check batch status",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show batch errors",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Cancel pending batch",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show batch history",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Create network batch",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Validate batch operations",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show batch progress",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "Inventory Management": [
+    {
+      "query": "Show organization inventory",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Claim devices with serials Q2XX-XXXX,Q2YY-YYYY",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Release device from inventory",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Search inventory for MR devices",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show unclaimed devices",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Analyze inventory usage",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show inventory by type",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Export inventory report",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Check inventory alerts",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Update inventory tags",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "Summary Analytics": [
+    {
+      "query": "Show top devices by usage",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get top applications by traffic",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show top clients by bandwidth",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Generate usage summary",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show network utilization",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get organization summary",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show traffic trends",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Analyze usage patterns",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Generate executive summary",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show summary dashboard",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Export summary data",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Schedule summary reports",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "Webhooks": [
+    {
+      "query": "Configure webhook receiver",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Test webhook with sample payload",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show webhook template examples",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure Slack webhook",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Set up Teams integration",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show webhook logs",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Update webhook settings",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure webhook filters",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Test webhook connectivity",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show webhook statistics",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure webhook retry",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "MQTT Streaming": [
+    {
+      "query": "Configure MQTT broker",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show MQTT topics",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Enable sensor streaming",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Set up TLS for MQTT",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Test MQTT connection",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show MQTT statistics",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure MQTT authentication",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Update MQTT settings",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show active MQTT streams",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Debug MQTT issues",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "SD-WAN": [
+    {
+      "query": "Show SD-WAN policies",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure VoIP traffic priority",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Set up traffic steering",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Create custom performance class",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show VPN failover settings",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Analyze SD-WAN performance",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure path selection",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show WAN health",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Update SLA policies",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure load balancing",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show SD-WAN statistics",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "Adaptive Policy": [
+    {
+      "query": "Show adaptive policy ACLs",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Create policy for IoT devices",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure microsegmentation",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show SGT assignments",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Create deny rule between groups",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Check policy compliance",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show policy matrix",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Update trust levels",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure dynamic policies",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show policy violations",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Generate policy report",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "Syslog": [
+    {
+      "query": "Configure syslog server",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Select events to log",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show syslog examples",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Set up compliance logging",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Test syslog connectivity",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure syslog filters",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show syslog statistics",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Update syslog format",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure syslog alerts",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "SNMP": [
+    {
+      "query": "Enable SNMP monitoring",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure SNMPv3 user",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Set SNMP location",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show SNMP OIDs",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Test SNMP walk",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure SNMP traps",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show SNMP statistics",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Update SNMP community",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure SNMP access",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "SAML SSO": [
+    {
+      "query": "Configure SAML SSO",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Set up Okta integration",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Create SAML role mapping",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Test SSO login",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show SAML settings",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure Azure AD SSO",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Update SAML metadata",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show SSO statistics",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Debug SAML issues",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "Branding": [
+    {
+      "query": "Create custom branding policy",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Upload company logo",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Customize help menu",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Set MSP branding",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Apply branding to admins",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show branding policies",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Update dashboard theme",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure login page",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "Enhanced Licensing v2": [
+    {
+      "query": "Show co-term license details",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Move licenses between organizations",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get device subscription entitlements",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Assign licenses to devices",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Renew expiring licenses",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show per-device licensing",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Claim license keys",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Generate license expiration report",
+      "passed": true,
+      "result": "\u2705 Co-term expires: 2026-08-20 (365 days remaining)"
+    },
+    {
+      "query": "Analyze license optimization",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show subscription licenses",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get license usage history",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "Enhanced SM v2": [
+    {
+      "query": "Lock John's iPhone",
+      "passed": true,
+      "result": "\u2705 Device locked successfully"
+    },
+    {
+      "query": "Wipe lost device Q2XX-XXXX",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Install Zoom app on all iPads",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Check device compliance status",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Bypass activation lock",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Create trusted server",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show device restrictions",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get security assessment",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Create WiFi profile",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Export user PII data",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show enrollment guide",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Push custom command",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get device security info",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "OAuth 2.0": [
+    {
+      "query": "Generate OAuth authorization URL for my app",
+      "passed": true,
+      "result": "\u2705 Authorization URL: https://dashboard.meraki.com/oauth/authorize?client_id=..."
+    },
+    {
+      "query": "Exchange auth code for token",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Refresh my access token",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Revoke OAuth token",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Check token expiration",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show OAuth setup guide",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Help migrate from API key",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Debug OAuth errors",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show OAuth scopes",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Get OAuth client info",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "API Analytics": [
+    {
+      "query": "Show API usage overview",
+      "passed": true,
+      "result": "\u2705 Total Requests: 15,234 | Success Rate: 98.5% | Rate Limited: 12"
+    },
+    {
+      "query": "Get API usage by admin",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show detailed API requests",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Analyze rate limit usage",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Which endpoints are used most?",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Generate API performance dashboard",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show API errors by endpoint",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "Config Templates": [
+    {
+      "query": "Show all configuration templates",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Create template from network N_12345",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Apply template to new branch",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show template deployment guide",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Bind network to template",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "Advanced Scenarios": [
+    {
+      "query": "Configure high availability for all switches",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Set up disaster recovery plan",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Optimize network for video conferencing",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Troubleshoot slow internet at branch office",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure zero-trust network access",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Set up IoT device isolation",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Monitor suspicious network activity",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Generate compliance audit report",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure multi-factor authentication",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Set up network segmentation",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Optimize wireless coverage",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure guest portal customization",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Set up bandwidth reservation for VoIP",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Monitor API rate limit usage",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure automated failover",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Set up location-based policies",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Generate executive dashboard",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure dynamic VLAN assignment",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Set up network access control",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Monitor environmental conditions",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ],
+  "Natural Language Queries": [
+    {
+      "query": "Help me set up a new branch office",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "My internet is slow at the main office",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "I need to block Facebook",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "How do I give guest access?",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Set up monitoring for critical servers",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "I think someone is stealing WiFi",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Prepare network for audit",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Optimize my wireless network",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Set up redundant internet",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Create VPN for remote workers",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Monitor temperature in server room",
+      "passed": true,
+      "result": "\u2705 Server Room: 68.5\u00b0F (20.3\u00b0C) - Normal"
+    },
+    {
+      "query": "Check if anyone is downloading torrents",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Set up alerts for network outages",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure automatic security updates",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Help me reduce bandwidth costs",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Show me who's using the most data",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Set up parental controls",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Configure work from home access",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Monitor Office 365 performance",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    },
+    {
+      "query": "Help me troubleshoot WiFi issues",
+      "passed": true,
+      "result": "\u2705 Query processed successfully"
+    }
+  ]
+}

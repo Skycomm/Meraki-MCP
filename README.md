@@ -1,492 +1,109 @@
 # Cisco Meraki MCP Server
 
-An MCP (Model Context Protocol) server that integrates with Cisco Meraki's API, allowing AI assistants to interact with and manage Meraki network infrastructure.
+A Model Context Protocol (MCP) server for the Cisco Meraki Dashboard API, providing natural language access to 400+ network management functions through Claude Desktop.
 
-## Author Information
-- **Author:** Tomas Vince
-- **Version:** 1.0.0
-- **Date:** May 01, 2025
-- **Contact:** [LinkedIn](https://linkedin.com/in/tomasvince)
+## 🎯 Key Features
 
-## Overview
+- **400+ Functions**: Complete Meraki Dashboard API v1.61.0 coverage
+- **Natural Language**: Ask questions in plain English
+- **Real-time Monitoring**: Live bandwidth, device status, and analytics
+- **Enterprise Ready**: OAuth 2.0, batch operations, and API analytics
+- **2025 Features**: Environmental sensors, 5G gateways, enhanced MDM
 
-This MCP server provides a bridge between AI assistants (like Claude) and Cisco Meraki dashboard API. It enables AI assistants to:
+## 📖 Documentation
 
-- Browse and access Meraki organizations, networks, and devices
-- View network clients, wireless SSIDs, VLANs, and switch ports
-- Monitor alerts and firmware upgrades
-- Get detailed information about devices
-- Access camera video links
-- Update switch port configurations
+- [Quick Start Guide](QUICKSTART.md) - Get running in 5 minutes
+- [Features Overview](FEATURES.md) - Complete capability list
+- [API Reference](https://developer.cisco.com/meraki/api-v1/)
 
-## Features
-
-- **Resource Access**: Browse Meraki resources in a hierarchical structure
-- **Interactive Tools**: Perform specific operations with friendly input/output formatting
-- **Modular Structure**: Organized code for maintainability and extension
-- **Docker Support**: Simple containerization for easy deployment
-- **Authentication**: Secure access with Meraki API keys
-
-## Installation
-
-### Prerequisites
-
-- Python 3.8 or higher
-- Cisco Meraki API key
-- uv package manager (recommended by MCP SDK)
-- Docker (optional, for containerized deployment)
-
-### Environment Setup
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/tomique34/cisco-meraki-mcp-server-tvi.git
-   cd cisco-meraki-mcp-server-tvi
-   ```
-
-2. Install uv (if not already installed):
-   ```bash
-   # Using pip
-   pip install uv
-   
-   # Alternative: using curl (macOS/Linux)
-   curl -LsSf https://astral.sh/uv/install.sh | sh
-   ```
-
-3. Create and activate a Python virtual environment using uv:
-   ```bash
-   # Create a virtual environment
-   uv venv
-   
-   # Activate on Windows
-   .venv\Scripts\activate
-   
-   # Activate on macOS/Linux
-   source .venv/bin/activate
-   ```
-
-4. Install dependencies using uv:
-   ```bash
-   uv pip install -r requirements.txt
-   ```
-
-5. Copy the example environment file:
-   ```bash
-   cp .env.example .env
-   ```
-
-6. Edit the `.env` file and add your Meraki API key:
-   ```
-   MERAKI_API_KEY=your-api-key-here
-   ```
-
-### Standard Installation
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/tomique34/cisco-meraki-mcp-server-tvi.git
-   cd cisco-meraki-mcp-server-tvi
-   ```
-
-2. Install dependencies using uv:
-   ```bash
-   uv pip install -r requirements.txt
-   ```
-
-3. Run the server using uv:
-   ```bash
-   uv run meraki_server.py
-   ```
-
-### Docker Installation Options
-
-#### Option 1: Using Docker Run
-
-1. Build the Docker image:
-   ```bash
-   docker build -t meraki-mcp-server .
-   ```
-
-2. Run the container with environment variable:
-   ```bash
-   docker run -e MERAKI_API_KEY="your-api-key-here" meraki-mcp-server
-   ```
-   
-   Or using the .env file:
-   ```bash
-   docker run --env-file .env meraki-mcp-server
-   ```
-
-#### Option 2: Using Docker Compose
-
-1. Make sure your `.env` file is configured properly with your Meraki API key.
-
-2. Start the service:
-   ```bash
-   docker-compose up -d
-   ```
-
-3. View logs:
-   ```bash
-   docker-compose logs -f
-   ```
-
-4. Stop the service:
-   ```bash
-   docker-compose down
-   ```
-
-### Kubernetes Deployment
-
-The included Docker Compose file can be used as a reference when creating Kubernetes manifests. For a Kubernetes deployment:
-
-1. Create a ConfigMap or Secret for the environment variables
-2. Use the Docker image in your deployment specification
-3. Configure proper health checks and resource limits
-
-Example of converting the environment variables to a Kubernetes Secret:
-```bash
-kubectl create secret generic meraki-secrets --from-env-file=.env
-```
-
-## Usage with Claude Desktop
-
-### Easiest Method: Automated Installation Script
-
-For the simplest setup with Claude Desktop, use the included installation script:
-
-1. Run the installation script:
-   ```bash
-   ./install_in_claude.sh
-   ```
-
-2. The script will:
-   - Generate a properly formatted Claude Desktop configuration
-   - Automatically detect your project paths
-   - Extract your API key from the .env file (if available)
-   - Create a temporary configuration file you can copy and paste
-
-3. Copy the generated configuration into Claude Desktop settings
-
-This is the most user-friendly approach, requiring minimal manual steps.
-
-### Recommended Approach: Using the Shell Script
-
-The reliable way to use this MCP server with Claude Desktop is via the included shell script, which automatically handles path resolution and environment setup:
-
-1. Ensure the script is executable (only needed once):
-   ```bash
-   chmod +x run_meraki_server.sh
-   ```
-
-2. Add this configuration to your Claude Desktop settings:
-   ```json
-   {
-     "mcpServers": {
-       "meraki-mcp": {
-         "command": "/bin/bash",
-         "args": ["/absolute/path/to/run_meraki_server.sh"],
-         "env": {
-           "MERAKI_API_KEY": "your-api-key-here"
-         }
-       }
-     }
-   }
-   ```
-
-3. Replace `/absolute/path/to/run_meraki_server.sh` with the full path to the script on your system.
-
-This approach has several advantages:
-- Handles virtual environment activation automatically
-- Works with both standard Python and uv installations
-- Uses relative paths internally to avoid hardcoding
-- Provides clear error messages if the environment isn't set up
-
-### Alternative: Direct uv Approach
-
-If you prefer using uv directly (may require additional environment setup):
-
-```json
-{
-  "mcpServers": {
-    "meraki": {
-      "command": "uv",
-      "args": ["run", "/absolute/path/to/meraki_server.py"],
-      "cwd": "/absolute/path/to/project",
-      "env": {
-        "MERAKI_API_KEY": "your-api-key-here"
-      }
-    }
-  }
-}
-```
-
-### Alternative: Direct Python Approach
-
-For a simpler setup using the standard Python interpreter:
-
-```json
-{
-  "mcpServers": {
-    "meraki": {
-      "command": "python3",
-      "args": ["/absolute/path/to/meraki_server.py"],
-      "cwd": "/absolute/path/to/project",
-      "env": {
-        "MERAKI_API_KEY": "your-api-key-here"
-      }
-    }
-  }
-}
-```
-
-**Note:** In all cases, you'll need to replace placeholders with actual paths and your API key. The shell script approach is recommended as it requires the least amount of configuration.
-
-### Option 2: Running as Docker Container
-
-1. Ensure your container is running and the port is exposed:
-   ```bash
-   docker run -p 8000:8000 -e MERAKI_API_KEY="your-api-key-here" meraki-mcp-server
-   ```
-
-2. Run the MCP Inspector with the HTTP URL:
-   ```bash
-   mcp-inspector --http http://localhost:8000
-   ```
-
-### Option 3: Using Docker Socket
-
-You can also configure Claude Desktop to start the Docker container on demand:
-
-```json
-{
-  "mcpServers": {
-    "meraki": {
-      "docker": {
-        "image": "meraki-mcp-server:latest",
-        "env": {
-          "MERAKI_API_KEY": "your-api-key-here"
-        }
-      }
-    }
-  }
-}
-```
-
-This approach requires Claude Desktop to have access to the Docker socket, which allows it to create and manage containers on your behalf. Make sure the Docker image is built on your system before using this option.
-
-## Architecture
-
-The server is organized into the following modules:
-
-- `server/main.py`: Core server setup and initialization
-- `server/resources.py`: Resource handling functions
-- `server/tools_organizations.py`: Organization-related tools
-- `server/tools_networks.py`: Network-related tools
-- `server/tools_devices.py`: Device-related tools
-- `server/tools_wireless.py`: Wireless (SSIDs) related tools
-- `server/tools_switch.py`: Switch ports related tools
-- `meraki_client.py`: Client for interacting with the Meraki API
-- `utils/helpers.py`: Utility functions for resource handling
-
-## Tools Overview
-
-### Organization Tools
-- `list_organizations`: List all available Meraki organizations
-- `get_organization_networks`: Get networks in an organization
-- `get_organization_alerts`: Get alert settings for an organization
-- `get_firmware_upgrades`: Get firmware upgrades for an organization
-
-### Network Tools
-- `get_network_devices`: Get devices in a network
-- `get_network_clients`: Get clients connected to a network
-- `get_vlans`: Get VLANs configured in a network
-
-### Device Tools
-- `get_device_details`: Get detailed info about a specific device
-- `get_camera_video_link`: Get a video link for a Meraki camera
-
-### Wireless Tools
-- `get_ssids`: Get wireless SSIDs in a network
-- `get_wireless_clients`: Get wireless clients connected to a network
-
-### Switch Tools
-- `get_switch_ports`: Get ports on a Meraki switch
-- `update_switch_port`: Update switch port configuration
-
-## Environment Variables
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| MERAKI_API_KEY | Yes | Your Meraki Dashboard API key |
-| API_BASE_URL | No | Custom API base URL (default: https://api.meraki.com/api/v1) |
-| TIMEOUT | No | Request timeout in seconds (default: 30) |
-
-## Modernized Implementation (MCP SDK 1.6.0)
-
-A modernized version of the server has been implemented following the latest MCP SDK 1.6.0 standards. This implementation uses the recommended `FastMCP` class and decorator patterns for resources and tools.
-
-### Key Improvements
-
-- **Modern FastMCP Class**: Replaced the older `mcp.Server` with the recommended `FastMCP` class
-- **Decorator Pattern**: Used decorators for resource and tool registration instead of explicit functions
-- **Parameterized Resource Paths**: Implemented URI templates like `organizations://{org_id}` for cleaner resource addressing
-- **Simplified Resource Handling**: More direct mapping between URIs and resource handlers
-- **Enhanced Maintainability**: Code is more concise and follows current best practices
-- **Using uv**: Switched to uv as recommended by the MCP SDK team
-
-### Using the Modernized Server
-
-To use the modernized implementation:
+## 🚀 Quick Start
 
 ```bash
-# Run the modernized server using uv
-uv run meraki_server.py
+# 1. Clone and build
+git clone https://github.com/yourusername/cisco-meraki-mcp-server.git
+cd cisco-meraki-mcp-server
+docker build -t meraki-mcp-server .
+
+# 2. Set API key
+export MERAKI_API_KEY="your-api-key"
+
+# 3. Test
+docker run -e MERAKI_API_KEY=$MERAKI_API_KEY meraki-mcp-server
 ```
 
-This uses the updated implementation that follows the MCP SDK 1.6.0 patterns.
+See [QUICKSTART.md](QUICKSTART.md) for detailed setup instructions.
 
-### Architecture of Modernized Implementation
+## 💬 Example Usage
 
-The modernized server is organized into the following modules:
-
-- `server/modern_main.py`: Core server setup using FastMCP
-- `server/modern_resources.py`: Resource handlers using decorator pattern
-- `server/modern_tools_organizations.py`: Organization tools using decorator pattern
-- `server/modern_tools_networks.py`: Network tools using decorator pattern
-- `server/modern_tools_devices.py`: Device tools using decorator pattern
-- `server/modern_tools_wireless.py`: Wireless tools using decorator pattern
-- `server/modern_tools_switch.py`: Switch tools using decorator pattern
-
-### Example of Modern Resource Pattern
-
-```python
-@app.resource("organizations://{org_id}")
-def get_organization(org_id):
-    """Get details for a specific organization."""
-    return meraki_client.get_organization(org_id)
+```text
+"What's the bandwidth usage at main office?"
+"Show me all offline devices"
+"Block Facebook on guest network"
+"Lock John's lost iPhone"
+"Generate network health report"
 ```
 
-### Example of Modern Tool Pattern
-
-```python
-@app.tool(
-    name="list_organizations",
-    description="List all Meraki organizations the API key has access to"
-)
-def list_organizations():
-    """List all Meraki organizations the API key has access to."""
-    return meraki_client.get_organizations()
-```
-
-## Troubleshooting
-
-### Common Issues
-
-- **API Key Errors**: Make sure your API key is valid and has the proper permissions
-- **Resource Not Found**: Verify that the organization/network/device exists and is accessible with your API key
-- **Permission Denied**: Check that your API key has the necessary permissions for the operation
-- **Docker Issues**: Ensure your Docker environment has access to the environment variables
-
-### Logs
-
-The server logs detailed information about errors. Check the logs when troubleshooting:
+## 🧪 Testing
 
 ```bash
-# When running directly
-uv run meraki_server.py 2> meraki_server.log
-
-# When running with Docker
-docker logs meraki-mcp-server
-
-# When running with Docker Compose
-docker-compose logs meraki-mcp-server
+# Run comprehensive test suite (400+ tests)
+python test_all_400_plus_functions.py
 ```
 
-## License
+## 📊 What's Included
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+| Category | Functions | Examples |
+|----------|-----------|----------|
+| Networks & Devices | 80+ | Device status, inventory, configuration |
+| Security | 60+ | Firewall, VPN, content filtering |
+| Wireless | 50+ | SSID management, RF optimization |
+| Monitoring | 70+ | Bandwidth, analytics, alerts |
+| Systems Manager | 40+ | MDM, app deployment, compliance |
+| New 2025 Features | 100+ | Sensors, OAuth, 5G, API analytics |
 
-## Acknowledgments
+**Total**: 400+ functions covering ~90% of Meraki API v1.61.0
 
-- Cisco Meraki for providing the Dashboard API
-- The Meraki Python SDK developers
-- MCP specification contributors
+## 🔧 Advanced Configuration
 
-## Testing with MCP Inspector
+### Environment Variables
+```bash
+MERAKI_API_KEY=your-key     # Required
+LOG_LEVEL=INFO             # Optional (DEBUG, INFO, WARNING)
+API_TIMEOUT=30             # Optional (seconds)
+```
 
-The MCP Inspector is a valuable tool for testing and debugging MCP servers. It allows you to interact with the server directly to verify functionality before integrating with Claude or other AI assistants.
+### Rate Limiting
+Automatically handles Meraki's 10 req/sec limit with smart retry logic.
 
-### Installing MCP Inspector
+## 🐛 Troubleshooting
 
-1. Install the MCP Inspector tool:
-   ```bash
-   pip install mcp-inspector
-   ```
+| Issue | Solution |
+|-------|----------|
+| "No organizations found" | Verify API key and permissions |
+| "Rate limit exceeded" | Wait 1 minute, server auto-retries |
+| "Connection timeout" | Check firewall allows HTTPS to api.meraki.com |
+| Bandwidth shows 0 | Update to latest version (fixed) |
 
-2. Verify the installation:
-   ```bash
-   mcp-inspector --version
-   ```
+## 🤝 Contributing
 
-### Testing the Local Server
+Contributions welcome! Please:
+1. Fork the repository
+2. Create a feature branch
+3. Add tests for new features
+4. Submit a pull request
 
-To test a locally running instance of the Meraki MCP server:
+## 📄 License
 
-1. Start the server in one terminal:
-   ```bash
-   uv run meraki_server.py
-   ```
+MIT License - see [LICENSE](LICENSE) file.
 
-2. In another terminal, run the MCP Inspector:
-   ```bash
-   mcp-inspector --stdio "uv run meraki_server.py"
-   ```
+## 🆘 Support
 
-3. The interactive inspector will start, allowing you to:
-   - List available resources
-   - Read specific resources
-   - Execute tools
-   - View raw request/response communication
+- **Issues**: [GitHub Issues](https://github.com/yourusername/cisco-meraki-mcp-server/issues)
+- **Documentation**: [/docs](./docs)
+- **API Reference**: [Meraki API Docs](https://developer.cisco.com/meraki/api-v1/)
 
-### Testing a Dockerized Server
+---
 
-To test a server running in a Docker container:
+**Version**: 2.0.0-beta | **API**: v1.61.0 | **Updated**: August 2025
 
-1. Ensure your container is running and the port is exposed:
-   ```bash
-   docker run -p 8000:8000 -e MERAKI_API_KEY="your-api-key-here" meraki-mcp-server
-   ```
-
-2. Run the MCP Inspector with the HTTP URL:
-   ```bash
-   mcp-inspector --http http://localhost:8000
-   ```
-
-### Common Test Commands
-
-Once in the MCP Inspector interface, try these commands:
-
-- `list_resources`: View all available resources
-- `read_resource meraki://organizations`: View all organizations
-- `execute list_organizations`: Run the list organizations tool
-- `execute get_organization_networks [org_id]`: Get networks for a specific organization
-- `info`: Get information about the server
-- `help`: See available commands
-
-### Validation Tips
-
-- Verify that all resources are correctly listed and accessible
-- Check that tool execution returns properly formatted results
-- Test error handling by providing invalid inputs
-- Confirm that resource paths follow the expected format
-- Test any write operations carefully in a non-production environment
-
-## Security Considerations
-
-- The API key grants access to your Meraki infrastructure, so keep it secure
-- Store your API key in the `.env` file which is excluded from version control
-- The server doesn't implement additional authentication beyond the API key
-- Consider running the server in a secure environment or network
-- Never expose the MCP server to the public internet
-- When using Docker or Kubernetes, use secrets management for handling the API key
+*This is an unofficial integration not affiliated with Cisco Meraki.*
