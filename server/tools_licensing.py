@@ -25,6 +25,130 @@ def register_licensing_tool_handlers():
     """Register all licensing tool handlers using ONLY REAL API methods."""
     
     @app.tool(
+        name="get_organization_licensing_overview",
+        description="📊 Get comprehensive licensing overview for an organization"
+    )
+    def get_organization_licensing_overview(org_id: str):
+        """
+        Get a comprehensive overview of organization licensing.
+        Supports both co-termination and per-device licensing models.
+        
+        Args:
+            org_id: Organization ID
+            
+        Returns:
+            Comprehensive licensing overview
+        """
+        try:
+            # First check what type of licensing model
+            try:
+                # Try to get the licensing coterm overview
+                coterm = meraki_client.dashboard.organizations.getOrganizationLicensingCotermLicenses(org_id)
+                
+                # This is a co-termination org
+                result = f"# 📊 Organization Licensing Overview\n\n"
+                result += f"**Organization ID**: {org_id}\n"
+                result += f"**Licensing Model**: Co-Termination\n\n"
+                
+                # Show co-term licenses
+                result += "## 📅 Co-Termination Licenses\n\n"
+                
+                for license in coterm:
+                    editions = license.get('editions', [])
+                    for edition in editions:
+                        result += f"### {edition.get('edition', 'Unknown Edition')}\n"
+                        result += f"- **Product Type**: {edition.get('productType', 'N/A')}\n"
+                        result += f"- **License Count**: {edition.get('licenseCount', 0)}\n"
+                        
+                    counts = license.get('counts', [])
+                    for count in counts:
+                        model = count.get('model', 'Unknown')
+                        count_val = count.get('count', 0)
+                        if count_val > 0:
+                            result += f"- **{model}**: {count_val} devices\n"
+                    
+                    result += f"\n**Expiration Date**: {license.get('expirationDate', 'N/A')}\n"
+                    
+                    # Calculate days remaining
+                    exp_date = license.get('expirationDate')
+                    if exp_date:
+                        from datetime import datetime
+                        try:
+                            exp_dt = datetime.fromisoformat(exp_date.replace('Z', '+00:00'))
+                            days_left = (exp_dt - datetime.now(exp_dt.tzinfo)).days
+                            if days_left < 30:
+                                result += f"⚠️ **Days Remaining**: {days_left} days\n"
+                            else:
+                                result += f"✅ **Days Remaining**: {days_left} days\n"
+                        except:
+                            pass
+                    
+                    result += "\n"
+                
+            except Exception as e:
+                if "404" in str(e) or "does not support" in str(e):
+                    # Try per-device licensing
+                    licenses = meraki_client.dashboard.organizations.getOrganizationLicenses(org_id)
+                    
+                    result = f"# 📊 Organization Licensing Overview\n\n"
+                    result += f"**Organization ID**: {org_id}\n"
+                    result += f"**Licensing Model**: Per-Device\n"
+                    result += f"**Total Licenses**: {len(licenses)}\n\n"
+                    
+                    # Count by state
+                    states = {}
+                    device_types = {}
+                    
+                    for license in licenses:
+                        state = license.get('state', 'unknown')
+                        states[state] = states.get(state, 0) + 1
+                        
+                        device_type = license.get('deviceType', 'Unknown')
+                        if device_type not in device_types:
+                            device_types[device_type] = {'active': 0, 'expired': 0, 'unused': 0}
+                        device_types[device_type][state] = device_types[device_type].get(state, 0) + 1
+                    
+                    # Overall summary
+                    result += "## 📈 License Status Summary\n"
+                    result += f"- ✅ **Active**: {states.get('active', 0)}\n"
+                    result += f"- 📦 **Unused**: {states.get('unused', 0)}\n"
+                    result += f"- ⏰ **Expired**: {states.get('expired', 0)}\n\n"
+                    
+                    # By device type
+                    result += "## 📱 Licenses by Device Type\n"
+                    for device_type, counts in device_types.items():
+                        total = sum(counts.values())
+                        result += f"\n### {device_type} ({total} licenses)\n"
+                        result += f"- Active: {counts['active']}\n"
+                        result += f"- Unused: {counts['unused']}\n"
+                        result += f"- Expired: {counts['expired']}\n"
+                else:
+                    raise e
+                    
+            # Get organization info for more context
+            try:
+                org_info = meraki_client.dashboard.organizations.getOrganization(org_id)
+                result += f"\n## 🏢 Organization Details\n"
+                result += f"- **Name**: {org_info.get('name', 'N/A')}\n"
+                
+                # Check if licensing info is in org details
+                licensing = org_info.get('licensing', {})
+                if licensing:
+                    result += f"- **Licensing Model**: {licensing.get('model', 'N/A')}\n"
+            except:
+                pass
+                
+            result += "\n## 💡 Licensing Tips\n"
+            result += "- Renew licenses before expiration to avoid service interruption\n"
+            result += "- Unused licenses can be assigned to new devices\n"
+            result += "- Contact your Meraki sales rep for bulk renewals\n"
+            
+            return result
+            
+        except Exception as e:
+            return f"Error getting licensing overview: {str(e)}"
+    
+    @app.tool(
         name="get_organization_licenses",
         description="📄 List all licenses in an organization"
     )

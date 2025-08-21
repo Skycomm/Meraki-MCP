@@ -22,7 +22,7 @@ from pydantic import BaseModel, Field
 # Import our modules
 from config import MERAKI_API_KEY, SERVER_NAME, SERVER_VERSION
 from meraki_client import MerakiClient
-from tool_registry import ALL_TOOLS, TOOL_METADATA, set_meraki_client
+from complete_tool_registry import ALL_TOOLS, TOOL_METADATA, set_meraki_client
 from mcp_protocol import MCPHandler
 
 # Setup logging

@@ -2,36 +2,223 @@ version: '3.8'
 
 services:
   meraki-mcp-sse:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - PYTHON_VERSION=${PYTHON_VERSION:-3.11}
+    image: meraki-mcp-sse:${VERSION:-latest}
     container_name: meraki-mcp-sse
+    restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "${EXTERNAL_PORT:-8000}:8000"
     environment:
+      # Required configuration
       - MERAKI_API_KEY=${MERAKI_API_KEY}
+      
+      # Server configuration
+      - HOST=${HOST:-0.0.0.0}
+      - PORT=${PORT:-8000}
+      - SERVER_NAME=${SERVER_NAME:-Meraki MCP SSE Server}
+      - SERVER_VERSION=${SERVER_VERSION:-1.0.0}
+      
+      # Security configuration
       - PRIVILEGED_USERS=${PRIVILEGED_USERS:-admin@example.com}
+      - ENABLE_AUTH=${ENABLE_AUTH:-true}
+      - AUTH_SECRET_KEY=${AUTH_SECRET_KEY:-change-me-in-production}
+      
+      # Rate limiting
+      - RATE_LIMIT_ENABLED=${RATE_LIMIT_ENABLED:-true}
       - RATE_LIMIT_REQUESTS=${RATE_LIMIT_REQUESTS:-100}
       - RATE_LIMIT_WINDOW=${RATE_LIMIT_WINDOW:-60}
-    restart: unless-stopped
+      
+      # Logging
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FORMAT=${LOG_FORMAT:-json}
+      
+      # CORS settings
+      - CORS_ENABLED=${CORS_ENABLED:-true}
+      - CORS_ORIGINS=${CORS_ORIGINS:-*}
+    
+    volumes:
+      # Persist logs
+      - ./logs:/app/logs
+      
+      # Mount .env file if exists
+      - ./.env:/app/.env:ro
+      
+      # Development mode: mount source code
+      # Uncomment for development
+      # - ./src:/app/src:ro
+      # - ./start_server.py:/app/start_server.py:ro
+    
+    networks:
+      - meraki-network
+    
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
+    
+    labels:
+      - "com.meraki.service=mcp-sse"
+      - "com.meraki.version=${VERSION:-1.0.0}"
+      - "com.meraki.description=Cisco Meraki MCP SSE/HTTP Server"
+      - "traefik.enable=true"
+      - "traefik.http.routers.meraki-mcp.rule=Host(`${DOMAIN:-meraki-mcp.local}`)"
+      - "traefik.http.services.meraki-mcp.loadbalancer.server.port=8000"
 
-  # Optional: mcpo proxy for OpenWebUI
+  # Optional: mcpo proxy for OpenWebUI integration
   mcpo:
     image: python:3.11-slim
     container_name: meraki-mcpo
     ports:
-      - "8001:8001"
+      - "${MCPO_PORT:-8001}:8001"
+    environment:
+      - MCP_TOKEN=${MCP_TOKEN:-default-token}
+      - OPENWEBUI_KEY=${OPENWEBUI_KEY:-openwebui-secret}
     command: >
-      sh -c "pip install mcpo && 
-             mcpo --port 8001 --api-key 'openwebui-secret' -- 
+      sh -c "pip install --no-cache-dir mcpo && 
+             mcpo --port 8001 --api-key '${OPENWEBUI_KEY}' -- 
              curl -N -H 'Authorization: Bearer ${MCP_TOKEN}' 
              http://meraki-mcp-sse:8000/sse"
     depends_on:
       - meraki-mcp-sse
     restart: unless-stopped
+    networks:
+      - meraki-network
     profiles:
       - openwebui
+
+  # Optional: Nginx reverse proxy for SSL termination
+  nginx:
+    image: nginx:alpine
+    container_name: meraki-nginx
+    restart: unless-stopped
+    ports:
+      - "${NGINX_HTTP_PORT:-80}:80"
+      - "${NGINX_HTTPS_PORT:-443}:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+      - nginx-cache:/var/cache/nginx
+    depends_on:
+      - meraki-mcp-sse
+    networks:
+      - meraki-network
+    profiles:
+      - with-ssl
+
+  # Optional: Traefik reverse proxy (alternative to nginx)
+  traefik:
+    image: traefik:v2.10
+    container_name: meraki-traefik
+    restart: unless-stopped
+    ports:
+      - "${TRAEFIK_HTTP_PORT:-80}:80"
+      - "${TRAEFIK_HTTPS_PORT:-443}:443"
+      - "${TRAEFIK_DASHBOARD_PORT:-8080}:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./traefik/dynamic:/etc/traefik/dynamic:ro
+      - traefik-certs:/letsencrypt
+    networks:
+      - meraki-network
+    profiles:
+      - with-traefik
+
+  # Optional: PostgreSQL for advanced logging/metrics
+  postgres:
+    image: postgres:15-alpine
+    container_name: meraki-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-meraki_mcp}
+      - POSTGRES_USER=${POSTGRES_USER:-meraki}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-change-me}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - meraki-network
+    profiles:
+      - with-db
+
+  # Optional: Redis for caching and rate limiting
+  redis:
+    image: redis:7-alpine
+    container_name: meraki-redis
+    restart: unless-stopped
+    command: >
+      redis-server 
+      --appendonly yes 
+      --requirepass ${REDIS_PASSWORD:-change-me}
+    volumes:
+      - redis-data:/data
+    networks:
+      - meraki-network
+    profiles:
+      - with-cache
+
+  # Optional: Prometheus for monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: meraki-prometheus
+    restart: unless-stopped
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - meraki-network
+    profiles:
+      - monitoring
+
+  # Optional: Grafana for visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: meraki-grafana
+    restart: unless-stopped
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_SERVER_ROOT_URL=${GRAFANA_URL:-http://localhost:3000}
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    depends_on:
+      - prometheus
+    networks:
+      - meraki-network
+    profiles:
+      - monitoring
+
+networks:
+  meraki-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
+
+volumes:
+  nginx-cache:
+    driver: local
+  traefik-certs:
+    driver: local
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
