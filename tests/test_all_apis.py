@@ -363,6 +363,50 @@ if network_id:
     
     print("\n⏭️  Skipping update_network_appliance_firewall_l3_rules (would modify production)")
 
+# ============ SECURITY TESTS (NEW 2025 TOOLS) ============
+print("\n\n🔒 TESTING SECURITY TOOLS (NEW 2025)")
+print("-" * 40)
+
+if network_id:
+    # Security Events
+    test_api_method("get_network_appliance_security_events",
+                   lambda: client.get_network_appliance_security_events(network_id, timespan=3600, perPage=10),
+                   list)
+    
+    # L7 Firewall Rules
+    test_api_method("get_network_appliance_firewall_l7_rules",
+                   lambda: client.get_network_appliance_firewall_l7_rules(network_id),
+                   dict)
+    
+    # Firewall Settings
+    test_api_method("get_network_appliance_firewall_settings",
+                   lambda: client.get_network_appliance_firewall_settings(network_id),
+                   dict)
+    
+    # NAT Rules
+    test_api_method("get_network_appliance_firewall_one_to_one_nat_rules",
+                   lambda: client.get_network_appliance_firewall_one_to_one_nat_rules(network_id),
+                   dict)
+    
+    test_api_method("get_network_appliance_firewall_one_to_many_nat_rules",
+                   lambda: client.get_network_appliance_firewall_one_to_many_nat_rules(network_id),
+                   dict)
+    
+    # Port Forwarding
+    test_api_method("get_network_appliance_firewall_port_forwarding_rules",
+                   lambda: client.get_network_appliance_firewall_port_forwarding_rules(network_id),
+                   dict)
+    
+    print("\n⏭️  Skipping update methods for security tools (would modify production):")
+    print("   - update_network_appliance_security_intrusion")
+    print("   - update_network_appliance_security_malware") 
+    print("   - update_network_appliance_content_filtering")
+    print("   - update_network_appliance_firewall_l7_rules")
+    print("   - update_network_appliance_firewall_settings")
+    print("   - update_network_appliance_firewall_one_to_one_nat_rules")
+    print("   - update_network_appliance_firewall_one_to_many_nat_rules")
+    print("   - update_network_appliance_firewall_port_forwarding_rules")
+
 # ============ CAMERA TESTS (6 tools) ============
 print("\n\n📹 TESTING CAMERA TOOLS (6)")
 print("-" * 40)
@@ -407,6 +451,7 @@ print("   - create_organization_webhook / create_network_webhook_http_server")
 print("   - update_network_alerts_settings")
 print("   - update_network_appliance_firewall_l3_rules")
 print("   - update_device_camera_video_settings")
+print("   - All new security update methods (8 tools)")
 
 # ============ FINAL REPORT ============
 print("\n\n" + "=" * 80)
@@ -427,9 +472,10 @@ if results['warnings']:
         print(f"   - {warning}")
 
 print("\n📋 COVERAGE:")
-print(f"   - Total API methods in client: 55")
+print(f"   - Total API methods in client: 70+")
 print(f"   - Methods tested: {results['passed'] + results['failed']}")
-print(f"   - Methods skipped (modify production): ~16")
+print(f"   - Methods skipped (modify production): ~24")
+print("   - New security tools added: 15")
 
 # Save results
 with open('test_results.json', 'w') as f:
