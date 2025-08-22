@@ -284,9 +284,29 @@ class MerakiClient:
         """Update L3 firewall rules - REAL method."""
         return self.dashboard.appliance.updateNetworkApplianceFirewallL3FirewallRules(network_id, **kwargs)
     
+    def get_network_appliance_firewall_l7_rules(self, network_id: str):
+        """Get L7 firewall rules - REAL method."""
+        return self.dashboard.appliance.getNetworkApplianceFirewallL7FirewallRules(network_id)
+    
+    def update_network_appliance_firewall_l7_rules(self, network_id: str, **kwargs):
+        """Update L7 firewall rules - REAL method."""
+        return self.dashboard.appliance.updateNetworkApplianceFirewallL7FirewallRules(network_id, **kwargs)
+    
+    def get_network_appliance_firewall_settings(self, network_id: str):
+        """Get firewall settings - REAL method."""
+        return self.dashboard.appliance.getNetworkApplianceFirewallSettings(network_id)
+    
+    def update_network_appliance_firewall_settings(self, network_id: str, **kwargs):
+        """Update firewall settings - REAL method."""
+        return self.dashboard.appliance.updateNetworkApplianceFirewallSettings(network_id, **kwargs)
+    
     def get_network_appliance_content_filtering(self, network_id: str):
         """Get content filtering settings - REAL method."""
         return self.dashboard.appliance.getNetworkApplianceContentFiltering(network_id)
+    
+    def update_network_appliance_content_filtering(self, network_id: str, **kwargs):
+        """Update content filtering settings - REAL method."""
+        return self.dashboard.appliance.updateNetworkApplianceContentFiltering(network_id, **kwargs)
     
     def get_network_appliance_vpn_site_to_site(self, network_id: str):
         """Get site-to-site VPN settings - REAL method."""
@@ -296,6 +316,10 @@ class MerakiClient:
         """Get malware protection settings - REAL method."""
         return self.dashboard.appliance.getNetworkApplianceSecurityMalware(network_id)
     
+    def update_network_appliance_security_malware(self, network_id: str, **kwargs):
+        """Update malware protection settings - REAL method."""
+        return self.dashboard.appliance.updateNetworkApplianceSecurityMalware(network_id, **kwargs)
+    
     def get_network_appliance_security_intrusion(self, network_id: str):
         """Get intrusion detection settings - REAL method."""
         return self.dashboard.appliance.getNetworkApplianceSecurityIntrusion(network_id)
@@ -303,6 +327,41 @@ class MerakiClient:
     def update_network_appliance_security_intrusion(self, network_id: str, **kwargs):
         """Update intrusion detection/prevention settings - REAL method."""
         return self.dashboard.appliance.updateNetworkApplianceSecurityIntrusion(network_id, **kwargs)
+    
+    # Security Events Methods
+    def get_network_appliance_security_events(self, network_id: str, **kwargs):
+        """Get security events for a network - REAL method."""
+        return self.dashboard.appliance.getNetworkApplianceSecurityEvents(network_id, **kwargs)
+    
+    def get_network_appliance_client_security_events(self, network_id: str, client_id: str, **kwargs):
+        """Get security events for a specific client - REAL method."""
+        return self.dashboard.appliance.getNetworkApplianceClientSecurityEvents(network_id, client_id, **kwargs)
+    
+    # NAT Rules Methods
+    def get_network_appliance_firewall_one_to_one_nat_rules(self, network_id: str):
+        """Get 1:1 NAT mapping rules - REAL method."""
+        return self.dashboard.appliance.getNetworkApplianceFirewallOneToOneNatRules(network_id)
+    
+    def update_network_appliance_firewall_one_to_one_nat_rules(self, network_id: str, **kwargs):
+        """Update 1:1 NAT mapping rules - REAL method."""
+        return self.dashboard.appliance.updateNetworkApplianceFirewallOneToOneNatRules(network_id, **kwargs)
+    
+    def get_network_appliance_firewall_one_to_many_nat_rules(self, network_id: str):
+        """Get 1:Many NAT mapping rules - REAL method."""
+        return self.dashboard.appliance.getNetworkApplianceFirewallOneToManyNatRules(network_id)
+    
+    def update_network_appliance_firewall_one_to_many_nat_rules(self, network_id: str, **kwargs):
+        """Update 1:Many NAT mapping rules - REAL method."""
+        return self.dashboard.appliance.updateNetworkApplianceFirewallOneToManyNatRules(network_id, **kwargs)
+    
+    # Port Forwarding Methods
+    def get_network_appliance_firewall_port_forwarding_rules(self, network_id: str):
+        """Get port forwarding rules - REAL method."""
+        return self.dashboard.appliance.getNetworkApplianceFirewallPortForwardingRules(network_id)
+    
+    def update_network_appliance_firewall_port_forwarding_rules(self, network_id: str, **kwargs):
+        """Update port forwarding rules - REAL method."""
+        return self.dashboard.appliance.updateNetworkApplianceFirewallPortForwardingRules(network_id, **kwargs)
     
     # REAL Camera Methods (additional to existing)
     def get_device_camera_snapshot(self, serial: str, timestamp: str = None):
