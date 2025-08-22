@@ -362,3 +362,65 @@ The device is now rebooting. Monitor its status to confirm it comes back online.
             return result
         except Exception as e:
             return f"Failed to list unassigned devices: {str(e)}"
+    
+    @app.tool(
+        name="unclaim_device_from_network",
+        description="Remove/unclaim a device from a network (returns it to organization inventory)"
+    )
+    def unclaim_device_from_network(network_id: str, serial: str):
+        """
+        Remove a device from a network and return it to organization inventory.
+        This is a non-destructive operation - the device remains in the org.
+        
+        Args:
+            network_id: ID of the network containing the device
+            serial: Serial number of the device to unclaim
+            
+        Returns:
+            Success message or error details
+        """
+        try:
+            # Get network and device info for better messages
+            network = meraki_client.get_network(network_id)
+            network_name = network.get('name', 'Unknown')
+            
+            # Get device info
+            try:
+                device = meraki_client.get_device(serial)
+                device_name = device.get('name', serial)
+                device_model = device.get('model', 'Unknown')
+            except:
+                device_name = serial
+                device_model = 'Unknown'
+            
+            # Remove device from network
+            result = meraki_client.dashboard.networks.removeNetworkDevices(
+                network_id,
+                serial=serial
+            )
+            
+            return f"""✅ Successfully unclaimed device from network!
+
+**Device**: {device_name} ({device_model})
+**Serial**: {serial}
+**Removed from**: {network_name} (ID: {network_id})
+**Status**: Returned to organization inventory
+
+The device is now unassigned and can be:
+- Added to a different network
+- Left in inventory as a spare
+- Transferred to another organization"""
+            
+        except Exception as e:
+            error_msg = str(e)
+            
+            # Provide helpful error messages
+            if "404" in error_msg:
+                if "network" in error_msg.lower():
+                    return f"❌ Network {network_id} not found"
+                else:
+                    return f"❌ Device {serial} not found in network {network_id}"
+            elif "400" in error_msg:
+                return f"❌ Bad request: {error_msg}\n\nDevice might not be in this network."
+            else:
+                return f"❌ Failed to unclaim device {serial}: {error_msg}"
