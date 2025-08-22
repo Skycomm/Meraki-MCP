@@ -162,7 +162,29 @@ async def update_organization(organization_id: str, name: str = None):
         Returns:
             Updated organization details
         """
-        return await meraki_client.update_organization(organization_id, name)
+        try:
+            # Get current organization
+            org = await meraki_client.get_organization(organization_id)
+            current_name = org.get('name', 'Unknown')
+            
+            # If renaming, require confirmation
+            if name and name != current_name:
+                from utils.helpers import require_confirmation
+                
+                if not require_confirmation(
+                    operation_type="rename",
+                    resource_type="organization",
+                    resource_name=f"{current_name} → {name}",
+                    resource_id=organization_id
+                ):
+                    return "❌ Organization rename cancelled by user"
+            
+            # Perform update
+            result = await meraki_client.update_organization(organization_id, name)
+            return f"✅ Organization updated successfully"
+            
+        except Exception as e:
+            return f"Failed to update organization: {str(e)}"
 
 
 # From tools_organizations.py
@@ -176,7 +198,37 @@ async def delete_organization(organization_id: str):
         Returns:
             Success/failure information
         """
-        return await meraki_client.delete_organization(organization_id)
+        try:
+            # Get organization details
+            org = await meraki_client.get_organization(organization_id)
+            
+            from utils.helpers import require_confirmation
+            
+            # Double confirmation for organization deletion
+            print("\n⚠️  EXTREME CAUTION: Organization deletion will delete ALL networks and devices!")
+            
+            if not require_confirmation(
+                operation_type="delete",
+                resource_type="organization",
+                resource_name=org.get('name', 'Unknown'),
+                resource_id=organization_id
+            ):
+                return "❌ Organization deletion cancelled by user"
+            
+            # Second confirmation
+            print(f"\n🚨 FINAL WARNING: This will delete organization '{org['name']}' and ALL its contents!")
+            print("Type 'DELETE EVERYTHING' to confirm:")
+            
+            final_confirm = input("> ").strip()
+            if final_confirm != "DELETE EVERYTHING":
+                return "❌ Organization deletion cancelled - final confirmation failed"
+            
+            # Perform deletion
+            await meraki_client.delete_organization(organization_id)
+            return f"✅ Organization '{org['name']}' deleted permanently"
+            
+        except Exception as e:
+            return f"Failed to delete organization: {str(e)}"
 
 
 # From tools_organizations.py
@@ -242,7 +294,29 @@ async def update_network(network_id: str, name: str = None, tags: list = None):
         Returns:
             Updated network details
         """
-        return await meraki_client.update_network(network_id, name, tags)
+        try:
+            # Get current network details
+            network = await meraki_client.get_network(network_id)
+            current_name = network.get('name', 'Unknown')
+            
+            # If renaming, require confirmation
+            if name and name != current_name:
+                from utils.helpers import require_confirmation
+                
+                if not require_confirmation(
+                    operation_type="rename",
+                    resource_type="network",
+                    resource_name=f"{current_name} → {name}",
+                    resource_id=network_id
+                ):
+                    return "❌ Network rename cancelled by user"
+            
+            # Perform update
+            result = await meraki_client.update_network(network_id, name, tags)
+            return f"✅ Network updated successfully"
+            
+        except Exception as e:
+            return f"Failed to update network: {str(e)}"
 
 
 # From tools_networks.py
@@ -342,7 +416,8 @@ async def create_network(organization_id: str, name: str, product_types: str = "
         """
         # Convert comma-separated string to list
         types_list = [t.strip() for t in product_types.split(',')]
-        return await meraki_client.create_network(organization_id, name, types_list)
+        # BUGFIX: Pass productTypes as named parameter instead of positional
+        return await meraki_client.create_network(organization_id, name, productTypes=types_list)
 
 
 # From tools_networks.py
@@ -356,7 +431,28 @@ async def delete_network(network_id: str):
         Returns:
             Success/failure information
         """
-        return await meraki_client.delete_network(network_id)
+        try:
+            # Get network details first
+            network = await meraki_client.get_network(network_id)
+            
+            # Import helper function
+            from utils.helpers import require_confirmation
+            
+            # Require confirmation
+            if not require_confirmation(
+                operation_type="delete",
+                resource_type="network", 
+                resource_name=network.get('name', 'Unknown'),
+                resource_id=network_id
+            ):
+                return "❌ Network deletion cancelled by user"
+            
+            # Perform deletion
+            await meraki_client.delete_network(network_id)
+            return f"✅ Network '{network['name']}' deleted successfully"
+            
+        except Exception as e:
+            return f"Failed to delete network: {str(e)}"
 
 
 # From tools_devices.py
@@ -403,59 +499,29 @@ async def reboot_device(serial: str):
         Returns:
             Success/failure information
         """
-        # Return a warning message instead of directly rebooting
-        warning_msg = f"""# ⚠️ REBOOT CONFIRMATION REQUIRED
-
-**Device Serial**: {serial}
-
-**WARNING**: Rebooting this device will:
-- 🔴 Disconnect ALL users
-- 🔴 Interrupt network services
-- 🔴 Take 2-5 minutes to come back online
-
-**To proceed with reboot**:
-If you really want to reboot this device, please confirm by saying:
-"Yes, reboot device {serial}"
-
-**Alternative solutions to try first**:
-1. Check device status and logs
-2. Verify cable connections
-3. Check for firmware updates
-4. Review recent configuration changes
-
-⚠️ This action cannot be undone!"""
-        
-        return warning_msg
-
-
-# From tools_devices.py
-async def confirm_reboot_device(serial: str, confirmation: str):
-        """
-        Actually reboot a device after explicit confirmation.
-        
-        Args:
-            serial: Serial number of the device to reboot
-            confirmation: Must be exactly "YES-REBOOT-[serial]" to proceed
-            
-        Returns:
-            Reboot status
-        """
-        expected_confirmation = f"YES-REBOOT-{serial}"
-        
-        if confirmation != expected_confirmation:
-            return f"""❌ Confirmation failed!
-
-You provided: "{confirmation}"
-Expected: "{expected_confirmation}"
-
-The device was NOT rebooted. Please use exact confirmation text if you really want to proceed."""
-        
         try:
+            # Get device details first
+            device = await meraki_client.get_device(serial)
+            
+            # Import helper function
+            from utils.helpers import require_confirmation
+            
+            # Require confirmation
+            if not require_confirmation(
+                operation_type="reboot",
+                resource_type="device",
+                resource_name=device.get('name', f'Device {serial}'),
+                resource_id=serial
+            ):
+                return "❌ Device reboot cancelled by user"
+            
+            # Perform reboot
             result = await meraki_client.reboot_device(serial)
             
             return f"""✅ REBOOT INITIATED
 
-**Device**: {serial}
+**Device**: {device.get('name', serial)}
+**Serial**: {serial}
 **Status**: Reboot command sent successfully
 **Expected downtime**: 2-5 minutes
 
@@ -463,6 +529,8 @@ The device is now rebooting. Monitor its status to confirm it comes back online.
             
         except Exception as e:
             return f"❌ Error rebooting device: {str(e)}"
+
+
 
 
 # From tools_devices.py
@@ -578,6 +646,88 @@ async def get_device_status(serial: str):
             
         except Exception as e:
             return f"Failed to get status for device {serial}: {str(e)}"
+
+
+# From tools_devices.py
+async def claim_device_into_network(network_id: str, serial: str):
+        """
+        Claim a device from organization inventory into a specific network.
+        
+        Args:
+            network_id: ID of the network to claim the device into
+            serial: Serial number of the device to claim
+            
+        Returns:
+            Success message or error details
+        """
+        try:
+            # The Meraki API endpoint for this is:
+            # POST /networks/{networkId}/devices/claim
+            result = await meraki_client.dashboard.networks.claimNetworkDevices(
+                network_id, 
+                serials=[serial]
+            )
+            return f"✅ Successfully claimed device {serial} into network {network_id}"
+        except Exception as e:
+            return f"❌ Failed to claim device {serial}: {str(e)}"
+
+
+# From tools_devices.py
+async def claim_devices_into_network(network_id: str, serials: str):
+        """
+        Claim multiple devices into a network.
+        
+        Args:
+            network_id: ID of the network to claim devices into
+            serials: Comma-separated list of device serial numbers
+            
+        Returns:
+            Success message with results
+        """
+        serial_list = [s.strip() for s in serials.split(',')]
+        
+        try:
+            result = await meraki_client.dashboard.networks.claimNetworkDevices(
+                network_id,
+                serials=serial_list
+            )
+            return f"✅ Successfully claimed {len(serial_list)} devices into network"
+        except Exception as e:
+            return f"❌ Failed to claim devices: {str(e)}"
+
+
+# From tools_devices.py
+async def list_unassigned_devices(organization_id: str):
+        """
+        List devices in organization inventory not assigned to networks.
+        
+        Args:
+            organization_id: ID of the organization
+            
+        Returns:
+            Formatted list of unassigned devices
+        """
+        try:
+            # Get all devices in organization
+            all_devices = await meraki_client.dashboard.organizations.getOrganizationDevices(organization_id)
+            
+            # Filter for devices without networkId
+            unassigned = [d for d in all_devices if not d.get('networkId')]
+            
+            if not unassigned:
+                return "No unassigned devices found in organization"
+                
+            result = f"# Unassigned Devices ({len(unassigned)} total)\n\n"
+            for device in unassigned:
+                result += f"- **{device.get('model', 'Unknown')}** - Serial: `{device['serial']}`\n"
+                if device.get('name'):
+                    result += f"  - Name: {device['name']}\n"
+                if device.get('mac'):
+                    result += f"  - MAC: {device['mac']}\n"
+                    
+            return result
+        except Exception as e:
+            return f"Failed to list unassigned devices: {str(e)}"
 
 
 # From tools_wireless.py
@@ -2548,63 +2698,19 @@ async def reboot_network_sm_devices(network_id: str, device_ids: str):
             ids_list = [id.strip() for id in device_ids.split(',')]
             device_count = len(ids_list)
             
-            # Return a warning message instead of directly rebooting
-            warning_msg = f"""# ⚠️ SM DEVICE REBOOT CONFIRMATION REQUIRED
-
-**Network**: {network_id}
-**Devices to reboot**: {device_count}
-**Device IDs**: {', '.join(ids_list)}
-
-**WARNING**: Rebooting these devices will:
-- 🔴 Force devices to restart immediately
-- 🔴 Interrupt any active work on the devices
-- 🔴 May cause data loss if files are open
-- 🔴 Take several minutes to complete
-
-**To proceed with reboot**:
-If you really want to reboot these devices, please confirm by saying:
-"Yes, reboot SM devices in network {network_id}"
-
-**Alternative solutions to try first**:
-1. Check device performance metrics
-2. Review installed apps and profiles
-3. Check for pending OS updates
-4. Try remote assistance first
-
-⚠️ This action will affect {device_count} device(s)!"""
+            # Import helper function
+            from utils.helpers import require_confirmation
             
-            return warning_msg
+            # Require confirmation
+            if not require_confirmation(
+                operation_type="reboot",
+                resource_type="SM devices",
+                resource_name=f"{device_count} device(s) in network {network_id}",
+                resource_id=f"Network: {network_id}"
+            ):
+                return "❌ SM device reboot cancelled by user"
             
-        except Exception as e:
-            return f"Error preparing reboot command: {str(e)}"
-
-
-# From tools_sm.py
-async def confirm_reboot_network_sm_devices(network_id: str, device_ids: str, confirmation: str):
-        """
-        Actually reboot SM devices after explicit confirmation.
-        
-        Args:
-            network_id: Network ID
-            device_ids: Comma-separated device IDs to reboot
-            confirmation: Must be exactly "YES-REBOOT-SM-[network_id]" to proceed
-            
-        Returns:
-            Reboot command status
-        """
-        expected_confirmation = f"YES-REBOOT-SM-{network_id}"
-        
-        if confirmation != expected_confirmation:
-            return f"""❌ Confirmation failed!
-
-You provided: "{confirmation}"
-Expected: "{expected_confirmation}"
-
-No devices were rebooted. Please use exact confirmation text if you really want to proceed."""
-        
-        try:
-            ids_list = [id.strip() for id in device_ids.split(',')]
-            
+            # Perform reboot
             result = await meraki_client.reboot_network_sm_devices(network_id, ids=ids_list)
             
             response = f"""✅ SM REBOOT COMMAND SENT
@@ -2620,6 +2726,8 @@ The reboot command has been sent to all devices. They will restart shortly."""
             
         except Exception as e:
             return f"❌ Error sending reboot command: {str(e)}"
+
+
 
 
 # From tools_sm.py
@@ -3204,9 +3312,33 @@ async def delete_organization_policy_object(org_id: str, policy_object_id: str):
             Deletion confirmation
         """
         try:
+            # Get policy object details first
+            objects = await meraki_client.get_organization_policy_objects(org_id)
+            policy_obj = None
+            for obj in objects:
+                if obj.get('id') == policy_object_id:
+                    policy_obj = obj
+                    break
+            
+            if not policy_obj:
+                return f"❌ Policy object {policy_object_id} not found"
+            
+            # Import helper function
+            from utils.helpers import require_confirmation
+            
+            # Require confirmation
+            if not require_confirmation(
+                operation_type="delete",
+                resource_type="policy object",
+                resource_name=policy_obj.get('name', 'Unknown'),
+                resource_id=policy_object_id
+            ):
+                return "❌ Policy object deletion cancelled by user"
+            
+            # Perform deletion
             await meraki_client.delete_organization_policy_object(org_id, policy_object_id)
             
-            return f"# 🗑️ Policy Object Deleted\n\n**ID**: {policy_object_id}\n\n✅ Policy object successfully deleted."
+            return f"✅ Policy object '{policy_obj.get('name', policy_object_id)}' deleted successfully"
             
         except Exception as e:
             return f"Error deleting policy object: {str(e)}"
@@ -4380,9 +4512,11 @@ ALL_TOOLS = {
     "get_device": get_device,
     "update_device": update_device,
     "reboot_device": reboot_device,
-    "confirm_reboot_device": confirm_reboot_device,
     "get_device_clients": get_device_clients,
     "get_device_status": get_device_status,
+    "claim_device_into_network": claim_device_into_network,
+    "claim_devices_into_network": claim_devices_into_network,
+    "list_unassigned_devices": list_unassigned_devices,
     "get_network_wireless_ssids": get_network_wireless_ssids,
     "get_network_wireless_passwords": get_network_wireless_passwords,
     "update_network_wireless_ssid": update_network_wireless_ssid,
@@ -4423,7 +4557,6 @@ ALL_TOOLS = {
     "get_network_sm_device_detail": get_network_sm_device_detail,
     "get_network_sm_device_apps": get_network_sm_device_apps,
     "reboot_network_sm_devices": reboot_network_sm_devices,
-    "confirm_reboot_network_sm_devices": confirm_reboot_network_sm_devices,
     "get_network_sm_profiles": get_network_sm_profiles,
     "get_network_sm_performance_history": get_network_sm_performance_history,
     "get_organization_licenses": get_organization_licenses,
@@ -4532,10 +4665,6 @@ TOOL_METADATA = {
         "description": "Reboot a Meraki device.\n        \n        ⚠️ WARNING: This will disconnect all users and interrupt service!\n        \n        Args:\n            serial: Serial number of the device to reboot\n            \n        Returns:\n            Success/failure information",
         "parameters": [{"name": "serial", "type": "str", "default": null, "required": true}]
     },
-    "confirm_reboot_device": {
-        "description": "Actually reboot a device after explicit confirmation.\n        \n        Args:\n            serial: Serial number of the device to reboot\n            confirmation: Must be exactly \"YES-REBOOT-[serial]\" to proceed\n            \n        Returns:\n            Reboot status",
-        "parameters": [{"name": "serial", "type": "str", "default": null, "required": true}, {"name": "confirmation", "type": "str", "default": null, "required": true}]
-    },
     "get_device_clients": {
         "description": "List clients connected to a specific Meraki device.\n        \n        Args:\n            serial: Serial number of the device\n            \n        Returns:\n            Formatted list of clients",
         "parameters": [{"name": "serial", "type": "str", "default": null, "required": true}]
@@ -4543,6 +4672,18 @@ TOOL_METADATA = {
     "get_device_status": {
         "description": "Get status information for a specific Meraki device.\n        \n        Args:\n            serial: Serial number of the device\n            \n        Returns:\n            Formatted status information",
         "parameters": [{"name": "serial", "type": "str", "default": null, "required": true}]
+    },
+    "claim_device_into_network": {
+        "description": "Claim a device from organization inventory into a specific network.\n        \n        Args:\n            network_id: ID of the network to claim the device into\n            serial: Serial number of the device to claim\n            \n        Returns:\n            Success message or error details",
+        "parameters": [{"name": "network_id", "type": "str", "default": null, "required": true}, {"name": "serial", "type": "str", "default": null, "required": true}]
+    },
+    "claim_devices_into_network": {
+        "description": "Claim multiple devices into a network.\n        \n        Args:\n            network_id: ID of the network to claim devices into\n            serials: Comma-separated list of device serial numbers\n            \n        Returns:\n            Success message with results",
+        "parameters": [{"name": "network_id", "type": "str", "default": null, "required": true}, {"name": "serials", "type": "str", "default": null, "required": true}]
+    },
+    "list_unassigned_devices": {
+        "description": "List devices in organization inventory not assigned to networks.\n        \n        Args:\n            organization_id: ID of the organization\n            \n        Returns:\n            Formatted list of unassigned devices",
+        "parameters": [{"name": "organization_id", "type": "str", "default": null, "required": true}]
     },
     "get_network_wireless_ssids": {
         "description": "List wireless SSIDs for a Meraki network.\n        \n        Args:\n            network_id: ID of the network\n            \n        Returns:\n            Formatted list of SSIDs",
@@ -4703,10 +4844,6 @@ TOOL_METADATA = {
     "reboot_network_sm_devices": {
         "description": "Reboot one or more Systems Manager devices.\n        \n        ⚠️ WARNING: This will force devices to restart!\n        \n        Args:\n            network_id: Network ID\n            device_ids: Comma-separated device IDs to reboot\n            \n        Returns:\n            Reboot command status",
         "parameters": [{"name": "network_id", "type": "str", "default": null, "required": true}, {"name": "device_ids", "type": "str", "default": null, "required": true}]
-    },
-    "confirm_reboot_network_sm_devices": {
-        "description": "Actually reboot SM devices after explicit confirmation.\n        \n        Args:\n            network_id: Network ID\n            device_ids: Comma-separated device IDs to reboot\n            confirmation: Must be exactly \"YES-REBOOT-SM-[network_id]\" to proceed\n            \n        Returns:\n            Reboot command status",
-        "parameters": [{"name": "network_id", "type": "str", "default": null, "required": true}, {"name": "device_ids", "type": "str", "default": null, "required": true}, {"name": "confirmation", "type": "str", "default": null, "required": true}]
     },
     "get_network_sm_profiles": {
         "description": "List all Systems Manager profiles for a network.\n        \n        Args:\n            network_id: Network ID\n            \n        Returns:\n            List of SM profiles",
