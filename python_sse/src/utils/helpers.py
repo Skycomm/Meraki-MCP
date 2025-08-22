@@ -133,8 +133,6 @@ def require_confirmation(operation_type: str, resource_type: str,
     # Check if in read-only mode
     if os.getenv("MCP_READ_ONLY_MODE", "false").lower() == "true":
         print("\n❌ Operation blocked: Server is in READ-ONLY mode")
-        # Return False to block the operation
-        # The calling function will return an appropriate message to the MCP client
         return False
     
     # Check if confirmations are disabled (not recommended)
@@ -142,10 +140,10 @@ def require_confirmation(operation_type: str, resource_type: str,
         return True
     
     # Check if we're in an interactive terminal
-    # MCP clients and SSE/HTTP clients cannot provide interactive input
+    # SSE/HTTP clients cannot provide interactive input
     if not sys.stdin.isatty():
         # Non-interactive mode - can't prompt for confirmation
-        # This blocks the operation when called from MCP/SSE clients
+        # This blocks the operation when called from SSE/HTTP clients
         return False
     
     # Determine risk level
