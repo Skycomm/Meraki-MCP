@@ -441,3 +441,655 @@ def register_appliance_tool_handlers():
             
         except Exception as e:
             return f"❌ Error updating intrusion detection settings: {str(e)}"
+    
+    @app.tool(
+        name="update_network_appliance_security_malware",
+        description="🦠 Update Advanced Malware Protection (AMP) settings - Enable/disable malware blocking"
+    )
+    def update_network_appliance_security_malware(
+        network_id: str,
+        mode: str,
+        allowed_urls: str = None,
+        allowed_files: str = None
+    ):
+        """
+        Update malware protection settings for a network.
+        
+        Args:
+            network_id: Network ID
+            mode: 'enabled' or 'disabled'
+            allowed_urls: Comma-separated list of URLs to whitelist (e.g., "example.com,test.com")
+            allowed_files: Comma-separated list of file SHA256 hashes to whitelist
+            
+        Returns:
+            Updated malware protection configuration
+        """
+        try:
+            # Validate mode
+            if mode not in ['enabled', 'disabled']:
+                return f"❌ Invalid mode '{mode}'. Must be 'enabled' or 'disabled'"
+            
+            # Build kwargs
+            kwargs = {'mode': mode}
+            
+            # Handle allowed URLs
+            if allowed_urls:
+                urls_list = []
+                for url in allowed_urls.split(','):
+                    urls_list.append({
+                        'url': url.strip(),
+                        'comment': f'Added via MCP'
+                    })
+                kwargs['allowedUrls'] = urls_list
+            
+            # Handle allowed files
+            if allowed_files:
+                files_list = []
+                for file_hash in allowed_files.split(','):
+                    files_list.append({
+                        'sha256': file_hash.strip(),
+                        'comment': f'Added via MCP'
+                    })
+                kwargs['allowedFiles'] = files_list
+            
+            # Get current settings
+            current = meraki_client.get_network_appliance_security_malware(network_id)
+            current_mode = current.get('mode', 'disabled')
+            
+            # Update settings
+            result = meraki_client.update_network_appliance_security_malware(network_id, **kwargs)
+            
+            # Format response
+            response = f"# ✅ Updated Malware Protection for Network {network_id}\n\n"
+            response += f"**Mode**: {current_mode} → {result.get('mode', 'disabled')}\n"
+            
+            if result.get('mode') == 'enabled':
+                response += "🛡️ **Advanced Malware Protection (AMP)** is now ACTIVE\n"
+                response += "- Blocking malicious file downloads\n"
+                response += "- Using Cisco Talos threat intelligence\n"
+                
+                # Show whitelisted URLs
+                allowed_urls = result.get('allowedUrls', [])
+                if allowed_urls:
+                    response += "\n**Whitelisted URLs**:\n"
+                    for url in allowed_urls:
+                        response += f"- {url.get('url')} - {url.get('comment', '')}\n"
+                
+                # Show whitelisted files
+                allowed_files = result.get('allowedFiles', [])
+                if allowed_files:
+                    response += "\n**Whitelisted Files** (by SHA256):\n"
+                    for file in allowed_files:
+                        response += f"- {file.get('sha256')[:16]}... - {file.get('comment', '')}\n"
+            else:
+                response += "❌ **Malware Protection is DISABLED**\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error updating malware protection: {str(e)}"
+    
+    @app.tool(
+        name="update_network_appliance_content_filtering",
+        description="🌐 Update web content filtering - Block categories of websites"
+    )
+    def update_network_appliance_content_filtering(
+        network_id: str,
+        allowed_url_patterns: str = None,
+        blocked_url_patterns: str = None,
+        blocked_categories: str = None,
+        url_category_list_size: str = None
+    ):
+        """
+        Update content filtering settings for a network.
+        
+        Args:
+            network_id: Network ID
+            allowed_url_patterns: Comma-separated list of allowed URL patterns
+            blocked_url_patterns: Comma-separated list of blocked URL patterns
+            blocked_categories: Comma-separated list of categories to block (e.g., "meraki:contentFiltering/category/1,meraki:contentFiltering/category/2")
+            url_category_list_size: Size of URL category list ('topSites' or 'fullList')
+            
+        Returns:
+            Updated content filtering configuration
+        """
+        try:
+            # Build kwargs
+            kwargs = {}
+            
+            # Handle allowed URL patterns
+            if allowed_url_patterns:
+                kwargs['allowedUrlPatterns'] = [pattern.strip() for pattern in allowed_url_patterns.split(',')]
+            
+            # Handle blocked URL patterns
+            if blocked_url_patterns:
+                kwargs['blockedUrlPatterns'] = [pattern.strip() for pattern in blocked_url_patterns.split(',')]
+            
+            # Handle blocked categories
+            if blocked_categories:
+                kwargs['blockedUrlCategories'] = [cat.strip() for cat in blocked_categories.split(',')]
+            
+            # Handle URL category list size
+            if url_category_list_size:
+                if url_category_list_size not in ['topSites', 'fullList']:
+                    return f"❌ Invalid list size '{url_category_list_size}'. Must be 'topSites' or 'fullList'"
+                kwargs['urlCategoryListSize'] = url_category_list_size
+            
+            # Update settings
+            result = meraki_client.update_network_appliance_content_filtering(network_id, **kwargs)
+            
+            # Format response
+            response = f"# ✅ Updated Content Filtering for Network {network_id}\n\n"
+            
+            # Show allowed patterns
+            allowed = result.get('allowedUrlPatterns', [])
+            if allowed:
+                response += "**Allowed URL Patterns**:\n"
+                for pattern in allowed:
+                    response += f"- ✅ {pattern}\n"
+                response += "\n"
+            
+            # Show blocked patterns
+            blocked = result.get('blockedUrlPatterns', [])
+            if blocked:
+                response += "**Blocked URL Patterns**:\n"
+                for pattern in blocked:
+                    response += f"- ❌ {pattern}\n"
+                response += "\n"
+            
+            # Show blocked categories
+            categories = result.get('blockedUrlCategories', [])
+            if categories:
+                response += f"**Blocked Categories**: {len(categories)} categories\n"
+                # Note: Category IDs would need to be mapped to names
+                response += "Use get_network_appliance_content_filtering_categories to see category details\n"
+            
+            # Show list size
+            list_size = result.get('urlCategoryListSize', 'topSites')
+            response += f"\n**Category List Size**: {list_size}\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error updating content filtering: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_firewall_l7_rules",
+        description="🔥 Get Layer 7 (application) firewall rules - Including geo-blocking"
+    )
+    def get_network_appliance_firewall_l7_rules(network_id: str):
+        """
+        Get Layer 7 firewall rules for a network.
+        
+        Args:
+            network_id: Network ID
+            
+        Returns:
+            L7 firewall rules configuration
+        """
+        try:
+            rules = meraki_client.get_network_appliance_firewall_l7_rules(network_id)
+            
+            result = f"# 🔥 Layer 7 Firewall Rules for Network {network_id}\n\n"
+            
+            # Get rules list
+            rules_list = rules.get('rules', [])
+            if not rules_list:
+                result += "**No L7 firewall rules configured**\n"
+                return result
+            
+            result += f"**Total Rules**: {len(rules_list)}\n\n"
+            
+            for i, rule in enumerate(rules_list, 1):
+                result += f"## Rule {i}: {rule.get('policy', 'Unknown')}\n"
+                
+                # Rule type and value
+                rule_type = rule.get('type', 'Unknown')
+                value = rule.get('value', {})
+                
+                if rule_type == 'application':
+                    result += f"- **Application**: {value.get('name', 'Unknown')}\n"
+                elif rule_type == 'applicationCategory':
+                    result += f"- **Category**: {value.get('name', 'Unknown')}\n"
+                elif rule_type == 'ipRange':
+                    result += f"- **IP Range**: {value}\n"
+                elif rule_type == 'blacklistedCountries':
+                    countries = value.get('countries', [])
+                    result += f"- **Blocked Countries**: {', '.join(countries)}\n"
+                elif rule_type == 'whitelistedCountries':
+                    countries = value.get('countries', [])
+                    result += f"- **Allowed Countries Only**: {', '.join(countries)}\n"
+                
+                result += "\n"
+            
+            return result
+            
+        except Exception as e:
+            return f"Error retrieving L7 firewall rules: {str(e)}"
+    
+    @app.tool(
+        name="update_network_appliance_firewall_l7_rules",
+        description="🔥 Update Layer 7 firewall rules - Block applications, categories, or countries"
+    )
+    def update_network_appliance_firewall_l7_rules(
+        network_id: str,
+        rules: str
+    ):
+        """
+        Update Layer 7 firewall rules for a network.
+        
+        Args:
+            network_id: Network ID
+            rules: JSON string of rules array. Each rule needs: policy (deny), type, and value.
+                   Example: '[{"policy":"deny","type":"blacklistedCountries","value":{"countries":["CN","RU"]}}]'
+            
+        Returns:
+            Updated L7 firewall rules
+        """
+        try:
+            import json
+            
+            # Parse rules
+            try:
+                rules_list = json.loads(rules)
+            except:
+                return "❌ Invalid rules format. Must be valid JSON array"
+            
+            # Update rules
+            result = meraki_client.update_network_appliance_firewall_l7_rules(
+                network_id,
+                rules=rules_list
+            )
+            
+            # Format response
+            response = f"# ✅ Updated L7 Firewall Rules for Network {network_id}\n\n"
+            
+            updated_rules = result.get('rules', [])
+            response += f"**Total Rules**: {len(updated_rules)}\n\n"
+            
+            for i, rule in enumerate(updated_rules, 1):
+                response += f"## Rule {i}: {rule.get('policy', 'Unknown').upper()}\n"
+                
+                rule_type = rule.get('type', 'Unknown')
+                value = rule.get('value', {})
+                
+                if rule_type == 'blacklistedCountries':
+                    countries = value.get('countries', [])
+                    response += f"- 🌍 **Blocked Countries**: {', '.join(countries)}\n"
+                elif rule_type == 'whitelistedCountries':
+                    countries = value.get('countries', [])
+                    response += f"- 🌍 **Allowed Countries Only**: {', '.join(countries)}\n"
+                elif rule_type == 'application':
+                    response += f"- 📱 **Application**: {value.get('name', 'Unknown')}\n"
+                elif rule_type == 'applicationCategory':
+                    response += f"- 📂 **Category**: {value.get('name', 'Unknown')}\n"
+                
+                response += "\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error updating L7 firewall rules: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_firewall_settings", 
+        description="⚙️ Get general firewall settings"
+    )
+    def get_network_appliance_firewall_settings(network_id: str):
+        """
+        Get firewall settings for a network.
+        
+        Args:
+            network_id: Network ID
+            
+        Returns:
+            Firewall settings configuration
+        """
+        try:
+            settings = meraki_client.get_network_appliance_firewall_settings(network_id)
+            
+            result = f"# ⚙️ Firewall Settings for Network {network_id}\n\n"
+            
+            # Spoofing protection
+            spoofing = settings.get('spoofingProtection', {})
+            result += f"**Spoofing Protection**:\n"
+            result += f"- IP Source Guard: {'✅ Enabled' if spoofing.get('ipSourceGuard', {}).get('mode') == 'block' else '❌ Disabled'}\n\n"
+            
+            return result
+            
+        except Exception as e:
+            return f"Error retrieving firewall settings: {str(e)}"
+    
+    @app.tool(
+        name="update_network_appliance_firewall_settings",
+        description="⚙️ Update general firewall settings"
+    )
+    def update_network_appliance_firewall_settings(
+        network_id: str,
+        spoofing_protection_mode: str = None
+    ):
+        """
+        Update firewall settings for a network.
+        
+        Args:
+            network_id: Network ID
+            spoofing_protection_mode: 'block' to enable IP source guard, 'log' to log only
+            
+        Returns:
+            Updated firewall settings
+        """
+        try:
+            kwargs = {}
+            
+            if spoofing_protection_mode:
+                if spoofing_protection_mode not in ['block', 'log']:
+                    return f"❌ Invalid mode '{spoofing_protection_mode}'. Must be 'block' or 'log'"
+                kwargs['spoofingProtection'] = {
+                    'ipSourceGuard': {
+                        'mode': spoofing_protection_mode
+                    }
+                }
+            
+            # Update settings
+            result = meraki_client.update_network_appliance_firewall_settings(network_id, **kwargs)
+            
+            # Format response
+            response = f"# ✅ Updated Firewall Settings for Network {network_id}\n\n"
+            
+            spoofing = result.get('spoofingProtection', {})
+            mode = spoofing.get('ipSourceGuard', {}).get('mode', 'disabled')
+            
+            if mode == 'block':
+                response += "🛡️ **IP Source Guard**: ✅ Blocking spoofed traffic\n"
+            elif mode == 'log':
+                response += "📝 **IP Source Guard**: Logging spoofed traffic only\n"
+            else:
+                response += "❌ **IP Source Guard**: Disabled\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error updating firewall settings: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_security_events",
+        description="🚨 Get security events/threats detected on the network"
+    )
+    def get_network_appliance_security_events(
+        network_id: str,
+        timespan: int = 86400,
+        per_page: int = 100
+    ):
+        """
+        Get security events for a network.
+        
+        Args:
+            network_id: Network ID
+            timespan: Timespan in seconds (default 24 hours)
+            per_page: Number of events per page (default 100)
+            
+        Returns:
+            List of security events
+        """
+        try:
+            events = meraki_client.get_network_appliance_security_events(
+                network_id,
+                timespan=timespan,
+                perPage=per_page
+            )
+            
+            result = f"# 🚨 Security Events for Network {network_id}\n"
+            result += f"*Last {timespan//3600} hours*\n\n"
+            
+            if not events:
+                result += "✅ No security events detected\n"
+                return result
+            
+            result += f"**Total Events**: {len(events)}\n\n"
+            
+            # Group events by type
+            event_types = {}
+            for event in events:
+                event_type = event.get('eventType', 'Unknown')
+                event_types[event_type] = event_types.get(event_type, 0) + 1
+            
+            result += "**Event Summary**:\n"
+            for event_type, count in sorted(event_types.items(), key=lambda x: x[1], reverse=True):
+                result += f"- {event_type}: {count} events\n"
+            
+            result += "\n**Recent Events**:\n"
+            for event in events[:10]:  # Show first 10
+                result += f"\n🔸 **{event.get('eventType', 'Unknown')}**\n"
+                result += f"- Time: {event.get('ts', 'Unknown')}\n"
+                result += f"- Client: {event.get('clientMac', 'Unknown')}\n"
+                result += f"- Source IP: {event.get('srcIp', 'Unknown')}\n"
+                result += f"- Destination: {event.get('destIp', 'Unknown')}\n"
+                
+                if event.get('message'):
+                    result += f"- Message: {event['message']}\n"
+                if event.get('signature'):
+                    result += f"- Signature: {event['signature']}\n"
+                if event.get('priority'):
+                    result += f"- Priority: {event['priority']}\n"
+            
+            if len(events) > 10:
+                result += f"\n... and {len(events) - 10} more events\n"
+            
+            return result
+            
+        except Exception as e:
+            return f"Error retrieving security events: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_firewall_one_to_one_nat_rules",
+        description="🔄 Get 1:1 NAT mapping rules"
+    )
+    def get_network_appliance_firewall_one_to_one_nat_rules(network_id: str):
+        """
+        Get 1:1 NAT rules for a network.
+        
+        Args:
+            network_id: Network ID
+            
+        Returns:
+            1:1 NAT rules configuration
+        """
+        try:
+            rules = meraki_client.get_network_appliance_firewall_one_to_one_nat_rules(network_id)
+            
+            result = f"# 🔄 1:1 NAT Rules for Network {network_id}\n\n"
+            
+            rules_list = rules.get('rules', [])
+            if not rules_list:
+                result += "**No 1:1 NAT rules configured**\n"
+                return result
+            
+            result += f"**Total Rules**: {len(rules_list)}\n\n"
+            
+            for i, rule in enumerate(rules_list, 1):
+                result += f"## Rule {i}: {rule.get('name', 'Unnamed')}\n"
+                result += f"- **Public IP**: {rule.get('publicIp', 'Unknown')}\n"
+                result += f"- **LAN IP**: {rule.get('lanIp', 'Unknown')}\n"
+                result += f"- **Uplink**: {rule.get('uplink', 'both')}\n"
+                
+                # Allowed inbound connections
+                allowed = rule.get('allowedInbound', [])
+                if allowed:
+                    result += "- **Allowed Inbound**:\n"
+                    for conn in allowed:
+                        result += f"  - {conn.get('protocol', 'any')} ports {conn.get('destinationPorts', 'any')}"
+                        if conn.get('allowedIps'):
+                            result += f" from {conn['allowedIps']}"
+                        result += "\n"
+                else:
+                    result += "- **Allowed Inbound**: All traffic\n"
+                
+                result += "\n"
+            
+            return result
+            
+        except Exception as e:
+            return f"Error retrieving 1:1 NAT rules: {str(e)}"
+    
+    @app.tool(
+        name="update_network_appliance_firewall_one_to_one_nat_rules",
+        description="🔄 Update 1:1 NAT mapping rules - Map public IPs to internal servers"
+    )
+    def update_network_appliance_firewall_one_to_one_nat_rules(
+        network_id: str,
+        rules: str
+    ):
+        """
+        Update 1:1 NAT rules for a network.
+        
+        Args:
+            network_id: Network ID
+            rules: JSON string of rules array. Example:
+                   '[{"name":"Web Server","publicIp":"1.2.3.4","lanIp":"192.168.1.10","uplink":"internet1","allowedInbound":[{"protocol":"tcp","destinationPorts":["80","443"]}]}]'
+            
+        Returns:
+            Updated 1:1 NAT rules
+        """
+        try:
+            import json
+            
+            # Parse rules
+            try:
+                rules_list = json.loads(rules)
+            except:
+                return "❌ Invalid rules format. Must be valid JSON array"
+            
+            # Update rules
+            result = meraki_client.update_network_appliance_firewall_one_to_one_nat_rules(
+                network_id,
+                rules=rules_list
+            )
+            
+            # Format response
+            response = f"# ✅ Updated 1:1 NAT Rules for Network {network_id}\n\n"
+            
+            updated_rules = result.get('rules', [])
+            response += f"**Total Rules**: {len(updated_rules)}\n\n"
+            
+            for i, rule in enumerate(updated_rules, 1):
+                response += f"## Rule {i}: {rule.get('name', 'Unnamed')}\n"
+                response += f"- 🌐 **Public IP**: {rule.get('publicIp')} → **LAN IP**: {rule.get('lanIp')}\n"
+                response += f"- **Uplink**: {rule.get('uplink', 'both')}\n"
+                
+                allowed = rule.get('allowedInbound', [])
+                if allowed:
+                    response += "- **Security**:\n"
+                    for conn in allowed:
+                        response += f"  - ✅ {conn.get('protocol', 'any').upper()} ports {conn.get('destinationPorts', 'any')}\n"
+                else:
+                    response += "- **Security**: ⚠️ All traffic allowed\n"
+                
+                response += "\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error updating 1:1 NAT rules: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_firewall_port_forwarding_rules",
+        description="↪️ Get port forwarding rules"
+    )
+    def get_network_appliance_firewall_port_forwarding_rules(network_id: str):
+        """
+        Get port forwarding rules for a network.
+        
+        Args:
+            network_id: Network ID
+            
+        Returns:
+            Port forwarding rules configuration
+        """
+        try:
+            rules = meraki_client.get_network_appliance_firewall_port_forwarding_rules(network_id)
+            
+            result = f"# ↪️ Port Forwarding Rules for Network {network_id}\n\n"
+            
+            rules_list = rules.get('rules', [])
+            if not rules_list:
+                result += "**No port forwarding rules configured**\n"
+                return result
+            
+            result += f"**Total Rules**: {len(rules_list)}\n\n"
+            
+            for i, rule in enumerate(rules_list, 1):
+                result += f"## Rule {i}: {rule.get('name', 'Unnamed')}\n"
+                result += f"- **Protocol**: {rule.get('protocol', 'Unknown')}\n"
+                result += f"- **Public Port**: {rule.get('publicPort', 'Unknown')}\n"
+                result += f"- **LAN IP**: {rule.get('lanIp', 'Unknown')}\n"
+                result += f"- **Local Port**: {rule.get('localPort', 'Unknown')}\n"
+                result += f"- **Uplink**: {rule.get('uplink', 'both')}\n"
+                
+                if rule.get('allowedIps'):
+                    result += f"- **Allowed IPs**: {', '.join(rule['allowedIps'])}\n"
+                else:
+                    result += "- **Allowed IPs**: Any\n"
+                
+                result += "\n"
+            
+            return result
+            
+        except Exception as e:
+            return f"Error retrieving port forwarding rules: {str(e)}"
+    
+    @app.tool(
+        name="update_network_appliance_firewall_port_forwarding_rules",
+        description="↪️ Update port forwarding rules - Forward ports to internal servers"
+    )
+    def update_network_appliance_firewall_port_forwarding_rules(
+        network_id: str,
+        rules: str
+    ):
+        """
+        Update port forwarding rules for a network.
+        
+        Args:
+            network_id: Network ID
+            rules: JSON string of rules array. Example:
+                   '[{"name":"RDP Server","protocol":"tcp","publicPort":"3389","lanIp":"192.168.1.10","localPort":"3389","uplink":"both","allowedIps":["1.2.3.4"]}]'
+            
+        Returns:
+            Updated port forwarding rules
+        """
+        try:
+            import json
+            
+            # Parse rules
+            try:
+                rules_list = json.loads(rules)
+            except:
+                return "❌ Invalid rules format. Must be valid JSON array"
+            
+            # Update rules
+            result = meraki_client.update_network_appliance_firewall_port_forwarding_rules(
+                network_id,
+                rules=rules_list
+            )
+            
+            # Format response
+            response = f"# ✅ Updated Port Forwarding Rules for Network {network_id}\n\n"
+            
+            updated_rules = result.get('rules', [])
+            response += f"**Total Rules**: {len(updated_rules)}\n\n"
+            
+            for i, rule in enumerate(updated_rules, 1):
+                response += f"## Rule {i}: {rule.get('name', 'Unnamed')}\n"
+                response += f"- 📥 **{rule.get('protocol', '').upper()}** Port {rule.get('publicPort')} → {rule.get('lanIp')}:{rule.get('localPort')}\n"
+                response += f"- **Uplink**: {rule.get('uplink', 'both')}\n"
+                
+                if rule.get('allowedIps'):
+                    response += f"- **Security**: Only from {', '.join(rule['allowedIps'])}\n"
+                else:
+                    response += "- **Security**: ⚠️ Open to all IPs\n"
+                
+                response += "\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error updating port forwarding rules: {str(e)}"
