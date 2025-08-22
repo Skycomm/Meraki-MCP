@@ -184,11 +184,33 @@ def register_organization_tool_handlers():
         Returns:
             Updated organization details
         """
-        return meraki_client.update_organization(organization_id, name)
+        try:
+            # Get current organization
+            org = meraki_client.get_organization(organization_id)
+            current_name = org.get('name', 'Unknown')
+            
+            # If renaming, require confirmation
+            if name and name != current_name:
+                from utils.helpers import require_confirmation
+                
+                if not require_confirmation(
+                    operation_type="rename",
+                    resource_type="organization",
+                    resource_name=f"{current_name} → {name}",
+                    resource_id=organization_id
+                ):
+                    return "❌ Organization rename cancelled by user"
+            
+            # Perform update
+            result = meraki_client.update_organization(organization_id, name)
+            return f"✅ Organization updated successfully"
+            
+        except Exception as e:
+            return f"Failed to update organization: {str(e)}"
     
     @app.tool(
         name="delete_organization",
-        description="Delete a Meraki organization"
+        description="Delete a Meraki organization - REQUIRES CONFIRMATION - DANGEROUS!"
     )
     def delete_organization(organization_id: str):
         """
@@ -200,7 +222,37 @@ def register_organization_tool_handlers():
         Returns:
             Success/failure information
         """
-        return meraki_client.delete_organization(organization_id)
+        try:
+            # Get organization details
+            org = meraki_client.get_organization(organization_id)
+            
+            from utils.helpers import require_confirmation
+            
+            # Double confirmation for organization deletion
+            print("\n⚠️  EXTREME CAUTION: Organization deletion will delete ALL networks and devices!")
+            
+            if not require_confirmation(
+                operation_type="delete",
+                resource_type="organization",
+                resource_name=org.get('name', 'Unknown'),
+                resource_id=organization_id
+            ):
+                return "❌ Organization deletion cancelled by user"
+            
+            # Second confirmation
+            print(f"\n🚨 FINAL WARNING: This will delete organization '{org['name']}' and ALL its contents!")
+            print("Type 'DELETE EVERYTHING' to confirm:")
+            
+            final_confirm = input("> ").strip()
+            if final_confirm != "DELETE EVERYTHING":
+                return "❌ Organization deletion cancelled - final confirmation failed"
+            
+            # Perform deletion
+            meraki_client.delete_organization(organization_id)
+            return f"✅ Organization '{org['name']}' deleted permanently"
+            
+        except Exception as e:
+            return f"Failed to delete organization: {str(e)}"
     
     @app.tool(
         name="get_organization_firmware",
