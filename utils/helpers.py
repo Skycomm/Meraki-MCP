@@ -80,6 +80,40 @@ def format_error_message(error: Exception) -> str:
         return f"Error: {error.message}"
     return f"Error: {str(error)}"
 
+def get_read_only_message(operation_type: str, resource_type: str, 
+                         resource_name: str, resource_id: Optional[str] = None) -> str:
+    """
+    Get a formatted message for when an operation is blocked by read-only mode.
+    This message is returned to the MCP client.
+    
+    Args:
+        operation_type: Type of operation (delete, remove, reboot, etc.)
+        resource_type: Type of resource (network, organization, device, etc.)
+        resource_name: Name of the resource
+        resource_id: Optional ID of the resource
+        
+    Returns:
+        Formatted message for the MCP client
+    """
+    message = f"""❌ OPERATION BLOCKED - READ-ONLY MODE
+
+The server is running in READ-ONLY mode for safety.
+Attempted operation: {operation_type.upper()} {resource_type} '{resource_name}'"""
+    
+    if resource_id:
+        message += f"\nResource ID: {resource_id}"
+    
+    message += """
+
+To enable this operation:
+1. Set MCP_READ_ONLY_MODE=false in your environment
+2. Restart the MCP server
+3. Try the operation again
+
+⚠️ WARNING: Only disable read-only mode if you're certain you want to make changes."""
+    
+    return message
+
 def require_confirmation(operation_type: str, resource_type: str, 
                         resource_name: str, resource_id: Optional[str] = None) -> bool:
     """
@@ -97,6 +131,8 @@ def require_confirmation(operation_type: str, resource_type: str,
     # Check if in read-only mode
     if os.getenv("MCP_READ_ONLY_MODE", "false").lower() == "true":
         print("\n❌ Operation blocked: Server is in READ-ONLY mode")
+        # Return False to block the operation
+        # The calling function will return an appropriate message to the MCP client
         return False
     
     # Check if confirmations are disabled (not recommended)

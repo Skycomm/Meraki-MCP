@@ -2,6 +2,8 @@
 Network-related tools for the Cisco Meraki MCP Server - Modern implementation.
 """
 
+import os
+
 # Global variables to store app and meraki client
 app = None
 meraki_client = None
@@ -205,8 +207,17 @@ def register_network_tool_handlers():
             # Get network details first
             network = meraki_client.get_network(network_id)
             
-            # Import helper function
-            from utils.helpers import require_confirmation
+            # Import helper functions
+            from utils.helpers import require_confirmation, get_read_only_message
+            
+            # Check if in read-only mode first
+            if os.getenv("MCP_READ_ONLY_MODE", "false").lower() == "true":
+                return get_read_only_message(
+                    operation_type="delete",
+                    resource_type="network",
+                    resource_name=network.get('name', 'Unknown'),
+                    resource_id=network_id
+                )
             
             # Require confirmation
             if not require_confirmation(
