@@ -329,3 +329,115 @@ def register_appliance_tool_handlers():
             
         except Exception as e:
             return f"Error retrieving intrusion detection settings: {str(e)}"
+    
+    @app.tool(
+        name="update_network_appliance_security_intrusion",
+        description="🚨 Update intrusion detection/prevention settings - Enable or configure IDS/IPS"
+    )
+    def update_network_appliance_security_intrusion(
+        network_id: str,
+        mode: str = None,
+        ids_rulesets: str = None,
+        use_default_protected_networks: bool = None,
+        included_cidr: str = None,
+        excluded_cidr: str = None
+    ):
+        """
+        Update intrusion detection and prevention settings for a network.
+        
+        Args:
+            network_id: Network ID
+            mode: Set to 'disabled', 'detection', or 'prevention'
+            ids_rulesets: Set to 'connectivity', 'balanced', or 'security'
+            use_default_protected_networks: Use default protected networks (all local networks)
+            included_cidr: Comma-separated list of CIDR ranges to protect (e.g., "10.0.0.0/8,192.168.0.0/16")
+            excluded_cidr: Comma-separated list of CIDR ranges to exclude from protection
+            
+        Returns:
+            Updated IDS/IPS configuration
+        """
+        try:
+            # Build kwargs for the update
+            kwargs = {}
+            
+            # Add mode if specified
+            if mode:
+                if mode not in ['disabled', 'detection', 'prevention']:
+                    return f"❌ Invalid mode '{mode}'. Must be 'disabled', 'detection', or 'prevention'"
+                kwargs['mode'] = mode
+            
+            # Add ruleset if specified
+            if ids_rulesets:
+                if ids_rulesets not in ['connectivity', 'balanced', 'security']:
+                    return f"❌ Invalid ruleset '{ids_rulesets}'. Must be 'connectivity', 'balanced', or 'security'"
+                kwargs['idsRulesets'] = ids_rulesets
+            
+            # Handle protected networks configuration
+            if use_default_protected_networks is not None or included_cidr or excluded_cidr:
+                protected_networks = {}
+                
+                if use_default_protected_networks is not None:
+                    protected_networks['useDefault'] = use_default_protected_networks
+                
+                if included_cidr:
+                    protected_networks['includedCidr'] = [cidr.strip() for cidr in included_cidr.split(',')]
+                
+                if excluded_cidr:
+                    protected_networks['excludedCidr'] = [cidr.strip() for cidr in excluded_cidr.split(',')]
+                
+                kwargs['protectedNetworks'] = protected_networks
+            
+            # Get current settings first for comparison
+            current = meraki_client.get_network_appliance_security_intrusion(network_id)
+            current_mode = current.get('mode', 'disabled')
+            
+            # Update the settings
+            result = meraki_client.update_network_appliance_security_intrusion(network_id, **kwargs)
+            
+            # Format response
+            response = f"# ✅ Updated IDS/IPS Settings for Network {network_id}\n\n"
+            
+            new_mode = result.get('mode', 'disabled')
+            response += f"**Mode**: {current_mode} → {new_mode}\n"
+            
+            if new_mode == 'detection':
+                response += "🔍 **Detection Mode**: Monitoring traffic for threats (not blocking)\n"
+            elif new_mode == 'prevention':
+                response += "🛡️ **Prevention Mode**: Actively blocking detected threats\n"
+            else:
+                response += "❌ **Disabled**: No intrusion detection/prevention active\n"
+            
+            # Show ruleset if IDS/IPS is enabled
+            if new_mode != 'disabled':
+                ruleset = result.get('idsRulesets', 'balanced')
+                response += f"\n**Ruleset**: {ruleset}\n"
+                
+                if ruleset == 'connectivity':
+                    response += "- Minimal rules (CVSS 10 only) - for critical connectivity\n"
+                elif ruleset == 'balanced':
+                    response += "- Balanced protection (CVSS 9+) - includes malware C&C, SQL injection\n"
+                elif ruleset == 'security':
+                    response += "- Maximum protection (CVSS 8+) - includes app detection rules\n"
+                
+                # Show protected networks
+                protected = result.get('protectedNetworks', {})
+                if protected.get('useDefault'):
+                    response += "\n**Protected Networks**: Using default (all local networks)\n"
+                else:
+                    included = protected.get('includedCidr', [])
+                    excluded = protected.get('excludedCidr', [])
+                    
+                    if included:
+                        response += "\n**Protected Networks**:\n"
+                        for cidr in included:
+                            response += f"- ✅ {cidr}\n"
+                    
+                    if excluded:
+                        response += "\n**Excluded Networks**:\n"
+                        for cidr in excluded:
+                            response += f"- ❌ {cidr}\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error updating intrusion detection settings: {str(e)}"
