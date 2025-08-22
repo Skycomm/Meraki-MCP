@@ -581,6 +581,70 @@ async def get_device_status(serial: str):
             return f"Failed to get status for device {serial}: {str(e)}"
 
 
+# From tools_devices.py
+async def claim_device_direct(network_id: str, serial: str):
+        """
+        Claim a device directly into a network without checking if it exists first.
+        This bypasses the existence check that prevents claiming new devices.
+        
+        Args:
+            network_id: ID of the network to claim the device into
+            serial: Serial number of the device to claim
+            
+        Returns:
+            Success or error message
+        """
+        try:
+            # Claim the device into the network
+            # Using the same API call as in the stdio version
+            meraki_client.dashboard.networks.claimNetworkDevices(
+                network_id,
+                serials=[serial]
+            )
+            
+            return f"✅ Device {serial} successfully claimed into network {network_id}"
+            
+        except Exception as e:
+            error_msg = str(e)
+            if "400" in error_msg and "already exists" in error_msg:
+                return f"❌ Device {serial} is already claimed in another network"
+            elif "404" in error_msg:
+                return f"❌ Device {serial} not found in organization inventory"
+            else:
+                return f"❌ Failed to claim device: {error_msg}"
+
+
+# From tools_devices.py  
+async def unclaim_device_from_network(network_id: str, serial: str):
+        """
+        Remove/unclaim a device from a network (returns it to organization inventory).
+        
+        Args:
+            network_id: ID of the network containing the device
+            serial: Serial number of the device to unclaim
+            
+        Returns:
+            Success or error message
+        """
+        try:
+            # Use the Meraki API to remove device from network
+            meraki_client.dashboard.networks.removeNetworkDevices(
+                network_id, 
+                serial=serial
+            )
+            
+            return f"✅ Device {serial} successfully removed from network and returned to organization inventory"
+            
+        except Exception as e:
+            error_msg = str(e)
+            if "404" in error_msg:
+                return f"❌ Device {serial} not found in network {network_id}"
+            elif "400" in error_msg:
+                return f"❌ Bad request: {error_msg}"
+            else:
+                return f"❌ Failed to unclaim device: {error_msg}"
+
+
 # From tools_wireless.py
 async def get_network_wireless_ssids(network_id: str):
         """
@@ -4384,6 +4448,8 @@ ALL_TOOLS = {
     "confirm_reboot_device": confirm_reboot_device,
     "get_device_clients": get_device_clients,
     "get_device_status": get_device_status,
+    "claim_device_direct": claim_device_direct,
+    "unclaim_device_from_network": unclaim_device_from_network,
     "get_network_wireless_ssids": get_network_wireless_ssids,
     "get_network_wireless_passwords": get_network_wireless_passwords,
     "update_network_wireless_ssid": update_network_wireless_ssid,
@@ -4544,6 +4610,14 @@ TOOL_METADATA = {
     "get_device_status": {
         "description": "Get status information for a specific Meraki device.\n        \n        Args:\n            serial: Serial number of the device\n            \n        Returns:\n            Formatted status information",
         "parameters": [{"name": "serial", "type": "str", "default": None, "required": True}]
+    },
+    "claim_device_direct": {
+        "description": "Claim a device directly into a network without checking if it exists first.\n        This bypasses the existence check that prevents claiming new devices.\n        \n        Args:\n            network_id: ID of the network to claim the device into\n            serial: Serial number of the device to claim\n            \n        Returns:\n            Success or error message",
+        "parameters": [{"name": "network_id", "type": "str", "default": None, "required": True}, {"name": "serial", "type": "str", "default": None, "required": True}]
+    },
+    "unclaim_device_from_network": {
+        "description": "Remove/unclaim a device from a network (returns it to organization inventory).\n        \n        Args:\n            network_id: ID of the network containing the device\n            serial: Serial number of the device to unclaim\n            \n        Returns:\n            Success or error message",
+        "parameters": [{"name": "network_id", "type": "str", "default": None, "required": True}, {"name": "serial", "type": "str", "default": None, "required": True}]
     },
     "get_network_wireless_ssids": {
         "description": "List wireless SSIDs for a Meraki network.\n        \n        Args:\n            network_id: ID of the network\n            \n        Returns:\n            Formatted list of SSIDs",
