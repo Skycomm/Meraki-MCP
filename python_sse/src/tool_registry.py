@@ -202,7 +202,18 @@ async def delete_organization(organization_id: str):
             # Get organization details
             org = await meraki_client.get_organization(organization_id)
             
-            from utils.helpers import require_confirmation
+            # Import helper functions
+            import os
+            from utils.helpers import require_confirmation, get_read_only_message
+            
+            # Check if in read-only mode first
+            if os.getenv("MCP_READ_ONLY_MODE", "false").lower() == "true":
+                return get_read_only_message(
+                    operation_type="delete",
+                    resource_type="organization (⚠️ EXTREME DANGER)",
+                    resource_name=org.get('name', 'Unknown'),
+                    resource_id=organization_id
+                )
             
             # Double confirmation for organization deletion
             print("\n⚠️  EXTREME CAUTION: Organization deletion will delete ALL networks and devices!")
@@ -435,8 +446,18 @@ async def delete_network(network_id: str):
             # Get network details first
             network = await meraki_client.get_network(network_id)
             
-            # Import helper function
-            from utils.helpers import require_confirmation
+            # Import helper functions
+            import os
+            from utils.helpers import require_confirmation, get_read_only_message
+            
+            # Check if in read-only mode first
+            if os.getenv("MCP_READ_ONLY_MODE", "false").lower() == "true":
+                return get_read_only_message(
+                    operation_type="delete",
+                    resource_type="network",
+                    resource_name=network.get('name', 'Unknown'),
+                    resource_id=network_id
+                )
             
             # Require confirmation
             if not require_confirmation(
