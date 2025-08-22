@@ -199,6 +199,13 @@ class MerakiClient:
         return self.dashboard.devices.rebootDevice(serial)
     
     # REAL Organization Management Methods
+    def get_organization_admins(self, org_id: str, network_ids: List[str] = None) -> List[Dict[str, Any]]:
+        """Get dashboard administrators for an organization - REAL method."""
+        kwargs = {}
+        if network_ids:
+            kwargs['networkIds'] = network_ids
+        return self.dashboard.organizations.getOrganizationAdmins(org_id, **kwargs)
+    
     def create_organization(self, name: str) -> Dict[str, Any]:
         """Create a new organization - REAL method."""
         return self.dashboard.organizations.createOrganization(name=name)

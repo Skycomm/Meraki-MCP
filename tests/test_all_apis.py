@@ -7,11 +7,19 @@ Tests all 55 tools to verify they return expected data structures.
 import json
 import sys
 from typing import Dict, Any, List
-from meraki_client import MerakiClient
 from datetime import datetime
+
+# SAFETY FIRST: Import and setup test safety
+from test_common import setup_test_safety, print_safety_reminder
+setup_test_safety()
+
+from meraki_client import MerakiClient
 
 # Initialize client
 client = MerakiClient()
+
+# Print safety reminder
+print_safety_reminder()
 
 # Test results tracking
 results = {

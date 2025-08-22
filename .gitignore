@@ -53,3 +53,17 @@ htmlcov/
 deprecated_backup/
 .pytest_cache/
 claude_config.json
+
+# Test results
+*.json
+test_results/
+test_output/
+
+# Backup files
+*.bkp
+*.backup
+*.old
+*~
+
+# Keep organized structure
+# (docs/, scripts/, and tests/ are tracked but their outputs ignored)

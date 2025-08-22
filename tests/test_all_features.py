@@ -7,10 +7,18 @@ Tests all 94 tools with specific test questions.
 import json
 import time
 from datetime import datetime
+
+# SAFETY FIRST: Import and setup test safety
+from test_common import setup_test_safety, print_safety_reminder
+setup_test_safety()
+
 from meraki_client import MerakiClient
 
 # Initialize client
 meraki = MerakiClient()
+
+# Print safety reminder
+print_safety_reminder()
 
 # Test configuration
 TEST_ORG_ID = "686470"  # Skycomm

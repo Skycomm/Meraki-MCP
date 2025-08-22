@@ -3,6 +3,10 @@ Helper functions for the Cisco Meraki MCP Server.
 """
 
 import json
+import os
+import time
+import hashlib
+from datetime import datetime
 from typing import Dict, List, Any, Optional, Union
 import mcp.types as types
 
@@ -75,3 +79,140 @@ def format_error_message(error: Exception) -> str:
     if hasattr(error, 'message'):
         return f"Error: {error.message}"
     return f"Error: {str(error)}"
+
+def get_read_only_message(operation_type: str, resource_type: str, 
+                         resource_name: str, resource_id: Optional[str] = None) -> str:
+    """
+    Get a formatted message for when an operation is blocked by read-only mode.
+    This message is returned to the MCP client.
+    
+    Args:
+        operation_type: Type of operation (delete, remove, reboot, etc.)
+        resource_type: Type of resource (network, organization, device, etc.)
+        resource_name: Name of the resource
+        resource_id: Optional ID of the resource
+        
+    Returns:
+        Formatted message for the MCP client
+    """
+    message = f"""❌ OPERATION BLOCKED - READ-ONLY MODE
+
+The server is running in READ-ONLY mode for safety.
+Attempted operation: {operation_type.upper()} {resource_type} '{resource_name}'"""
+    
+    if resource_id:
+        message += f"\nResource ID: {resource_id}"
+    
+    message += """
+
+To enable this operation:
+1. Set MCP_READ_ONLY_MODE=false in your environment
+2. Restart the MCP server
+3. Try the operation again
+
+⚠️ WARNING: Only disable read-only mode if you're certain you want to make changes."""
+    
+    return message
+
+def require_confirmation(operation_type: str, resource_type: str, 
+                        resource_name: str, resource_id: Optional[str] = None) -> bool:
+    """
+    Require user confirmation for destructive operations.
+    
+    Args:
+        operation_type: Type of operation (delete, remove, reboot, etc.)
+        resource_type: Type of resource (network, organization, device, etc.)
+        resource_name: Name of the resource
+        resource_id: Optional ID of the resource
+        
+    Returns:
+        True if user confirmed, False otherwise
+    """
+    import sys
+    
+    # Check if in read-only mode
+    if os.getenv("MCP_READ_ONLY_MODE", "false").lower() == "true":
+        print("\n❌ Operation blocked: Server is in READ-ONLY mode")
+        # Return False to block the operation
+        # The calling function will return an appropriate message to the MCP client
+        return False
+    
+    # Check if confirmations are disabled (not recommended)
+    if os.getenv("MCP_REQUIRE_CONFIRMATIONS", "true").lower() == "false":
+        return True
+    
+    # Check if we're in an interactive terminal
+    # MCP clients and SSE/HTTP clients cannot provide interactive input
+    if not sys.stdin.isatty():
+        # Non-interactive mode - can't prompt for confirmation
+        # This blocks the operation when called from MCP/SSE clients
+        return False
+    
+    # Determine risk level
+    DESTRUCTIVE_OPS = ["delete", "remove", "reboot"]
+    risk_level = "🚨 HIGH RISK" if operation_type in DESTRUCTIVE_OPS else "⚠️  MEDIUM RISK"
+    
+    print(f"\n{'='*60}")
+    print(f"{risk_level} OPERATION - CONFIRMATION REQUIRED")
+    print(f"{'='*60}")
+    print(f"Operation: {operation_type.upper()} {resource_type.upper()}")
+    print(f"Target: {resource_name}")
+    if resource_id:
+        print(f"ID: {resource_id}")
+    print(f"\nThis action cannot be undone!")
+    print(f"\nTo confirm, type exactly: {operation_type.upper()}")
+    print("Or press Enter to cancel")
+    
+    response = input("> ").strip()
+    confirmed = response == operation_type.upper()
+    
+    # Log the attempt
+    log_operation(operation_type, resource_type, resource_name, resource_id, confirmed)
+    
+    if confirmed and operation_type in DESTRUCTIVE_OPS:
+        # Add countdown for destructive operations
+        print("\nExecuting in:")
+        for i in range(3, 0, -1):
+            print(f"  {i}...")
+            time.sleep(1)
+    
+    return confirmed
+
+def log_operation(operation: str, resource_type: str, resource_name: str, 
+                  resource_id: Optional[str], confirmed: bool) -> None:
+    """
+    Log all operations for audit trail.
+    
+    Args:
+        operation: Operation type
+        resource_type: Type of resource
+        resource_name: Name of the resource
+        resource_id: ID of the resource
+        confirmed: Whether the operation was confirmed
+    """
+    # Check if audit logging is enabled
+    if os.getenv("MCP_AUDIT_LOGGING", "true").lower() == "false":
+        return
+        
+    log_entry = {
+        "timestamp": datetime.now().isoformat(),
+        "operation": operation,
+        "resource_type": resource_type,
+        "resource_name": resource_name,
+        "resource_id": resource_id,
+        "confirmed": confirmed,
+        "user": os.getenv("USER", "unknown"),
+        "api_key_hash": hashlib.sha256(
+            os.getenv("MERAKI_API_KEY", "").encode()
+        ).hexdigest()[:8]
+    }
+    
+    # Create logs directory if it doesn't exist
+    os.makedirs("logs", exist_ok=True)
+    
+    # Write to audit log
+    try:
+        with open("logs/meraki_mcp_audit.log", "a") as f:
+            f.write(json.dumps(log_entry) + "\n")
+    except Exception as e:
+        print(f"Warning: Failed to write audit log: {e}")

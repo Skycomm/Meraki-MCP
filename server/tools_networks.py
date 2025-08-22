@@ -2,6 +2,8 @@
 Network-related tools for the Cisco Meraki MCP Server - Modern implementation.
 """
 
+import os
+
 # Global variables to store app and meraki client
 app = None
 meraki_client = None
@@ -56,7 +58,29 @@ def register_network_tool_handlers():
         Returns:
             Updated network details
         """
-        return meraki_client.update_network(network_id, name, tags)
+        try:
+            # Get current network details
+            network = meraki_client.get_network(network_id)
+            current_name = network.get('name', 'Unknown')
+            
+            # If renaming, require confirmation
+            if name and name != current_name:
+                from utils.helpers import require_confirmation
+                
+                if not require_confirmation(
+                    operation_type="rename",
+                    resource_type="network",
+                    resource_name=f"{current_name} → {name}",
+                    resource_id=network_id
+                ):
+                    return "❌ Network rename cancelled by user"
+            
+            # Perform update
+            result = meraki_client.update_network(network_id, name, tags)
+            return f"✅ Network updated successfully"
+            
+        except Exception as e:
+            return f"Failed to update network: {str(e)}"
     
     @app.tool(
         name="get_network_devices",
@@ -162,11 +186,12 @@ def register_network_tool_handlers():
         """
         # Convert comma-separated string to list
         types_list = [t.strip() for t in product_types.split(',')]
-        return meraki_client.create_network(organization_id, name, types_list)
+        # BUGFIX: Pass productTypes as named parameter instead of positional
+        return meraki_client.create_network(organization_id, name, productTypes=types_list)
     
     @app.tool(
         name="delete_network",
-        description="Delete a Meraki network"
+        description="Delete a Meraki network - REQUIRES CONFIRMATION"
     )
     def delete_network(network_id: str):
         """
@@ -178,4 +203,34 @@ def register_network_tool_handlers():
         Returns:
             Success/failure information
         """
-        return meraki_client.delete_network(network_id)
+        try:
+            # Get network details first
+            network = meraki_client.get_network(network_id)
+            
+            # Import helper functions
+            from utils.helpers import require_confirmation, get_read_only_message
+            
+            # Check if in read-only mode first
+            if os.getenv("MCP_READ_ONLY_MODE", "false").lower() == "true":
+                return get_read_only_message(
+                    operation_type="delete",
+                    resource_type="network",
+                    resource_name=network.get('name', 'Unknown'),
+                    resource_id=network_id
+                )
+            
+            # Require confirmation
+            if not require_confirmation(
+                operation_type="delete",
+                resource_type="network", 
+                resource_name=network.get('name', 'Unknown'),
+                resource_id=network_id
+            ):
+                return "❌ Network deletion cancelled by user"
+            
+            # Perform deletion
+            meraki_client.delete_network(network_id)
+            return f"✅ Network '{network['name']}' deleted successfully"
+            
+        except Exception as e:
+            return f"Failed to delete network: {str(e)}"

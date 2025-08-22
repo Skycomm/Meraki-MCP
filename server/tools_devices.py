@@ -75,61 +75,29 @@ def register_device_tool_handlers():
         Returns:
             Success/failure information
         """
-        # Return a warning message instead of directly rebooting
-        warning_msg = f"""# ⚠️ REBOOT CONFIRMATION REQUIRED
-
-**Device Serial**: {serial}
-
-**WARNING**: Rebooting this device will:
-- 🔴 Disconnect ALL users
-- 🔴 Interrupt network services
-- 🔴 Take 2-5 minutes to come back online
-
-**To proceed with reboot**:
-If you really want to reboot this device, please confirm by saying:
-"Yes, reboot device {serial}"
-
-**Alternative solutions to try first**:
-1. Check device status and logs
-2. Verify cable connections
-3. Check for firmware updates
-4. Review recent configuration changes
-
-⚠️ This action cannot be undone!"""
-        
-        return warning_msg
-    
-    @app.tool(
-        name="confirm_reboot_device",
-        description="🔴 CONFIRM and execute device reboot (use with extreme caution)"
-    )
-    def confirm_reboot_device(serial: str, confirmation: str):
-        """
-        Actually reboot a device after explicit confirmation.
-        
-        Args:
-            serial: Serial number of the device to reboot
-            confirmation: Must be exactly "YES-REBOOT-[serial]" to proceed
-            
-        Returns:
-            Reboot status
-        """
-        expected_confirmation = f"YES-REBOOT-{serial}"
-        
-        if confirmation != expected_confirmation:
-            return f"""❌ Confirmation failed!
-
-You provided: "{confirmation}"
-Expected: "{expected_confirmation}"
-
-The device was NOT rebooted. Please use exact confirmation text if you really want to proceed."""
-        
         try:
+            # Get device details first
+            device = meraki_client.get_device(serial)
+            
+            # Import helper function
+            from utils.helpers import require_confirmation
+            
+            # Require confirmation
+            if not require_confirmation(
+                operation_type="reboot",
+                resource_type="device",
+                resource_name=device.get('name', f'Device {serial}'),
+                resource_id=serial
+            ):
+                return "❌ Device reboot cancelled by user"
+            
+            # Perform reboot
             result = meraki_client.reboot_device(serial)
             
             return f"""✅ REBOOT INITIATED
 
-**Device**: {serial}
+**Device**: {device.get('name', serial)}
+**Serial**: {serial}
 **Status**: Reboot command sent successfully
 **Expected downtime**: 2-5 minutes
 
@@ -137,6 +105,7 @@ The device is now rebooting. Monitor its status to confirm it comes back online.
             
         except Exception as e:
             return f"❌ Error rebooting device: {str(e)}"
+    
     
     @app.tool(
         name="get_device_clients",
@@ -256,3 +225,202 @@ The device is now rebooting. Monitor its status to confirm it comes back online.
             
         except Exception as e:
             return f"Failed to get status for device {serial}: {str(e)}"
+    
+    @app.tool(
+        name="claim_device_into_network", 
+        description="Claim/assign an organization device into a network"
+    )
+    def claim_device_into_network(network_id: str, serial: str):
+        """
+        Claim a device from organization inventory into a specific network.
+        
+        Args:
+            network_id: ID of the network to claim the device into
+            serial: Serial number of the device to claim
+            
+        Returns:
+            Success message or error details
+        """
+        try:
+            # The Meraki API endpoint for this is:
+            # POST /networks/{networkId}/devices/claim
+            result = meraki_client.dashboard.networks.claimNetworkDevices(
+                network_id, 
+                serials=[serial]
+            )
+            return f"✅ Successfully claimed device {serial} into network {network_id}"
+        except Exception as e:
+            return f"❌ Failed to claim device {serial}: {str(e)}"
+    
+    @app.tool(
+        name="claim_devices_into_network",
+        description="Claim multiple devices into a network at once"
+    )
+    def claim_devices_into_network(network_id: str, serials: str):
+        """
+        Claim multiple devices into a network.
+        
+        Args:
+            network_id: ID of the network to claim devices into
+            serials: Comma-separated list of device serial numbers
+            
+        Returns:
+            Success message with results
+        """
+        serial_list = [s.strip() for s in serials.split(',')]
+        
+        try:
+            result = meraki_client.dashboard.networks.claimNetworkDevices(
+                network_id,
+                serials=serial_list
+            )
+            return f"✅ Successfully claimed {len(serial_list)} devices into network"
+        except Exception as e:
+            return f"❌ Failed to claim devices: {str(e)}"
+    
+    @app.tool(
+        name="claim_device_direct",
+        description="Directly claim a device into a network without checking if it exists first"
+    )
+    def claim_device_direct(network_id: str, serial: str):
+        """
+        Directly claim a device into a network without existence check.
+        Use this when get_device returns 404 for unclaimed devices.
+        
+        Args:
+            network_id: ID of the network to claim the device into
+            serial: Serial number of the device to claim
+            
+        Returns:
+            Success message or error details
+        """
+        try:
+            # Get network info for better error message
+            network = meraki_client.get_network(network_id)
+            network_name = network.get('name', 'Unknown')
+            
+            # Directly attempt to claim without checking existence
+            result = meraki_client.dashboard.networks.claimNetworkDevices(
+                network_id, 
+                serials=[serial]
+            )
+            
+            # Check if there were any errors in the result
+            if result.get('errors'):
+                return f"⚠️ Claim completed with errors: {result['errors']}"
+            
+            return f"✅ Successfully claimed device {serial} into network '{network_name}' (ID: {network_id})"
+            
+        except Exception as e:
+            error_msg = str(e)
+            
+            # Provide helpful error messages
+            if "400" in error_msg:
+                if "already claimed" in error_msg.lower():
+                    return f"❌ Device {serial} is already claimed to another network"
+                elif "invalid" in error_msg.lower():
+                    return f"❌ Invalid device serial: {serial}"
+                else:
+                    return f"❌ Bad request: {error_msg}"
+            elif "404" in error_msg:
+                return f"❌ Network {network_id} not found"
+            else:
+                return f"❌ Failed to claim device {serial}: {error_msg}"
+    
+    @app.tool(
+        name="list_unassigned_devices",
+        description="List all devices in organization not assigned to any network"  
+    )
+    def list_unassigned_devices(organization_id: str):
+        """
+        List devices in organization inventory not assigned to networks.
+        
+        Args:
+            organization_id: ID of the organization
+            
+        Returns:
+            Formatted list of unassigned devices
+        """
+        try:
+            # Get all devices in organization
+            all_devices = meraki_client.dashboard.organizations.getOrganizationDevices(organization_id)
+            
+            # Filter for devices without networkId
+            unassigned = [d for d in all_devices if not d.get('networkId')]
+            
+            if not unassigned:
+                return "No unassigned devices found in organization"
+                
+            result = f"# Unassigned Devices ({len(unassigned)} total)\n\n"
+            for device in unassigned:
+                result += f"- **{device.get('model', 'Unknown')}** - Serial: `{device['serial']}`\n"
+                if device.get('name'):
+                    result += f"  - Name: {device['name']}\n"
+                if device.get('mac'):
+                    result += f"  - MAC: {device['mac']}\n"
+                    
+            return result
+        except Exception as e:
+            return f"Failed to list unassigned devices: {str(e)}"
+    
+    @app.tool(
+        name="unclaim_device_from_network",
+        description="Remove/unclaim a device from a network (returns it to organization inventory)"
+    )
+    def unclaim_device_from_network(network_id: str, serial: str):
+        """
+        Remove a device from a network and return it to organization inventory.
+        This is a non-destructive operation - the device remains in the org.
+        
+        Args:
+            network_id: ID of the network containing the device
+            serial: Serial number of the device to unclaim
+            
+        Returns:
+            Success message or error details
+        """
+        try:
+            # Get network and device info for better messages
+            network = meraki_client.get_network(network_id)
+            network_name = network.get('name', 'Unknown')
+            
+            # Get device info
+            try:
+                device = meraki_client.get_device(serial)
+                device_name = device.get('name', serial)
+                device_model = device.get('model', 'Unknown')
+            except:
+                device_name = serial
+                device_model = 'Unknown'
+            
+            # Remove device from network
+            result = meraki_client.dashboard.networks.removeNetworkDevices(
+                network_id,
+                serial=serial
+            )
+            
+            return f"""✅ Successfully unclaimed device from network!
+
+**Device**: {device_name} ({device_model})
+**Serial**: {serial}
+**Removed from**: {network_name} (ID: {network_id})
+**Status**: Returned to organization inventory
+
+The device is now unassigned and can be:
+- Added to a different network
+- Left in inventory as a spare
+- Transferred to another organization"""
+            
+        except Exception as e:
+            error_msg = str(e)
+            
+            # Provide helpful error messages
+            if "404" in error_msg:
+                if "network" in error_msg.lower():
+                    return f"❌ Network {network_id} not found"
+                else:
+                    return f"❌ Device {serial} not found in network {network_id}"
+            elif "400" in error_msg:
+                return f"❌ Bad request: {error_msg}\n\nDevice might not be in this network."
+            else:
+                return f"❌ Failed to unclaim device {serial}: {error_msg}"

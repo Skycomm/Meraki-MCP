@@ -212,7 +212,7 @@ def register_policy_tool_handlers():
     
     @app.tool(
         name="delete_organization_policy_object",
-        description="🗑️ Delete a policy object"
+        description="🗑️ Delete a policy object - REQUIRES CONFIRMATION"
     )
     def delete_organization_policy_object(org_id: str, policy_object_id: str):
         """
@@ -226,9 +226,33 @@ def register_policy_tool_handlers():
             Deletion confirmation
         """
         try:
+            # Get policy object details first
+            objects = meraki_client.get_organization_policy_objects(org_id)
+            policy_obj = None
+            for obj in objects:
+                if obj.get('id') == policy_object_id:
+                    policy_obj = obj
+                    break
+            
+            if not policy_obj:
+                return f"❌ Policy object {policy_object_id} not found"
+            
+            # Import helper function
+            from utils.helpers import require_confirmation
+            
+            # Require confirmation
+            if not require_confirmation(
+                operation_type="delete",
+                resource_type="policy object",
+                resource_name=policy_obj.get('name', 'Unknown'),
+                resource_id=policy_object_id
+            ):
+                return "❌ Policy object deletion cancelled by user"
+            
+            # Perform deletion
             meraki_client.delete_organization_policy_object(org_id, policy_object_id)
             
-            return f"# 🗑️ Policy Object Deleted\n\n**ID**: {policy_object_id}\n\n✅ Policy object successfully deleted."
+            return f"✅ Policy object '{policy_obj.get('name', policy_object_id)}' deleted successfully"
             
         except Exception as e:
             return f"Error deleting policy object: {str(e)}"

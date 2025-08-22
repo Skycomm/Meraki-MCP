@@ -26,3 +26,16 @@ TIMEOUT = 600  # Request timeout in seconds (10 minutes max for MCP)
 # MCP server configuration
 SERVER_NAME = "meraki-mcp-server"
 SERVER_VERSION = "1.0.0"
+
+# Safety features
+MCP_READ_ONLY_MODE = os.getenv("MCP_READ_ONLY_MODE", "false").lower() == "true"
+MCP_REQUIRE_CONFIRMATIONS = os.getenv("MCP_REQUIRE_CONFIRMATIONS", "true").lower() == "true"
+MCP_AUDIT_LOGGING = os.getenv("MCP_AUDIT_LOGGING", "true").lower() == "true"
+
+# Show safety mode status
+if MCP_READ_ONLY_MODE:
+    print("\n" + "="*60)
+    print("🔒 MCP SERVER RUNNING IN READ-ONLY MODE")
+    print("All write operations are BLOCKED")
+    print("To enable writes, unset MCP_READ_ONLY_MODE")
+    print("="*60 + "\n")
