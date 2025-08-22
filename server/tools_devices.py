@@ -279,6 +279,55 @@ The device is now rebooting. Monitor its status to confirm it comes back online.
             return f"❌ Failed to claim devices: {str(e)}"
     
     @app.tool(
+        name="claim_device_direct",
+        description="Directly claim a device into a network without checking if it exists first"
+    )
+    def claim_device_direct(network_id: str, serial: str):
+        """
+        Directly claim a device into a network without existence check.
+        Use this when get_device returns 404 for unclaimed devices.
+        
+        Args:
+            network_id: ID of the network to claim the device into
+            serial: Serial number of the device to claim
+            
+        Returns:
+            Success message or error details
+        """
+        try:
+            # Get network info for better error message
+            network = meraki_client.get_network(network_id)
+            network_name = network.get('name', 'Unknown')
+            
+            # Directly attempt to claim without checking existence
+            result = meraki_client.dashboard.networks.claimNetworkDevices(
+                network_id, 
+                serials=[serial]
+            )
+            
+            # Check if there were any errors in the result
+            if result.get('errors'):
+                return f"⚠️ Claim completed with errors: {result['errors']}"
+            
+            return f"✅ Successfully claimed device {serial} into network '{network_name}' (ID: {network_id})"
+            
+        except Exception as e:
+            error_msg = str(e)
+            
+            # Provide helpful error messages
+            if "400" in error_msg:
+                if "already claimed" in error_msg.lower():
+                    return f"❌ Device {serial} is already claimed to another network"
+                elif "invalid" in error_msg.lower():
+                    return f"❌ Invalid device serial: {serial}"
+                else:
+                    return f"❌ Bad request: {error_msg}"
+            elif "404" in error_msg:
+                return f"❌ Network {network_id} not found"
+            else:
+                return f"❌ Failed to claim device {serial}: {error_msg}"
+    
+    @app.tool(
         name="list_unassigned_devices",
         description="List all devices in organization not assigned to any network"  
     )
