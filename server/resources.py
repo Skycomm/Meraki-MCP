@@ -53,6 +53,11 @@ def register_resource_handlers():
     def get_organization_firmware(org_id):
         """Get firmware upgrades for a specific organization."""
         return meraki_client.get_organization_firmware_upgrades(org_id)
+        
+    @app.resource("organizations://{org_id}/admins")
+    def get_organization_admins(org_id):
+        """Get dashboard administrators for a specific organization."""
+        return meraki_client.get_organization_admins(org_id)
 
     # Networks resources
     @app.resource("networks://")
