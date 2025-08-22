@@ -300,6 +300,10 @@ class MerakiClient:
         """Get intrusion detection settings - REAL method."""
         return self.dashboard.appliance.getNetworkApplianceSecurityIntrusion(network_id)
     
+    def update_network_appliance_security_intrusion(self, network_id: str, **kwargs):
+        """Update intrusion detection/prevention settings - REAL method."""
+        return self.dashboard.appliance.updateNetworkApplianceSecurityIntrusion(network_id, **kwargs)
+    
     # REAL Camera Methods (additional to existing)
     def get_device_camera_snapshot(self, serial: str, timestamp: str = None):
         """Generate camera snapshot - REAL method."""
