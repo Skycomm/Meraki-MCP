@@ -299,6 +299,120 @@ def register_monitoring_tool_handlers():
             return f"Error retrieving migration status: {str(e)}"
     
     @app.tool(
+        name="get_network_events",
+        description="📋 Get network events including port carrier changes for MX appliances"
+    )
+    def get_network_events(network_id: str, product_type: str = None, event_types: str = None, 
+                          per_page: int = 100, timespan: int = 86400):
+        """
+        Get network events including port status changes.
+        
+        Args:
+            network_id: Network ID
+            product_type: Filter by product type (appliance, switch, wireless, etc.)
+            event_types: Comma-separated event types to filter (e.g. 'port_carrier_change')
+            per_page: Number of events per page (max 1000)
+            timespan: Time span in seconds (default 24 hours)
+            
+        Returns:
+            Network events with focus on port changes
+        """
+        try:
+            kwargs = {
+                'perPage': per_page,
+                'timespan': timespan
+            }
+            
+            if product_type:
+                kwargs['productType'] = product_type
+            if event_types:
+                kwargs['includedEventTypes'] = event_types.split(',')
+                
+            events = meraki_client.get_network_events(network_id, **kwargs)
+            
+            if not events:
+                return f"No events found for network {network_id} in the last {timespan/3600:.0f} hours."
+                
+            result = f"# 📋 Network Events - Network {network_id}\n\n"
+            result += f"**Time Period**: Last {timespan/3600:.0f} hours\n"
+            result += f"**Total Events**: {len(events)}\n\n"
+            
+            # Group events by type
+            event_groups = {}
+            for event in events:
+                event_type = event.get('type', 'unknown')
+                if event_type not in event_groups:
+                    event_groups[event_type] = []
+                event_groups[event_type].append(event)
+            
+            # Show port carrier changes first if any
+            if 'port_carrier_change' in event_groups:
+                port_events = event_groups['port_carrier_change']
+                result += f"## 🔌 Port Carrier Changes ({len(port_events)} events)\n"
+                
+                for event in port_events[:20]:  # Show latest 20
+                    timestamp = event.get('occurredAt', 'Unknown')
+                    device_name = event.get('deviceName', 'Unknown')
+                    device_serial = event.get('deviceSerial', 'Unknown')
+                    details = event.get('eventData', {})
+                    
+                    port_num = details.get('port', 'Unknown')
+                    carrier_status = details.get('status', 'Unknown')
+                    icon = "🟢" if carrier_status == 'up' else "🔴"
+                    
+                    result += f"### {timestamp}\n"
+                    result += f"- **Device**: {device_name} ({device_serial})\n"
+                    result += f"- **Port**: {port_num}\n"
+                    result += f"- **Status**: {icon} {carrier_status}\n"
+                    
+                    # Add additional details if available
+                    if details.get('speed'):
+                        result += f"- **Speed**: {details['speed']}\n"
+                    if details.get('duplex'):
+                        result += f"- **Duplex**: {details['duplex']}\n"
+                    
+                    result += "\n"
+                
+                if len(port_events) > 20:
+                    result += f"... and {len(port_events) - 20} more port carrier changes\n\n"
+            
+            # Show other event types
+            for event_type, events_list in event_groups.items():
+                if event_type == 'port_carrier_change':
+                    continue  # Already shown
+                    
+                # Map event types to friendly names and icons
+                event_icons = {
+                    'vpn_connectivity_change': '🔐',
+                    'appliance_went_down': '🔴',
+                    'appliance_came_up': '🟢',
+                    'client_connected': '📱',
+                    'client_disconnected': '📴',
+                    'config_change': '⚙️',
+                    'dhcp_issue': '⚠️'
+                }
+                
+                icon = event_icons.get(event_type, '📄')
+                result += f"\n## {icon} {event_type.replace('_', ' ').title()} ({len(events_list)} events)\n"
+                
+                for event in events_list[:5]:  # Show latest 5 of each type
+                    timestamp = event.get('occurredAt', 'Unknown')
+                    device_name = event.get('deviceName', '')
+                    description = event.get('description', event.get('type', 'Unknown event'))
+                    
+                    result += f"- **{timestamp}**: {description}\n"
+                    if device_name:
+                        result += f"  - Device: {device_name}\n"
+                    
+                if len(events_list) > 5:
+                    result += f"... and {len(events_list) - 5} more {event_type} events\n"
+                    
+            return result
+            
+        except Exception as e:
+            return f"Error retrieving network events: {str(e)}"
+    
+    @app.tool(
         name="get_organization_api_usage",
         description="📈 Get API usage analytics for the organization"
     )

@@ -732,6 +732,88 @@ def register_appliance_tool_handlers():
                 return f"❌ Error getting appliance ports: {error_msg}"
     
     @app.tool(
+        name="update_network_appliance_port",
+        description="🔌 Update MX appliance port VLAN configuration"
+    )
+    def update_network_appliance_port(
+        network_id: str, 
+        port_id: str,
+        enabled: bool = None,
+        vlan: int = None,
+        type: str = None,
+        allowed_vlans: str = None,
+        drop_untagged_traffic: bool = None
+    ):
+        """
+        Update per-port VLAN settings for a single MX port.
+        
+        Args:
+            network_id: Network ID
+            port_id: Port ID (e.g., '1', '2', etc.)
+            enabled: Whether port is enabled
+            vlan: VLAN number for access port or native VLAN for trunk
+            type: Port type ('access' or 'trunk')
+            allowed_vlans: Comma-separated VLAN IDs or 'all' (trunk only)
+            drop_untagged_traffic: Drop untagged traffic (trunk only)
+            
+        Returns:
+            Updated port configuration
+        """
+        try:
+            kwargs = {}
+            
+            if enabled is not None:
+                kwargs['enabled'] = enabled
+                
+            if vlan is not None:
+                kwargs['vlan'] = vlan
+                
+            if type is not None:
+                if type not in ['access', 'trunk']:
+                    return f"❌ Invalid port type '{type}'. Must be 'access' or 'trunk'"
+                kwargs['type'] = type
+                
+            if allowed_vlans is not None:
+                kwargs['allowedVlans'] = allowed_vlans
+                
+            if drop_untagged_traffic is not None:
+                kwargs['dropUntaggedTraffic'] = drop_untagged_traffic
+            
+            # Update the port
+            result = meraki_client.update_network_appliance_port(network_id, port_id, **kwargs)
+            
+            # Format response
+            response = f"# ✅ Updated MX Port Configuration\n\n"
+            response += f"**Network**: {network_id}\n"
+            response += f"**Port**: {port_id}\n\n"
+            
+            response += "## New Configuration\n"
+            response += f"- **Enabled**: {'✅' if result.get('enabled', False) else '❌'}\n"
+            response += f"- **Type**: {result.get('type', 'Unknown')}\n"
+            
+            port_type = result.get('type', '')
+            if port_type == 'access':
+                response += f"- **Access VLAN**: {result.get('vlan', 'Unknown')}\n"
+            elif port_type == 'trunk':
+                response += f"- **Native VLAN**: {result.get('vlan', 'Unknown')}\n"
+                response += f"- **Allowed VLANs**: {result.get('allowedVlans', 'all')}\n"
+                if result.get('dropUntaggedTraffic'):
+                    response += f"- **Drop Untagged Traffic**: ✅\n"
+            
+            response += "\n💡 **Note**: Port status (up/down) changes will appear in the network event log.\n"
+            
+            return response
+            
+        except Exception as e:
+            error_msg = str(e)
+            if "400" in error_msg:
+                return f"❌ Invalid configuration or this network does not have an MX appliance."
+            elif "404" in error_msg:
+                return f"❌ Port {port_id} not found on this MX appliance."
+            else:
+                return f"❌ Error updating appliance port: {error_msg}"
+    
+    @app.tool(
         name="get_network_appliance_firewall_l7_rules",
         description="🔥 Get Layer 7 (application) firewall rules - Including geo-blocking"
     )
@@ -1211,3 +1293,269 @@ def register_appliance_tool_handlers():
             
         except Exception as e:
             return f"❌ Error updating port forwarding rules: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_vlans",
+        description="🏷️ Get VLANs configured on the MX appliance"
+    )
+    def get_network_appliance_vlans(network_id: str):
+        """
+        Get all VLANs configured on the MX appliance.
+        
+        Args:
+            network_id: Network ID
+            
+        Returns:
+            List of VLANs with their configuration
+        """
+        try:
+            vlans = meraki_client.get_network_vlans(network_id)
+            
+            result = f"# 🏷️ VLANs for Network {network_id}\n\n"
+            
+            if not vlans:
+                result += "**No VLANs configured**\n"
+                result += "\n💡 **Tip**: By default, all traffic uses VLAN 1. Create additional VLANs to segment your network.\n"
+                return result
+            
+            result += f"**Total VLANs**: {len(vlans)}\n\n"
+            
+            for vlan in vlans:
+                vlan_id = vlan.get('id', 'Unknown')
+                vlan_name = vlan.get('name', f'VLAN {vlan_id}')
+                
+                result += f"## VLAN {vlan_id}: {vlan_name}\n"
+                result += f"- **Subnet**: {vlan.get('subnet', 'Not configured')}\n"
+                result += f"- **MX IP**: {vlan.get('applianceIp', 'Not configured')}\n"
+                
+                # DHCP settings
+                dhcp_handling = vlan.get('dhcpHandling', 'Run a DHCP server')
+                result += f"- **DHCP**: {dhcp_handling}\n"
+                
+                if dhcp_handling == 'Run a DHCP server':
+                    result += f"  - **Lease Time**: {vlan.get('dhcpLeaseTime', '1 day')}\n"
+                    result += f"  - **Boot Options**: {'✅' if vlan.get('dhcpBootOptionsEnabled') else '❌'}\n"
+                    
+                    # DHCP options
+                    dhcp_options = vlan.get('dhcpOptions', [])
+                    if dhcp_options:
+                        result += "  - **DHCP Options**:\n"
+                        for opt in dhcp_options:
+                            result += f"    - Code {opt.get('code')}: {opt.get('type')} = {opt.get('value')}\n"
+                
+                # DNS servers
+                dns_servers = vlan.get('dnsNameservers', '')
+                if dns_servers and dns_servers != 'upstream_dns':
+                    result += f"- **DNS Servers**: {dns_servers}\n"
+                
+                # Reserved IP ranges
+                reserved = vlan.get('reservedIpRanges', [])
+                if reserved:
+                    result += "- **Reserved IP Ranges**:\n"
+                    for r in reserved:
+                        result += f"  - {r.get('start')} - {r.get('end')}: {r.get('comment', 'No comment')}\n"
+                
+                # Fixed IP assignments
+                fixed = vlan.get('fixedIpAssignments', {})
+                if fixed:
+                    result += f"- **Fixed IP Assignments**: {len(fixed)} devices\n"
+                
+                result += "\n"
+            
+            return result
+            
+        except Exception as e:
+            error_msg = str(e)
+            if "400" in error_msg:
+                return f"❌ This network does not have VLANs enabled. VLANs are only available on MX appliances."
+            else:
+                return f"❌ Error getting VLANs: {error_msg}"
+    
+    @app.tool(
+        name="create_network_appliance_vlan",
+        description="🏷️ Create a new VLAN on the MX appliance"
+    )
+    def create_network_appliance_vlan(
+        network_id: str,
+        vlan_id: int,
+        name: str,
+        subnet: str,
+        appliance_ip: str = None
+    ):
+        """
+        Create a new VLAN on the MX appliance.
+        
+        Args:
+            network_id: Network ID
+            vlan_id: VLAN ID (1-4094)
+            name: VLAN name
+            subnet: Subnet in CIDR format (e.g., '192.168.10.0/24')
+            appliance_ip: MX IP address in this VLAN (defaults to first usable IP)
+            
+        Returns:
+            Created VLAN configuration
+        """
+        try:
+            # Validate VLAN ID
+            if not 1 <= vlan_id <= 4094:
+                return f"❌ Invalid VLAN ID {vlan_id}. Must be between 1 and 4094."
+            
+            kwargs = {
+                'id': str(vlan_id),
+                'name': name,
+                'subnet': subnet
+            }
+            
+            if appliance_ip:
+                kwargs['applianceIp'] = appliance_ip
+            else:
+                # Default to first usable IP in subnet
+                import ipaddress
+                network = ipaddress.ip_network(subnet)
+                kwargs['applianceIp'] = str(list(network.hosts())[0])
+            
+            # Create VLAN
+            result = meraki_client.dashboard.appliance.createNetworkApplianceVlan(network_id, **kwargs)
+            
+            # Format response
+            response = f"# ✅ Created VLAN {vlan_id}\n\n"
+            response += f"**Name**: {result.get('name')}\n"
+            response += f"**Subnet**: {result.get('subnet')}\n"
+            response += f"**MX IP**: {result.get('applianceIp')}\n"
+            response += f"**DHCP**: {result.get('dhcpHandling', 'Run a DHCP server')}\n"
+            
+            response += "\n💡 **Next Steps**:\n"
+            response += "- Configure DHCP options if needed\n"
+            response += "- Assign ports to this VLAN\n"
+            response += "- Configure firewall rules between VLANs\n"
+            
+            return response
+            
+        except Exception as e:
+            error_msg = str(e)
+            if "already exists" in error_msg.lower():
+                return f"❌ VLAN {vlan_id} already exists in this network."
+            elif "400" in error_msg:
+                return f"❌ Invalid configuration: {error_msg}"
+            else:
+                return f"❌ Error creating VLAN: {error_msg}"
+    
+    @app.tool(
+        name="update_network_appliance_vlan",
+        description="🏷️ Update VLAN configuration on the MX appliance"
+    )
+    def update_network_appliance_vlan(
+        network_id: str,
+        vlan_id: int,
+        name: str = None,
+        subnet: str = None,
+        appliance_ip: str = None,
+        dhcp_handling: str = None,
+        dhcp_lease_time: str = None,
+        dns_nameservers: str = None
+    ):
+        """
+        Update VLAN configuration on the MX appliance.
+        
+        Args:
+            network_id: Network ID
+            vlan_id: VLAN ID to update
+            name: New VLAN name
+            subnet: New subnet in CIDR format
+            appliance_ip: New MX IP address
+            dhcp_handling: 'Run a DHCP server', 'Relay DHCP to another server', or 'Do not respond to DHCP requests'
+            dhcp_lease_time: DHCP lease time (e.g., '1 day', '12 hours')
+            dns_nameservers: Custom DNS servers (comma-separated) or 'upstream_dns'
+            
+        Returns:
+            Updated VLAN configuration
+        """
+        try:
+            kwargs = {}
+            
+            if name is not None:
+                kwargs['name'] = name
+            if subnet is not None:
+                kwargs['subnet'] = subnet
+            if appliance_ip is not None:
+                kwargs['applianceIp'] = appliance_ip
+            if dhcp_handling is not None:
+                kwargs['dhcpHandling'] = dhcp_handling
+            if dhcp_lease_time is not None:
+                kwargs['dhcpLeaseTime'] = dhcp_lease_time
+            if dns_nameservers is not None:
+                kwargs['dnsNameservers'] = dns_nameservers
+            
+            # Update VLAN
+            result = meraki_client.dashboard.appliance.updateNetworkApplianceVlan(
+                network_id, 
+                str(vlan_id), 
+                **kwargs
+            )
+            
+            # Format response
+            response = f"# ✅ Updated VLAN {vlan_id}\n\n"
+            response += "## New Configuration\n"
+            response += f"- **Name**: {result.get('name')}\n"
+            response += f"- **Subnet**: {result.get('subnet')}\n"
+            response += f"- **MX IP**: {result.get('applianceIp')}\n"
+            response += f"- **DHCP**: {result.get('dhcpHandling')}\n"
+            
+            if result.get('dhcpHandling') == 'Run a DHCP server':
+                response += f"- **DHCP Lease Time**: {result.get('dhcpLeaseTime', '1 day')}\n"
+            
+            dns = result.get('dnsNameservers')
+            if dns and dns != 'upstream_dns':
+                response += f"- **DNS Servers**: {dns}\n"
+            
+            return response
+            
+        except Exception as e:
+            error_msg = str(e)
+            if "404" in error_msg:
+                return f"❌ VLAN {vlan_id} not found in this network."
+            else:
+                return f"❌ Error updating VLAN: {error_msg}"
+    
+    @app.tool(
+        name="delete_network_appliance_vlan",
+        description="🏷️ Delete a VLAN from the MX appliance"
+    )
+    def delete_network_appliance_vlan(network_id: str, vlan_id: int):
+        """
+        Delete a VLAN from the MX appliance.
+        WARNING: This will remove all devices from this VLAN!
+        
+        Args:
+            network_id: Network ID
+            vlan_id: VLAN ID to delete
+            
+        Returns:
+            Deletion confirmation
+        """
+        try:
+            # Cannot delete VLAN 1
+            if vlan_id == 1:
+                return "❌ Cannot delete VLAN 1 (default VLAN)"
+            
+            # Delete VLAN
+            meraki_client.dashboard.appliance.deleteNetworkApplianceVlan(
+                network_id,
+                str(vlan_id)
+            )
+            
+            return f"""✅ VLAN {vlan_id} deleted successfully!
+
+⚠️ **Impact**:
+- All devices on this VLAN have been moved to the default VLAN
+- Any port assignments to this VLAN have been reset
+- Related firewall rules may need to be updated"""
+            
+        except Exception as e:
+            error_msg = str(e)
+            if "404" in error_msg:
+                return f"❌ VLAN {vlan_id} not found in this network."
+            elif "400" in error_msg:
+                return f"❌ Cannot delete VLAN: {error_msg}"
+            else:
+                return f"❌ Error deleting VLAN: {error_msg}"

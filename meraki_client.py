@@ -376,6 +376,10 @@ class MerakiClient:
         """Get per-port VLAN settings for all ports of a MX - REAL method."""
         return self.dashboard.appliance.getNetworkAppliancePorts(network_id)
     
+    def update_network_appliance_port(self, network_id: str, port_id: str, **kwargs):
+        """Update per-port VLAN settings for a single MX port - REAL method."""
+        return self.dashboard.appliance.updateNetworkAppliancePort(network_id, port_id, **kwargs)
+    
     def get_network_appliance_security_malware(self, network_id: str):
         """Get malware protection settings - REAL method."""
         return self.dashboard.appliance.getNetworkApplianceSecurityMalware(network_id)
@@ -400,6 +404,11 @@ class MerakiClient:
     def get_network_appliance_client_security_events(self, network_id: str, client_id: str, **kwargs):
         """Get security events for a specific client - REAL method."""
         return self.dashboard.appliance.getNetworkApplianceClientSecurityEvents(network_id, client_id, **kwargs)
+    
+    # Network Events (including port status changes)
+    def get_network_events(self, network_id: str, **kwargs):
+        """Get network events including port carrier changes - REAL method."""
+        return self.dashboard.networks.getNetworkEvents(network_id, **kwargs)
     
     # NAT Rules Methods
     def get_network_appliance_firewall_one_to_one_nat_rules(self, network_id: str):
