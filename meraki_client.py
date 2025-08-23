@@ -312,6 +312,14 @@ class MerakiClient:
         """Get site-to-site VPN settings - REAL method."""
         return self.dashboard.appliance.getNetworkApplianceVpnSiteToSiteVpn(network_id)
     
+    def get_network_appliance_ports(self, network_id: str):
+        """Get per-port VLAN settings for all ports of a MX - REAL method."""
+        return self.dashboard.appliance.getNetworkAppliancePorts(network_id)
+    
+    def update_network_appliance_port(self, network_id: str, port_id: str, **kwargs):
+        """Update per-port VLAN settings for a single MX port - REAL method."""
+        return self.dashboard.appliance.updateNetworkAppliancePort(network_id, port_id, **kwargs)
+    
     def get_network_appliance_security_malware(self, network_id: str):
         """Get malware protection settings - REAL method."""
         return self.dashboard.appliance.getNetworkApplianceSecurityMalware(network_id)

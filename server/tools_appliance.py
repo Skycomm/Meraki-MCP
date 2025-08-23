@@ -1093,3 +1093,266 @@ def register_appliance_tool_handlers():
             
         except Exception as e:
             return f"❌ Error updating port forwarding rules: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_ports",
+        description="🔌 Get MX appliance port VLAN configuration"
+    )
+    def get_network_appliance_ports(network_id: str):
+        """
+        Get per-port VLAN settings for all ports of a MX appliance.
+        
+        Args:
+            network_id: Network ID
+            
+        Returns:
+            Port VLAN configuration
+        """
+        try:
+            ports = meraki_client.get_network_appliance_ports(network_id)
+            
+            result = f"# 🔌 MX Appliance Port Configuration\n"
+            result += f"**Network**: {network_id}\n\n"
+            
+            if not ports:
+                result += "No port configuration found.\n"
+                return result
+            
+            for port in ports:
+                port_num = port.get('number', 'Unknown')
+                result += f"### Port {port_num}\n"
+                result += f"- **Enabled**: {'✅' if port.get('enabled', False) else '❌'}\n"
+                result += f"- **Type**: {port.get('type', 'Unknown')}\n"
+                
+                port_type = port.get('type', '')
+                if port_type == 'access':
+                    result += f"- **Access VLAN**: {port.get('vlan', 'Unknown')}\n"
+                elif port_type == 'trunk':
+                    result += f"- **Native VLAN**: {port.get('vlan', 'Unknown')}\n"
+                    result += f"- **Allowed VLANs**: {port.get('allowedVlans', 'all')}\n"
+                    if port.get('dropUntaggedTraffic'):
+                        result += f"- **Drop Untagged Traffic**: ✅\n"
+                result += "\n"
+            
+            return result
+            
+        except Exception as e:
+            return f"❌ Error getting appliance ports: {str(e)}"
+    
+    @app.tool(
+        name="update_network_appliance_port",
+        description="🔌 Update MX appliance port VLAN configuration"
+    )
+    def update_network_appliance_port(
+        network_id: str, 
+        port_id: str,
+        enabled: bool = None,
+        vlan: int = None,
+        type: str = None,
+        allowed_vlans: str = None,
+        drop_untagged_traffic: bool = None
+    ):
+        """
+        Update per-port VLAN settings for a single MX port.
+        
+        ⚠️ WARNING: Due to Meraki API behavior, when only updating 'enabled' state,
+        other settings may be reset to defaults. Use 'toggle_network_appliance_port' 
+        instead for safely enabling/disabling ports without losing VLAN configuration.
+        
+        Args:
+            network_id: Network ID
+            port_id: Port ID (e.g., '1', '2', etc.)
+            enabled: Whether port is enabled
+            vlan: VLAN number for access port or native VLAN for trunk
+            type: Port type ('access' or 'trunk')
+            allowed_vlans: Comma-separated VLAN IDs or 'all' (trunk only)
+            drop_untagged_traffic: Drop untagged traffic (trunk only)
+            
+        Returns:
+            Updated port configuration
+        """
+        try:
+            kwargs = {}
+            
+            if enabled is not None:
+                kwargs['enabled'] = enabled
+                
+            if vlan is not None:
+                kwargs['vlan'] = vlan
+                
+            if type is not None:
+                if type not in ['access', 'trunk']:
+                    return f"❌ Invalid port type '{type}'. Must be 'access' or 'trunk'"
+                kwargs['type'] = type
+                
+            if allowed_vlans is not None:
+                kwargs['allowedVlans'] = allowed_vlans
+                
+            if drop_untagged_traffic is not None:
+                kwargs['dropUntaggedTraffic'] = drop_untagged_traffic
+            
+            # Update the port
+            result = meraki_client.update_network_appliance_port(network_id, port_id, **kwargs)
+            
+            # Format response
+            response = f"# ✅ Updated MX Port Configuration\n\n"
+            response += f"**Network**: {network_id}\n"
+            response += f"**Port**: {port_id}\n\n"
+            
+            response += "## New Configuration\n"
+            response += f"- **Enabled**: {'✅' if result.get('enabled', False) else '❌'}\n"
+            response += f"- **Type**: {result.get('type', 'Unknown')}\n"
+            
+            port_type = result.get('type', '')
+            if port_type == 'access':
+                response += f"- **Access VLAN**: {result.get('vlan', 'Unknown')}\n"
+            elif port_type == 'trunk':
+                response += f"- **Native VLAN**: {result.get('vlan', 'Unknown')}\n"
+                response += f"- **Allowed VLANs**: {result.get('allowedVlans', 'all')}\n"
+                if result.get('dropUntaggedTraffic'):
+                    response += f"- **Drop Untagged Traffic**: ✅\n"
+            
+            response += "\n💡 **Note**: Port status (up/down) changes will appear in the network event log.\n"
+            
+            # Add warning if only enabled was changed
+            if len(kwargs) == 1 and 'enabled' in kwargs:
+                response += "\n⚠️ **Warning**: Only 'enabled' was updated. If VLAN settings were lost, "
+                response += "use 'toggle_network_appliance_port' instead to preserve configuration.\n"
+            
+            return response
+            
+        except Exception as e:
+            error_msg = str(e)
+            if "400" in error_msg:
+                return f"❌ Invalid configuration or this network does not have an MX appliance."
+            elif "404" in error_msg:
+                return f"❌ Port {port_id} not found on this MX appliance."
+            else:
+                return f"❌ Error updating appliance port: {error_msg}"
+    
+    @app.tool(
+        name="get_network_appliance_port",
+        description="🔌 Get configuration for a single MX appliance port"
+    )
+    def get_network_appliance_port(network_id: str, port_id: str):
+        """
+        Get configuration for a specific MX appliance port.
+        
+        Args:
+            network_id: Network ID
+            port_id: Port ID (e.g., '1', '2', etc.)
+            
+        Returns:
+            Port configuration details
+        """
+        try:
+            # Get all ports
+            ports = meraki_client.get_network_appliance_ports(network_id)
+            
+            # Find the specific port
+            port = None
+            for p in ports:
+                if str(p.get('number', '')) == str(port_id):
+                    port = p
+                    break
+            
+            if not port:
+                return f"❌ Port {port_id} not found on this MX appliance."
+            
+            # Format the response
+            result = f"# 🔌 MX Port {port_id} Configuration\n\n"
+            result += f"**Network**: {network_id}\n\n"
+            
+            result += "## Current Settings\n"
+            result += f"- **Enabled**: {'✅' if port.get('enabled', False) else '❌'}\n"
+            result += f"- **Type**: {port.get('type', 'Unknown')}\n"
+            
+            port_type = port.get('type', '')
+            if port_type == 'access':
+                result += f"- **Access VLAN**: {port.get('vlan', 'Unknown')}\n"
+            elif port_type == 'trunk':
+                result += f"- **Native VLAN**: {port.get('vlan', 'Unknown')}\n"
+                result += f"- **Allowed VLANs**: {port.get('allowedVlans', 'all')}\n"
+                if port.get('dropUntaggedTraffic'):
+                    result += f"- **Drop Untagged Traffic**: ✅\n"
+                else:
+                    result += f"- **Drop Untagged Traffic**: ❌\n"
+            
+            return result
+            
+        except Exception as e:
+            return f"❌ Error getting appliance port: {str(e)}"
+    
+    @app.tool(
+        name="toggle_network_appliance_port",
+        description="🔄 Safely enable/disable MX port without losing VLAN configuration"
+    )
+    def toggle_network_appliance_port(network_id: str, port_id: str, enabled: bool):
+        """
+        Safely toggle MX port enable/disable state while preserving all VLAN settings.
+        This function prevents the known issue where VLAN configuration is lost when
+        toggling port states.
+        
+        Args:
+            network_id: Network ID
+            port_id: Port ID (e.g., '1', '2', etc.)
+            enabled: True to enable, False to disable
+            
+        Returns:
+            Updated port configuration with preserved settings
+        """
+        try:
+            # Step 1: Get current port configuration
+            ports = meraki_client.get_network_appliance_ports(network_id)
+            
+            # Find the specific port
+            current_port = None
+            for p in ports:
+                if str(p.get('number', '')) == str(port_id):
+                    current_port = p
+                    break
+            
+            if not current_port:
+                return f"❌ Port {port_id} not found on this MX appliance."
+            
+            # Step 2: Build update parameters with ALL current settings
+            kwargs = {
+                'enabled': enabled,
+                'type': current_port.get('type', 'access'),
+                'vlan': current_port.get('vlan', 1)
+            }
+            
+            # Add trunk-specific settings if applicable
+            if current_port.get('type') == 'trunk':
+                if 'allowedVlans' in current_port:
+                    kwargs['allowedVlans'] = current_port['allowedVlans']
+                if 'dropUntaggedTraffic' in current_port:
+                    kwargs['dropUntaggedTraffic'] = current_port['dropUntaggedTraffic']
+            
+            # Step 3: Update the port with all settings preserved
+            result = meraki_client.update_network_appliance_port(network_id, port_id, **kwargs)
+            
+            # Format response
+            action = "enabled" if enabled else "disabled"
+            response = f"# ✅ Port {port_id} safely {action}\n\n"
+            response += f"**Network**: {network_id}\n\n"
+            
+            response += "## Configuration Status\n"
+            response += f"- **Port State**: {'✅ Enabled' if result.get('enabled', False) else '❌ Disabled'}\n"
+            response += f"- **Type**: {result.get('type', 'Unknown')}\n"
+            
+            port_type = result.get('type', '')
+            if port_type == 'access':
+                response += f"- **Access VLAN**: {result.get('vlan', 'Unknown')} ✅ Preserved\n"
+            elif port_type == 'trunk':
+                response += f"- **Native VLAN**: {result.get('vlan', 'Unknown')} ✅ Preserved\n"
+                response += f"- **Allowed VLANs**: {result.get('allowedVlans', 'all')} ✅ Preserved\n"
+                if result.get('dropUntaggedTraffic'):
+                    response += f"- **Drop Untagged Traffic**: ✅ Preserved\n"
+            
+            response += f"\n💡 **All VLAN settings have been preserved during the {action} operation.**\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error toggling appliance port: {str(e)}"
