@@ -407,7 +407,7 @@ def register_alert_tool_handlers():
             if enable_device_down is not None:
                 # MX/Security appliance down
                 alerts.append({
-                    'type': 'gatewayDown',
+                    'type': 'applianceDown',
                     'enabled': enable_device_down,
                     'alertDestinations': {
                         'allAdmins': True
@@ -421,6 +421,14 @@ def register_alert_tool_handlers():
                         'allAdmins': True
                     }
                 })
+                # Gateway down (for gateway devices)
+                alerts.append({
+                    'type': 'gatewayDown',
+                    'enabled': enable_device_down,
+                    'alertDestinations': {
+                        'allAdmins': True
+                    }
+                })
                 # Repeater down
                 alerts.append({
                     'type': 'repeaterDown',
@@ -429,17 +437,17 @@ def register_alert_tool_handlers():
                         'allAdmins': True
                     }
                 })
-                # Switch down
+                # Cellular backup up/down
                 alerts.append({
-                    'type': 'switchDown',
+                    'type': 'cellularUpDown',
                     'enabled': enable_device_down,
                     'alertDestinations': {
                         'allAdmins': True
                     }
                 })
-                # Access point down
+                # Node hardware failure (covers switches and APs)
                 alerts.append({
-                    'type': 'wirelessDown',
+                    'type': 'nodeHardwareFailure',
                     'enabled': enable_device_down,
                     'alertDestinations': {
                         'allAdmins': True
@@ -456,7 +464,7 @@ def register_alert_tool_handlers():
                     }
                 })
                 alerts.append({
-                    'type': 'uplinkStatusChange',
+                    'type': 'failoverEvent',
                     'enabled': enable_gateway_down,
                     'alertDestinations': {
                         'allAdmins': True
@@ -473,7 +481,7 @@ def register_alert_tool_handlers():
                     }
                 })
                 alerts.append({
-                    'type': 'dhcpServerProblem',
+                    'type': 'rogueDhcp',
                     'enabled': enable_dhcp_failure,
                     'alertDestinations': {
                         'allAdmins': True
@@ -502,13 +510,7 @@ def register_alert_tool_handlers():
             
             # Security events (IDS/IPS, malware)
             if enable_security_events is not None:
-                alerts.append({
-                    'type': 'securityAlert',
-                    'enabled': enable_security_events,
-                    'alertDestinations': {
-                        'allAdmins': True
-                    }
-                })
+                # AMP malware detected
                 alerts.append({
                     'type': 'ampMalwareDetected',
                     'enabled': enable_security_events,
@@ -516,8 +518,9 @@ def register_alert_tool_handlers():
                         'allAdmins': True
                     }
                 })
+                # AMP malware blocked
                 alerts.append({
-                    'type': 'idsAlert',
+                    'type': 'ampMalwareBlocked',
                     'enabled': enable_security_events,
                     'alertDestinations': {
                         'allAdmins': True
@@ -533,25 +536,11 @@ def register_alert_tool_handlers():
                         'allAdmins': True
                     }
                 })
-                alerts.append({
-                    'type': 'containmentStatus',
-                    'enabled': enable_rogue_ap,
-                    'alertDestinations': {
-                        'allAdmins': True
-                    }
-                })
             
             # Client connectivity failures
             if enable_client_connectivity is not None:
                 alerts.append({
                     'type': 'clientConnectivity',
-                    'enabled': enable_client_connectivity,
-                    'alertDestinations': {
-                        'allAdmins': True
-                    }
-                })
-                alerts.append({
-                    'type': 'failedConnection',
                     'enabled': enable_client_connectivity,
                     'alertDestinations': {
                         'allAdmins': True
@@ -566,21 +555,21 @@ def register_alert_tool_handlers():
             result = "✅ Alert settings updated successfully!\n\n"
             result += "Enabled alerts:\n"
             if enable_device_down:
-                result += "- Device down alerts (MX/appliance, camera, repeater, switch, wireless AP)\n"
+                result += "- Device down alerts (MX/appliance, camera, gateway, repeater, cellular, hardware failures)\n"
             if enable_gateway_down:
-                result += "- Gateway connectivity issues (VPN, uplink status)\n"
+                result += "- Gateway connectivity issues (VPN changes, failover events)\n"
             if enable_dhcp_failure:
-                result += "- DHCP failures (no leases, server problems)\n"
+                result += "- DHCP issues (no leases available, rogue DHCP servers)\n"
             if enable_high_usage:
-                result += "- High wireless usage\n"
+                result += "- High wireless usage alerts\n"
             if enable_ip_conflict:
                 result += "- IP conflict detection\n"
             if enable_security_events:
-                result += "- Security events (IDS/IPS alerts, malware detection)\n"
+                result += "- Security events (malware detected/blocked)\n"
             if enable_rogue_ap:
-                result += "- Rogue access point detection and containment\n"
+                result += "- Rogue access point detection\n"
             if enable_client_connectivity:
-                result += "- Client connectivity failures\n"
+                result += "- Client connectivity monitoring\n"
             
             return result
             
