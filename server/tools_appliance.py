@@ -830,6 +830,10 @@ def register_appliance_tool_handlers():
         """
         Update per-port VLAN settings for a single MX port.
         
+        ⚠️ WARNING: Due to Meraki API behavior, when only updating 'enabled' state,
+        other settings may be reset to defaults. Use 'toggle_network_appliance_port' 
+        instead for safely enabling/disabling ports without losing VLAN configuration.
+        
         Args:
             network_id: Network ID
             port_id: Port ID (e.g., '1', '2', etc.)
@@ -885,6 +889,11 @@ def register_appliance_tool_handlers():
             
             response += "\n💡 **Note**: Port status (up/down) changes will appear in the network event log.\n"
             
+            # Add warning if only enabled was changed
+            if len(kwargs) == 1 and 'enabled' in kwargs:
+                response += "\n⚠️ **Warning**: Only 'enabled' was updated. If VLAN settings were lost, "
+                response += "use 'toggle_network_appliance_port' instead to preserve configuration.\n"
+            
             return response
             
         except Exception as e:
@@ -895,6 +904,133 @@ def register_appliance_tool_handlers():
                 return f"❌ Port {port_id} not found on this MX appliance."
             else:
                 return f"❌ Error updating appliance port: {error_msg}"
+    
+    @app.tool(
+        name="get_network_appliance_port",
+        description="🔌 Get configuration for a single MX appliance port"
+    )
+    def get_network_appliance_port(network_id: str, port_id: str):
+        """
+        Get configuration for a specific MX appliance port.
+        
+        Args:
+            network_id: Network ID
+            port_id: Port ID (e.g., '1', '2', etc.)
+            
+        Returns:
+            Port configuration details
+        """
+        try:
+            # Get all ports
+            ports = meraki_client.get_network_appliance_ports(network_id)
+            
+            # Find the specific port
+            port = None
+            for p in ports:
+                if str(p.get('number', '')) == str(port_id):
+                    port = p
+                    break
+            
+            if not port:
+                return f"❌ Port {port_id} not found on this MX appliance."
+            
+            # Format the response
+            result = f"# 🔌 MX Port {port_id} Configuration\n\n"
+            result += f"**Network**: {network_id}\n\n"
+            
+            result += "## Current Settings\n"
+            result += f"- **Enabled**: {'✅' if port.get('enabled', False) else '❌'}\n"
+            result += f"- **Type**: {port.get('type', 'Unknown')}\n"
+            
+            port_type = port.get('type', '')
+            if port_type == 'access':
+                result += f"- **Access VLAN**: {port.get('vlan', 'Unknown')}\n"
+            elif port_type == 'trunk':
+                result += f"- **Native VLAN**: {port.get('vlan', 'Unknown')}\n"
+                result += f"- **Allowed VLANs**: {port.get('allowedVlans', 'all')}\n"
+                if port.get('dropUntaggedTraffic'):
+                    result += f"- **Drop Untagged Traffic**: ✅\n"
+                else:
+                    result += f"- **Drop Untagged Traffic**: ❌\n"
+            
+            return result
+            
+        except Exception as e:
+            return f"❌ Error getting appliance port: {str(e)}"
+    
+    @app.tool(
+        name="toggle_network_appliance_port",
+        description="🔄 Safely enable/disable MX port without losing VLAN configuration"
+    )
+    def toggle_network_appliance_port(network_id: str, port_id: str, enabled: bool):
+        """
+        Safely toggle MX port enable/disable state while preserving all VLAN settings.
+        This function prevents the known issue where VLAN configuration is lost when
+        toggling port states.
+        
+        Args:
+            network_id: Network ID
+            port_id: Port ID (e.g., '1', '2', etc.)
+            enabled: True to enable, False to disable
+            
+        Returns:
+            Updated port configuration with preserved settings
+        """
+        try:
+            # Step 1: Get current port configuration
+            ports = meraki_client.get_network_appliance_ports(network_id)
+            
+            # Find the specific port
+            current_port = None
+            for p in ports:
+                if str(p.get('number', '')) == str(port_id):
+                    current_port = p
+                    break
+            
+            if not current_port:
+                return f"❌ Port {port_id} not found on this MX appliance."
+            
+            # Step 2: Build update parameters with ALL current settings
+            kwargs = {
+                'enabled': enabled,
+                'type': current_port.get('type', 'access'),
+                'vlan': current_port.get('vlan', 1)
+            }
+            
+            # Add trunk-specific settings if applicable
+            if current_port.get('type') == 'trunk':
+                if 'allowedVlans' in current_port:
+                    kwargs['allowedVlans'] = current_port['allowedVlans']
+                if 'dropUntaggedTraffic' in current_port:
+                    kwargs['dropUntaggedTraffic'] = current_port['dropUntaggedTraffic']
+            
+            # Step 3: Update the port with all settings preserved
+            result = meraki_client.update_network_appliance_port(network_id, port_id, **kwargs)
+            
+            # Format response
+            action = "enabled" if enabled else "disabled"
+            response = f"# ✅ Port {port_id} safely {action}\n\n"
+            response += f"**Network**: {network_id}\n\n"
+            
+            response += "## Configuration Status\n"
+            response += f"- **Port State**: {'✅ Enabled' if result.get('enabled', False) else '❌ Disabled'}\n"
+            response += f"- **Type**: {result.get('type', 'Unknown')}\n"
+            
+            port_type = result.get('type', '')
+            if port_type == 'access':
+                response += f"- **Access VLAN**: {result.get('vlan', 'Unknown')} ✅ Preserved\n"
+            elif port_type == 'trunk':
+                response += f"- **Native VLAN**: {result.get('vlan', 'Unknown')} ✅ Preserved\n"
+                response += f"- **Allowed VLANs**: {result.get('allowedVlans', 'all')} ✅ Preserved\n"
+                if result.get('dropUntaggedTraffic'):
+                    response += f"- **Drop Untagged Traffic**: ✅ Preserved\n"
+            
+            response += f"\n💡 **All VLAN settings have been preserved during the {action} operation.**\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error toggling appliance port: {str(e)}"
     
     @app.tool(
         name="get_network_appliance_firewall_l7_rules",
@@ -1602,7 +1738,8 @@ def register_appliance_tool_handlers():
         appliance_ip: str = None,
         dhcp_handling: str = None,
         dhcp_lease_time: str = None,
-        dns_nameservers: str = None
+        dns_nameservers: str = None,
+        fixed_ip_assignments: str = None
     ):
         """
         Update VLAN configuration on the MX appliance.
@@ -1616,6 +1753,8 @@ def register_appliance_tool_handlers():
             dhcp_handling: 'Run a DHCP server', 'Relay DHCP to another server', or 'Do not respond to DHCP requests'
             dhcp_lease_time: DHCP lease time (e.g., '1 day', '12 hours')
             dns_nameservers: Custom DNS servers (comma-separated) or 'upstream_dns'
+            fixed_ip_assignments: JSON string of DHCP reservations, e.g.:
+                '{"aa:bb:cc:dd:ee:ff": {"ip": "192.168.1.100", "name": "Server"}}'
             
         Returns:
             Updated VLAN configuration
@@ -1635,6 +1774,15 @@ def register_appliance_tool_handlers():
                 kwargs['dhcpLeaseTime'] = dhcp_lease_time
             if dns_nameservers is not None:
                 kwargs['dnsNameservers'] = dns_nameservers
+            
+            if fixed_ip_assignments is not None:
+                try:
+                    import json
+                    # Parse the JSON string
+                    fixed_ips = json.loads(fixed_ip_assignments)
+                    kwargs['fixedIpAssignments'] = fixed_ips
+                except json.JSONDecodeError:
+                    return "❌ Invalid fixed_ip_assignments format. Must be valid JSON."
             
             # Update VLAN
             result = meraki_client.dashboard.appliance.updateNetworkApplianceVlan(
@@ -1657,6 +1805,13 @@ def register_appliance_tool_handlers():
             dns = result.get('dnsNameservers')
             if dns and dns != 'upstream_dns':
                 response += f"- **DNS Servers**: {dns}\n"
+            
+            # Show fixed IP assignments if any
+            fixed = result.get('fixedIpAssignments', {})
+            if fixed:
+                response += f"\n## Fixed IP Assignments ({len(fixed)} total)\n"
+                for mac, ip_info in fixed.items():
+                    response += f"- **{mac}**: {ip_info.get('ip')} - {ip_info.get('name', 'No name')}\n"
             
             return response
             
@@ -1709,6 +1864,251 @@ def register_appliance_tool_handlers():
                 return f"❌ Cannot delete VLAN: {error_msg}"
             else:
                 return f"❌ Error deleting VLAN: {error_msg}"
+    
+    @app.tool(
+        name="add_dhcp_reservation",
+        description="📌 Add a DHCP reservation (fixed IP assignment) to a VLAN"
+    )
+    def add_dhcp_reservation(
+        network_id: str,
+        vlan_id: int,
+        mac_address: str,
+        ip_address: str,
+        name: str = None
+    ):
+        """
+        Add a DHCP reservation to assign a fixed IP to a specific MAC address.
+        
+        Args:
+            network_id: Network ID
+            vlan_id: VLAN ID where the reservation should be added
+            mac_address: MAC address of the device (format: aa:bb:cc:dd:ee:ff)
+            ip_address: IP address to reserve
+            name: Optional name for the reservation
+            
+        Returns:
+            Success message with updated DHCP reservations
+        """
+        try:
+            # Normalize MAC address format
+            mac_address = mac_address.lower().replace('-', ':')
+            
+            # Validate MAC address format
+            import re
+            if not re.match(r'^([0-9a-f]{2}:){5}[0-9a-f]{2}$', mac_address):
+                return f"❌ Invalid MAC address format: {mac_address}. Use format: aa:bb:cc:dd:ee:ff"
+            
+            # Get current VLAN configuration
+            current_vlan = None
+            vlans = meraki_client.get_network_vlans(network_id)
+            for vlan in vlans:
+                if str(vlan.get('id')) == str(vlan_id):
+                    current_vlan = vlan
+                    break
+            
+            if not current_vlan:
+                return f"❌ VLAN {vlan_id} not found in network {network_id}"
+            
+            # Get current fixed IP assignments
+            current_fixed = current_vlan.get('fixedIpAssignments', {})
+            
+            # Check if this MAC already has a reservation
+            if mac_address in current_fixed:
+                existing = current_fixed[mac_address]
+                return f"⚠️ MAC {mac_address} already has a reservation: {existing.get('ip')} ({existing.get('name', 'No name')})"
+            
+            # Validate IP is within VLAN subnet
+            import ipaddress
+            try:
+                subnet = current_vlan.get('subnet')
+                if subnet:
+                    network = ipaddress.ip_network(subnet)
+                    ip = ipaddress.ip_address(ip_address)
+                    if ip not in network:
+                        return f"❌ IP {ip_address} is not within VLAN {vlan_id} subnet ({subnet})"
+            except:
+                pass  # Skip validation if there's an issue
+            
+            # Add the new reservation
+            current_fixed[mac_address] = {
+                'ip': ip_address,
+                'name': name or f'Reserved for {mac_address}'
+            }
+            
+            # Update the VLAN with new fixed IP assignments
+            import json
+            result = meraki_client.dashboard.appliance.updateNetworkApplianceVlan(
+                network_id,
+                str(vlan_id),
+                fixedIpAssignments=current_fixed
+            )
+            
+            # Format response
+            response = f"# ✅ DHCP Reservation Added Successfully!\n\n"
+            response += f"**VLAN**: {vlan_id} ({current_vlan.get('name', 'Unknown')})\n"
+            response += f"**MAC Address**: {mac_address}\n"
+            response += f"**Reserved IP**: {ip_address}\n"
+            response += f"**Name**: {name or 'Not specified'}\n\n"
+            
+            # Show all reservations
+            all_fixed = result.get('fixedIpAssignments', {})
+            if len(all_fixed) > 1:
+                response += f"## All DHCP Reservations ({len(all_fixed)} total)\n"
+                for mac, info in sorted(all_fixed.items()):
+                    response += f"- **{mac}**: {info.get('ip')} - {info.get('name', 'No name')}\n"
+            
+            response += "\n💡 **Note**: The device will get the reserved IP on its next DHCP renewal.\n"
+            response += "You may need to release/renew the lease or reboot the device.\n"
+            
+            return response
+            
+        except Exception as e:
+            error_msg = str(e)
+            if "400" in error_msg:
+                return f"❌ Bad request: {error_msg}\nCheck that the IP address is valid and not already in use."
+            else:
+                return f"❌ Error adding DHCP reservation: {error_msg}"
+    
+    @app.tool(
+        name="remove_dhcp_reservation",
+        description="🗑️ Remove a DHCP reservation from a VLAN"
+    )
+    def remove_dhcp_reservation(
+        network_id: str,
+        vlan_id: int,
+        mac_address: str
+    ):
+        """
+        Remove a DHCP reservation for a specific MAC address.
+        
+        Args:
+            network_id: Network ID
+            vlan_id: VLAN ID where the reservation exists
+            mac_address: MAC address to remove reservation for
+            
+        Returns:
+            Success message
+        """
+        try:
+            # Normalize MAC address format
+            mac_address = mac_address.lower().replace('-', ':')
+            
+            # Get current VLAN configuration
+            current_vlan = None
+            vlans = meraki_client.get_network_vlans(network_id)
+            for vlan in vlans:
+                if str(vlan.get('id')) == str(vlan_id):
+                    current_vlan = vlan
+                    break
+            
+            if not current_vlan:
+                return f"❌ VLAN {vlan_id} not found in network {network_id}"
+            
+            # Get current fixed IP assignments
+            current_fixed = current_vlan.get('fixedIpAssignments', {})
+            
+            # Check if this MAC has a reservation
+            if mac_address not in current_fixed:
+                return f"❌ No DHCP reservation found for MAC {mac_address} on VLAN {vlan_id}"
+            
+            # Store the old reservation info
+            old_reservation = current_fixed[mac_address]
+            
+            # Remove the reservation
+            del current_fixed[mac_address]
+            
+            # Update the VLAN
+            result = meraki_client.dashboard.appliance.updateNetworkApplianceVlan(
+                network_id,
+                str(vlan_id),
+                fixedIpAssignments=current_fixed
+            )
+            
+            # Format response
+            response = f"# ✅ DHCP Reservation Removed\n\n"
+            response += f"**VLAN**: {vlan_id} ({current_vlan.get('name', 'Unknown')})\n"
+            response += f"**MAC Address**: {mac_address}\n"
+            response += f"**Released IP**: {old_reservation.get('ip')}\n"
+            response += f"**Name**: {old_reservation.get('name', 'No name')}\n\n"
+            
+            # Show remaining reservations
+            remaining = result.get('fixedIpAssignments', {})
+            if remaining:
+                response += f"## Remaining Reservations ({len(remaining)} total)\n"
+                for mac, info in sorted(remaining.items()):
+                    response += f"- **{mac}**: {info.get('ip')} - {info.get('name', 'No name')}\n"
+            else:
+                response += "No DHCP reservations remaining on this VLAN.\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error removing DHCP reservation: {str(e)}"
+    
+    @app.tool(
+        name="list_dhcp_reservations",
+        description="📋 List all DHCP reservations for a VLAN"
+    )
+    def list_dhcp_reservations(network_id: str, vlan_id: int = None):
+        """
+        List all DHCP reservations (fixed IP assignments) for a VLAN or all VLANs.
+        
+        Args:
+            network_id: Network ID
+            vlan_id: Specific VLAN ID (optional, shows all if not specified)
+            
+        Returns:
+            List of all DHCP reservations
+        """
+        try:
+            vlans = meraki_client.get_network_vlans(network_id)
+            
+            if not vlans:
+                return "No VLANs configured on this network."
+            
+            result = f"# 📋 DHCP Reservations\n"
+            result += f"**Network**: {network_id}\n\n"
+            
+            total_reservations = 0
+            
+            for vlan in vlans:
+                current_vlan_id = str(vlan.get('id'))
+                
+                # Skip if specific VLAN requested and this isn't it
+                if vlan_id is not None and current_vlan_id != str(vlan_id):
+                    continue
+                
+                fixed_ips = vlan.get('fixedIpAssignments', {})
+                
+                if fixed_ips:
+                    result += f"## VLAN {current_vlan_id}: {vlan.get('name', 'Unknown')} ({len(fixed_ips)} reservations)\n"
+                    result += f"**Subnet**: {vlan.get('subnet', 'Not configured')}\n\n"
+                    
+                    # Sort by IP address for easier reading
+                    sorted_macs = sorted(fixed_ips.items(), key=lambda x: x[1].get('ip', ''))
+                    
+                    for mac, info in sorted_macs:
+                        result += f"- **{mac}**\n"
+                        result += f"  - IP: `{info.get('ip')}`\n"
+                        result += f"  - Name: {info.get('name', 'No name')}\n"
+                        total_reservations += 1
+                    
+                    result += "\n"
+                elif vlan_id is not None:
+                    result += f"## VLAN {current_vlan_id}: {vlan.get('name', 'Unknown')}\n"
+                    result += "No DHCP reservations configured.\n\n"
+            
+            if vlan_id is not None and total_reservations == 0:
+                result += "No DHCP reservations found for the specified VLAN.\n"
+            elif vlan_id is None and total_reservations == 0:
+                result += "No DHCP reservations configured on any VLAN.\n"
+            else:
+                result += f"**Total Reservations**: {total_reservations}\n"
+            
+            return result
+            
+        except Exception as e:
+            return f"❌ Error listing DHCP reservations: {str(e)}"
     
     @app.tool(
         name="get_port_comprehensive_status",
@@ -1907,3 +2307,384 @@ def register_appliance_tool_handlers():
             
         except Exception as e:
             return f"❌ Error getting comprehensive port status: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_warm_spare",
+        description="🔥 Get MX warm spare (high availability) configuration"
+    )
+    def get_network_appliance_warm_spare(network_id: str):
+        """
+        Get warm spare configuration for MX high availability.
+        
+        Args:
+            network_id: Network ID
+            
+        Returns:
+            Warm spare configuration details
+        """
+        try:
+            warm_spare = meraki_client.dashboard.appliance.getNetworkApplianceWarmSpare(network_id)
+            
+            result = f"# 🔥 MX Warm Spare Configuration\n"
+            result += f"**Network**: {network_id}\n\n"
+            
+            if not warm_spare.get('enabled'):
+                result += "❌ **Warm Spare**: Disabled\n\n"
+                result += "💡 **Note**: Enable warm spare for high availability failover.\n"
+                return result
+            
+            result += "✅ **Warm Spare**: Enabled\n\n"
+            
+            # Primary MX
+            primary_serial = warm_spare.get('primarySerial', 'Unknown')
+            result += f"## Primary MX\n"
+            result += f"- **Serial**: {primary_serial}\n"
+            
+            # Spare MX
+            spare_serial = warm_spare.get('spareSerial', 'Not configured')
+            result += f"\n## Spare MX\n"
+            result += f"- **Serial**: {spare_serial}\n"
+            
+            # Uplink mode
+            uplink_mode = warm_spare.get('uplinkMode', 'virtual')
+            result += f"\n## Configuration\n"
+            result += f"- **Uplink Mode**: {uplink_mode}\n"
+            
+            if uplink_mode == 'virtual':
+                result += f"- **Virtual IP 1**: {warm_spare.get('virtualIp1', 'Not set')}\n"
+                result += f"- **Virtual IP 2**: {warm_spare.get('virtualIp2', 'Not set')}\n"
+            
+            result += "\n## How It Works\n"
+            result += "- Primary and spare share health info via VRRP\n"
+            result += "- DHCP leases sync between units on UDP port 3483\n"
+            result += "- Automatic failover when primary loses all uplinks\n"
+            result += "- Stateful failover preserves client connections\n"
+            
+            return result
+            
+        except Exception as e:
+            error_msg = str(e)
+            if "400" in error_msg:
+                return "❌ This network does not support warm spare (MX required)"
+            else:
+                return f"❌ Error getting warm spare config: {error_msg}"
+    
+    @app.tool(
+        name="update_network_appliance_warm_spare",
+        description="🔥 Update MX warm spare configuration"
+    )
+    def update_network_appliance_warm_spare(
+        network_id: str,
+        enabled: bool,
+        spare_serial: str = None,
+        uplink_mode: str = None,
+        virtual_ip1: str = None,
+        virtual_ip2: str = None
+    ):
+        """
+        Update warm spare configuration for MX high availability.
+        
+        Args:
+            network_id: Network ID
+            enabled: Enable/disable warm spare
+            spare_serial: Serial number of spare MX
+            uplink_mode: 'virtual' or 'public'
+            virtual_ip1: Virtual IP for WAN 1 (if using virtual mode)
+            virtual_ip2: Virtual IP for WAN 2 (if using virtual mode)
+            
+        Returns:
+            Updated warm spare configuration
+        """
+        try:
+            kwargs = {'enabled': enabled}
+            
+            if spare_serial:
+                kwargs['spareSerial'] = spare_serial
+            if uplink_mode:
+                if uplink_mode not in ['virtual', 'public']:
+                    return "❌ Invalid uplink mode. Must be 'virtual' or 'public'"
+                kwargs['uplinkMode'] = uplink_mode
+            if virtual_ip1:
+                kwargs['virtualIp1'] = virtual_ip1
+            if virtual_ip2:
+                kwargs['virtualIp2'] = virtual_ip2
+            
+            result = meraki_client.dashboard.appliance.updateNetworkApplianceWarmSpare(
+                network_id, **kwargs
+            )
+            
+            response = f"# ✅ Updated Warm Spare Configuration\n\n"
+            response += f"**Status**: {'Enabled' if result.get('enabled') else 'Disabled'}\n"
+            
+            if result.get('enabled'):
+                response += f"**Spare Serial**: {result.get('spareSerial', 'Not set')}\n"
+                response += f"**Uplink Mode**: {result.get('uplinkMode', 'virtual')}\n"
+                
+                if result.get('uplinkMode') == 'virtual':
+                    response += f"**Virtual IP 1**: {result.get('virtualIp1', 'Not set')}\n"
+                    response += f"**Virtual IP 2**: {result.get('virtualIp2', 'Not set')}\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error updating warm spare: {str(e)}"
+    
+    @app.tool(
+        name="swap_network_appliance_warm_spare",
+        description="🔄 Swap primary and spare MX appliances"
+    )
+    def swap_network_appliance_warm_spare(network_id: str):
+        """
+        Swap the primary and warm spare MX appliances.
+        This makes the current spare become the primary.
+        
+        Args:
+            network_id: Network ID
+            
+        Returns:
+            Swap confirmation
+        """
+        try:
+            result = meraki_client.dashboard.appliance.swapNetworkApplianceWarmSpare(network_id)
+            
+            response = f"# ✅ MX Appliances Swapped!\n\n"
+            response += f"**New Primary**: {result.get('primarySerial', 'Unknown')}\n"
+            response += f"**New Spare**: {result.get('spareSerial', 'Unknown')}\n\n"
+            response += "⚠️ **Note**: The swap may take a few minutes to complete.\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error swapping warm spare: {str(e)}"
+    
+    @app.tool(
+        name="update_network_appliance_vpn_site_to_site",
+        description="🔐 Update site-to-site VPN configuration"
+    )
+    def update_network_appliance_vpn_site_to_site(
+        network_id: str,
+        mode: str,
+        hubs: str = None,
+        subnets: str = None
+    ):
+        """
+        Update site-to-site VPN settings for the network.
+        
+        Args:
+            network_id: Network ID
+            mode: VPN mode - 'none', 'spoke', or 'hub'
+            hubs: JSON array of hub networks (for spoke mode)
+            subnets: JSON array of local subnets to advertise
+            
+        Returns:
+            Updated VPN configuration
+        """
+        try:
+            kwargs = {'mode': mode}
+            
+            if mode not in ['none', 'spoke', 'hub']:
+                return "❌ Invalid mode. Must be 'none', 'spoke', or 'hub'"
+            
+            if hubs:
+                import json
+                try:
+                    kwargs['hubs'] = json.loads(hubs)
+                except:
+                    return "❌ Invalid hubs format. Must be JSON array"
+            
+            if subnets:
+                import json
+                try:
+                    kwargs['subnets'] = json.loads(subnets)
+                except:
+                    return "❌ Invalid subnets format. Must be JSON array"
+            
+            result = meraki_client.dashboard.appliance.updateNetworkApplianceVpnSiteToSiteVpn(
+                network_id, **kwargs
+            )
+            
+            response = f"# ✅ Updated Site-to-Site VPN\n\n"
+            response += f"**Mode**: {result.get('mode', 'none')}\n"
+            
+            if result.get('mode') == 'spoke':
+                hubs_list = result.get('hubs', [])
+                response += f"\n## Connected Hubs ({len(hubs_list)})\n"
+                for hub in hubs_list:
+                    response += f"- Hub ID: {hub.get('hubId', 'Unknown')}\n"
+            
+            subnets_list = result.get('subnets', [])
+            if subnets_list:
+                response += f"\n## Local Subnets ({len(subnets_list)})\n"
+                for subnet in subnets_list:
+                    response += f"- {subnet.get('localSubnet', 'Unknown')}"
+                    if subnet.get('useVpn'):
+                        response += " ✅ In VPN"
+                    response += "\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error updating site-to-site VPN: {str(e)}"
+    
+    @app.tool(
+        name="get_device_appliance_dhcp_subnets",
+        description="📊 Get DHCP subnet information for an MX"
+    )
+    def get_device_appliance_dhcp_subnets(serial: str):
+        """
+        Get DHCP subnet information for a specific MX appliance.
+        Shows DHCP pools and usage statistics.
+        
+        Args:
+            serial: Device serial number
+            
+        Returns:
+            DHCP subnet details and statistics
+        """
+        try:
+            subnets = meraki_client.dashboard.appliance.getDeviceApplianceDhcpSubnets(serial)
+            
+            result = f"# 📊 DHCP Subnets for MX {serial}\n\n"
+            
+            if not subnets:
+                result += "No DHCP subnet information available.\n"
+                return result
+            
+            for subnet in subnets:
+                vlan_id = subnet.get('vlanId', 'Unknown')
+                result += f"## VLAN {vlan_id}\n"
+                result += f"- **Subnet**: {subnet.get('subnet', 'Unknown')}\n"
+                result += f"- **Mask**: {subnet.get('mask', 'Unknown')}\n"
+                
+                # Usage statistics
+                used_count = subnet.get('usedCount', 0)
+                free_count = subnet.get('freeCount', 0)
+                total = used_count + free_count
+                
+                if total > 0:
+                    usage_percent = (used_count / total) * 100
+                    result += f"- **DHCP Usage**: {used_count}/{total} ({usage_percent:.1f}%)\n"
+                    result += f"- **Free IPs**: {free_count}\n"
+                
+                # Status indicator
+                if usage_percent >= 90:
+                    result += "- **Status**: 🔴 Critical - Pool nearly exhausted!\n"
+                elif usage_percent >= 75:
+                    result += "- **Status**: 🟡 Warning - High usage\n"
+                else:
+                    result += "- **Status**: 🟢 Healthy\n"
+                
+                result += "\n"
+            
+            return result
+            
+        except Exception as e:
+            error_msg = str(e)
+            if "400" in error_msg:
+                return f"❌ Device {serial} is not an MX appliance"
+            else:
+                return f"❌ Error getting DHCP subnets: {error_msg}"
+    
+    @app.tool(
+        name="get_network_appliance_static_routes",
+        description="🛤️ Get static routes configured on the MX"
+    )
+    def get_network_appliance_static_routes(network_id: str):
+        """
+        Get static routes configured on the MX appliance.
+        
+        Args:
+            network_id: Network ID
+            
+        Returns:
+            List of static routes
+        """
+        try:
+            routes = meraki_client.dashboard.appliance.getNetworkApplianceStaticRoutes(network_id)
+            
+            result = f"# 🛤️ Static Routes for Network {network_id}\n\n"
+            
+            if not routes:
+                result += "No static routes configured.\n"
+                result += "\n💡 **Tip**: Static routes are used to direct traffic to specific subnets via custom gateways.\n"
+                return result
+            
+            result += f"**Total Routes**: {len(routes)}\n\n"
+            
+            for i, route in enumerate(routes, 1):
+                result += f"## Route {i}: {route.get('name', 'Unnamed')}\n"
+                result += f"- **ID**: {route.get('id', 'Unknown')}\n"
+                result += f"- **Subnet**: {route.get('subnet', 'Unknown')}\n"
+                result += f"- **Gateway IP**: {route.get('gatewayIp', 'Unknown')}\n"
+                
+                # Gateway VLAN
+                gateway_vlan = route.get('gatewayVlanId')
+                if gateway_vlan:
+                    result += f"- **Gateway VLAN**: {gateway_vlan}\n"
+                
+                result += f"- **Enabled**: {'✅' if route.get('enabled', True) else '❌'}\n"
+                
+                # Fixed IP assignments for this route
+                fixed_ips = route.get('fixedIpAssignments', {})
+                if fixed_ips:
+                    result += f"- **Reserved IPs**: {len(fixed_ips)}\n"
+                
+                # Reserved IP ranges
+                reserved = route.get('reservedIpRanges', [])
+                if reserved:
+                    result += "- **Reserved Ranges**:\n"
+                    for r in reserved:
+                        result += f"  - {r.get('start')} - {r.get('end')}: {r.get('comment', '')}\n"
+                
+                result += "\n"
+            
+            return result
+            
+        except Exception as e:
+            return f"❌ Error getting static routes: {str(e)}"
+    
+    @app.tool(
+        name="create_network_appliance_static_route",
+        description="🛤️ Create a new static route on the MX"
+    )
+    def create_network_appliance_static_route(
+        network_id: str,
+        name: str,
+        subnet: str,
+        gateway_ip: str
+    ):
+        """
+        Create a new static route on the MX appliance.
+        
+        Args:
+            network_id: Network ID
+            name: Name for the route
+            subnet: Destination subnet in CIDR format
+            gateway_ip: Next hop IP address
+            
+        Returns:
+            Created route details
+        """
+        try:
+            result = meraki_client.dashboard.appliance.createNetworkApplianceStaticRoute(
+                network_id,
+                name=name,
+                subnet=subnet,
+                gatewayIp=gateway_ip
+            )
+            
+            response = f"# ✅ Static Route Created\n\n"
+            response += f"**Name**: {result.get('name')}\n"
+            response += f"**ID**: {result.get('id')}\n"
+            response += f"**Subnet**: {result.get('subnet')}\n"
+            response += f"**Gateway**: {result.get('gatewayIp')}\n"
+            response += f"**Enabled**: {'✅' if result.get('enabled', True) else '❌'}\n"
+            
+            return response
+            
+        except Exception as e:
+            error_msg = str(e)
+            if "400" in error_msg:
+                return f"❌ Invalid route configuration: {error_msg}"
+            else:
+                return f"❌ Error creating static route: {error_msg}"
