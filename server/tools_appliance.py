@@ -675,52 +675,135 @@ def register_appliance_tool_handlers():
     
     @app.tool(
         name="get_network_appliance_ports",
-        description="🔌 Get MX appliance port VLAN configuration"
+        description="🔌 Get MX appliance port VLAN configuration with enhanced details"
     )
     def get_network_appliance_ports(network_id: str):
         """
-        Get per-port VLAN settings for all ports of a MX appliance.
-        Note: This shows configuration only, not port status (up/down).
+        Get per-port VLAN settings for all ports of a MX appliance with enhanced information.
+        Now includes VLAN details and client counts.
         
         Args:
             network_id: Network ID
             
         Returns:
-            Port VLAN configuration for the MX appliance
+            Enhanced port VLAN configuration with additional context
         """
         try:
             ports = meraki_client.get_network_appliance_ports(network_id)
             
-            result = f"# 🔌 MX Appliance Port Configuration for Network {network_id}\n\n"
-            result += "ℹ️ **Note**: This shows VLAN configuration only. Port up/down status is not available via API.\n\n"
+            result = f"# 🔌 MX Appliance Port Configuration\n"
+            result += f"**Network**: {network_id}\n\n"
             
             if not ports:
                 result += "No port configuration found.\n"
                 return result
             
+            # Get VLANs for additional context
+            vlans_dict = {}
+            try:
+                vlans = meraki_client.get_network_vlans(network_id)
+                for vlan in vlans:
+                    vlans_dict[str(vlan.get('id', ''))] = vlan
+            except:
+                pass
+            
+            # Get client count per VLAN
+            vlan_client_counts = {}
+            try:
+                clients = meraki_client.get_network_clients(network_id, timespan=86400)
+                for client in clients:
+                    vlan_id = str(client.get('vlan', ''))
+                    vlan_client_counts[vlan_id] = vlan_client_counts.get(vlan_id, 0) + 1
+            except:
+                pass
+            
+            # Summary section
+            enabled_ports = sum(1 for p in ports if p.get('enabled', False))
+            trunk_ports = sum(1 for p in ports if p.get('type') == 'trunk')
+            access_ports = sum(1 for p in ports if p.get('type') == 'access')
+            
+            result += "## 📊 Summary\n"
+            result += f"- **Total Ports**: {len(ports)}\n"
+            result += f"- **Enabled**: {enabled_ports} ports\n"
+            result += f"- **Trunk Ports**: {trunk_ports}\n"
+            result += f"- **Access Ports**: {access_ports}\n\n"
+            
+            # Port details with enhanced information
+            result += "## 🔧 Port Details\n\n"
+            
             for port in ports:
                 port_num = port.get('number', 'Unknown')
-                result += f"## Port {port_num}\n"
-                result += f"- **Enabled**: {'✅' if port.get('enabled', False) else '❌'}\n"
-                result += f"- **Type**: {port.get('type', 'Unknown')}\n"
-                
-                # Show VLAN configuration based on type
+                vlan_id = str(port.get('vlan', ''))
                 port_type = port.get('type', '')
+                
+                # Port header with status
+                result += f"### Port {port_num}"
+                if not port.get('enabled', False):
+                    result += " ⚠️ **DISABLED**"
+                result += "\n"
+                
+                # Configuration
+                result += f"- **Status**: {'✅ Enabled' if port.get('enabled', False) else '❌ Disabled'}\n"
+                result += f"- **Type**: {port_type}\n"
+                
+                # VLAN configuration
                 if port_type == 'access':
-                    result += f"- **Access VLAN**: {port.get('vlan', 'Unknown')}\n"
+                    result += f"- **Access VLAN**: {vlan_id}"
+                    # Add VLAN name if available
+                    if vlan_id in vlans_dict:
+                        result += f" ({vlans_dict[vlan_id].get('name', 'Unknown')})"
+                    # Add client count
+                    client_count = vlan_client_counts.get(vlan_id, 0)
+                    result += f" - **{client_count} devices**"
+                    result += "\n"
                 elif port_type == 'trunk':
-                    result += f"- **Native VLAN**: {port.get('vlan', 'Unknown')}\n"
+                    result += f"- **Native VLAN**: {vlan_id}"
+                    if vlan_id in vlans_dict:
+                        result += f" ({vlans_dict[vlan_id].get('name', 'Unknown')})"
+                    result += "\n"
+                    
                     allowed_vlans = port.get('allowedVlans', 'all')
                     result += f"- **Allowed VLANs**: {allowed_vlans}\n"
+                    
+                    # Show client count for trunk ports
+                    if allowed_vlans == 'all':
+                        total_clients = sum(vlan_client_counts.values())
+                        result += f"- **Total Devices**: {total_clients} across all VLANs\n"
+                    else:
+                        # Count clients on allowed VLANs
+                        allowed_list = [vlan_id] + allowed_vlans.split(',') if allowed_vlans else [vlan_id]
+                        trunk_clients = sum(vlan_client_counts.get(v, 0) for v in allowed_list)
+                        result += f"- **Total Devices**: {trunk_clients} on allowed VLANs\n"
                 
-                # Drop untagged traffic setting
-                drop_untagged = port.get('dropUntaggedTraffic', False)
-                if drop_untagged:
-                    result += f"- **Drop Untagged Traffic**: ✅\n"
+                # Additional settings
+                if port.get('dropUntaggedTraffic'):
+                    result += f"- **Drop Untagged**: ✅ Yes\n"
+                
+                # Add VLAN subnet info if available
+                if vlan_id in vlans_dict:
+                    vlan = vlans_dict[vlan_id]
+                    if vlan.get('subnet'):
+                        result += f"- **Subnet**: {vlan['subnet']}\n"
                 
                 result += "\n"
             
-            result += "💡 **Tip**: To check port status (up/down), check the event log for 'Ethernet port carrier change' events.\n"
+            # VLAN summary section
+            if vlans_dict:
+                result += "## 🏷️ VLAN Summary\n"
+                for vlan_id, vlan in sorted(vlans_dict.items()):
+                    client_count = vlan_client_counts.get(vlan_id, 0)
+                    result += f"- **VLAN {vlan_id}** - {vlan.get('name', 'Unknown')}: "
+                    result += f"{vlan.get('subnet', 'No subnet')} "
+                    result += f"({client_count} devices)\n"
+                result += "\n"
+            
+            # Helpful tips
+            result += "## 💡 Helpful Commands\n"
+            result += "- **See all details for a port**: `get_port_comprehensive_status` - Shows connected devices, IPs, and activity\n"
+            result += "- **Check specific port**: `get_port_comprehensive_status network_id: \"..\" port_number: \"4\"`\n"
+            result += "- **Modify port**: `update_network_appliance_port`\n"
+            result += "- **View all clients**: `get_network_clients`\n"
+            result += "- **Check events**: `get_network_events` - Look for 'carrier change' events\n"
             
             return result
             
@@ -1296,17 +1379,17 @@ def register_appliance_tool_handlers():
     
     @app.tool(
         name="get_network_appliance_vlans",
-        description="🏷️ Get VLANs configured on the MX appliance"
+        description="🏷️ Get VLANs configured on the MX appliance with client details"
     )
     def get_network_appliance_vlans(network_id: str):
         """
-        Get all VLANs configured on the MX appliance.
+        Get all VLANs configured on the MX appliance with enhanced client information.
         
         Args:
             network_id: Network ID
             
         Returns:
-            List of VLANs with their configuration
+            List of VLANs with configuration and connected devices
         """
         try:
             vlans = meraki_client.get_network_vlans(network_id)
@@ -1318,15 +1401,45 @@ def register_appliance_tool_handlers():
                 result += "\n💡 **Tip**: By default, all traffic uses VLAN 1. Create additional VLANs to segment your network.\n"
                 return result
             
-            result += f"**Total VLANs**: {len(vlans)}\n\n"
+            # Get client information
+            clients_by_vlan = {}
+            total_clients = 0
+            try:
+                clients = meraki_client.get_network_clients(network_id, timespan=86400)
+                for client in clients:
+                    vlan_id = str(client.get('vlan', ''))
+                    if vlan_id not in clients_by_vlan:
+                        clients_by_vlan[vlan_id] = []
+                    clients_by_vlan[vlan_id].append(client)
+                    total_clients += 1
+            except:
+                pass
+            
+            result += f"**Total VLANs**: {len(vlans)}\n"
+            result += f"**Total Connected Devices**: {total_clients}\n\n"
             
             for vlan in vlans:
-                vlan_id = vlan.get('id', 'Unknown')
+                vlan_id = str(vlan.get('id', 'Unknown'))
                 vlan_name = vlan.get('name', f'VLAN {vlan_id}')
+                vlan_clients = clients_by_vlan.get(vlan_id, [])
                 
-                result += f"## VLAN {vlan_id}: {vlan_name}\n"
-                result += f"- **Subnet**: {vlan.get('subnet', 'Not configured')}\n"
+                result += f"## VLAN {vlan_id}: {vlan_name} ({len(vlan_clients)} devices)\n"
+                
+                # Network configuration
+                subnet = vlan.get('subnet', 'Not configured')
+                result += f"- **Subnet**: {subnet}\n"
                 result += f"- **MX IP**: {vlan.get('applianceIp', 'Not configured')}\n"
+                
+                # Calculate and show IP range
+                if subnet and subnet != 'Not configured':
+                    try:
+                        import ipaddress
+                        network = ipaddress.ip_network(subnet)
+                        hosts = list(network.hosts())
+                        if hosts:
+                            result += f"- **Usable IPs**: {hosts[0]} - {hosts[-1]} ({len(hosts)} total)\n"
+                    except:
+                        pass
                 
                 # DHCP settings
                 dhcp_handling = vlan.get('dhcpHandling', 'Run a DHCP server')
@@ -1359,8 +1472,45 @@ def register_appliance_tool_handlers():
                 fixed = vlan.get('fixedIpAssignments', {})
                 if fixed:
                     result += f"- **Fixed IP Assignments**: {len(fixed)} devices\n"
+                    # Show first few fixed assignments
+                    for mac, ip_info in list(fixed.items())[:3]:
+                        result += f"  - {mac}: {ip_info.get('ip', 'Unknown')}"
+                        if ip_info.get('name'):
+                            result += f" ({ip_info['name']})"
+                        result += "\n"
+                    if len(fixed) > 3:
+                        result += f"  - ... and {len(fixed) - 3} more\n"
+                
+                # Show connected devices
+                if vlan_clients:
+                    result += f"\n### 📱 Active Devices on VLAN {vlan_id}\n"
+                    # Show top devices by usage
+                    vlan_clients_sorted = sorted(vlan_clients, 
+                                               key=lambda c: c.get('usage', {}).get('recv', 0) + c.get('usage', {}).get('sent', 0), 
+                                               reverse=True)
+                    
+                    for client in vlan_clients_sorted[:5]:
+                        result += f"- **{client.get('description', 'Unknown Device')}**\n"
+                        result += f"  - IP: `{client.get('ip', 'No IP')}`\n"
+                        result += f"  - MAC: `{client.get('mac', 'Unknown')}`\n"
+                        if client.get('usage'):
+                            sent_mb = client['usage'].get('sent', 0) / 1024 / 1024
+                            recv_mb = client['usage'].get('recv', 0) / 1024 / 1024
+                            result += f"  - Usage: ↑ {sent_mb:.1f} MB / ↓ {recv_mb:.1f} MB\n"
+                    
+                    if len(vlan_clients) > 5:
+                        result += f"\n... and {len(vlan_clients) - 5} more devices\n"
+                else:
+                    result += "\n*No active devices on this VLAN*\n"
                 
                 result += "\n"
+            
+            # Summary section
+            result += "## 💡 Quick Actions\n"
+            result += "- **Create VLAN**: `create_network_appliance_vlan`\n"
+            result += "- **Update VLAN**: `update_network_appliance_vlan`\n"
+            result += "- **Check port assignments**: `get_network_appliance_ports`\n"
+            result += "- **View detailed port status**: `get_port_comprehensive_status`\n"
             
             return result
             
@@ -1559,3 +1709,201 @@ def register_appliance_tool_handlers():
                 return f"❌ Cannot delete VLAN: {error_msg}"
             else:
                 return f"❌ Error deleting VLAN: {error_msg}"
+    
+    @app.tool(
+        name="get_port_comprehensive_status",
+        description="🔍 Get comprehensive status for an MX port including connected devices, VLANs, and activity"
+    )
+    def get_port_comprehensive_status(network_id: str, port_number: str = None):
+        """
+        Get comprehensive port status including configuration, connected clients, and VLAN details.
+        This provides a complete picture of what's happening on a port.
+        
+        Args:
+            network_id: Network ID
+            port_number: Specific port number (optional, shows all if not specified)
+            
+        Returns:
+            Comprehensive port status with clients, VLANs, and activity
+        """
+        try:
+            result = f"# 🔍 Comprehensive MX Port Status\n"
+            result += f"**Network**: {network_id}\n\n"
+            
+            # Get port configuration
+            try:
+                ports = meraki_client.get_network_appliance_ports(network_id)
+            except Exception as e:
+                return f"❌ This network does not have an MX appliance or port access is not available.\n\nError: {str(e)}"
+            
+            # Get all VLANs for reference
+            vlans_dict = {}
+            try:
+                vlans = meraki_client.get_network_vlans(network_id)
+                for vlan in vlans:
+                    vlans_dict[str(vlan.get('id', ''))] = vlan
+            except:
+                vlans_dict = {}
+            
+            # Get all clients in the network
+            all_clients = []
+            try:
+                all_clients = meraki_client.get_network_clients(network_id, timespan=86400)
+            except:
+                pass
+            
+            # Get recent events
+            recent_events = []
+            try:
+                events = meraki_client.get_network_events(network_id, 
+                                                         productType='appliance',
+                                                         perPage=1000,
+                                                         timespan=86400)
+                # Filter for port-related events
+                port_events = [e for e in events if 'port' in str(e).lower() or 'carrier' in str(e).lower()]
+                recent_events = port_events[:10]  # Last 10 port events
+            except:
+                pass
+            
+            # Process each port
+            port_found = False
+            for port in ports:
+                port_num = str(port.get('number', 'Unknown'))
+                
+                # If specific port requested, skip others
+                if port_number and port_num != str(port_number):
+                    continue
+                    
+                port_found = True
+                
+                result += f"## 🔌 Port {port_num}"
+                if not port.get('enabled', False):
+                    result += " (❌ DISABLED)"
+                result += "\n\n"
+                
+                # Basic configuration
+                result += "### Configuration\n"
+                result += f"- **Status**: {'✅ Enabled' if port.get('enabled', False) else '❌ Disabled'}\n"
+                result += f"- **Type**: {port.get('type', 'Unknown')}\n"
+                
+                port_type = port.get('type', '')
+                vlan_id = str(port.get('vlan', ''))
+                
+                if port_type == 'access':
+                    result += f"- **Access VLAN**: {vlan_id}\n"
+                elif port_type == 'trunk':
+                    result += f"- **Native VLAN**: {vlan_id}\n"
+                    result += f"- **Allowed VLANs**: {port.get('allowedVlans', 'all')}\n"
+                    if port.get('dropUntaggedTraffic'):
+                        result += f"- **Drop Untagged**: ✅\n"
+                
+                # VLAN details
+                if vlan_id in vlans_dict:
+                    vlan = vlans_dict[vlan_id]
+                    result += f"\n### VLAN {vlan_id} Details\n"
+                    result += f"- **Name**: {vlan.get('name', 'Unknown')}\n"
+                    result += f"- **Subnet**: {vlan.get('subnet', 'Not configured')}\n"
+                    result += f"- **MX IP**: {vlan.get('applianceIp', 'Not configured')}\n"
+                    result += f"- **DHCP**: {vlan.get('dhcpHandling', 'Unknown')}\n"
+                    
+                    # Calculate DHCP pool if subnet exists
+                    if vlan.get('subnet'):
+                        try:
+                            import ipaddress
+                            network = ipaddress.ip_network(vlan['subnet'])
+                            first_ip = list(network.hosts())[0]
+                            last_ip = list(network.hosts())[-1]
+                            result += f"- **DHCP Pool**: {first_ip} - {last_ip}\n"
+                        except:
+                            pass
+                
+                # Find clients on this VLAN
+                vlan_clients = []
+                if port_type == 'access':
+                    # For access ports, clients must be on the specific VLAN
+                    vlan_clients = [c for c in all_clients if str(c.get('vlan', '')) == vlan_id]
+                elif port_type == 'trunk':
+                    # For trunk ports, show clients on native VLAN and any allowed VLANs
+                    if port.get('allowedVlans') == 'all':
+                        # All VLANs allowed - just show native VLAN clients
+                        vlan_clients = [c for c in all_clients if str(c.get('vlan', '')) == vlan_id]
+                    else:
+                        # Specific VLANs allowed
+                        allowed_vlans = [vlan_id]  # Include native VLAN
+                        if port.get('allowedVlans'):
+                            allowed_vlans.extend(port['allowedVlans'].split(','))
+                        vlan_clients = [c for c in all_clients if str(c.get('vlan', '')) in allowed_vlans]
+                
+                # Display connected clients
+                result += f"\n### 📱 Connected Devices ({len(vlan_clients)} found)\n"
+                if vlan_clients:
+                    # Group by VLAN for trunk ports
+                    if port_type == 'trunk' and len(set(c.get('vlan', '') for c in vlan_clients)) > 1:
+                        vlan_groups = {}
+                        for client in vlan_clients:
+                            client_vlan = str(client.get('vlan', 'Unknown'))
+                            if client_vlan not in vlan_groups:
+                                vlan_groups[client_vlan] = []
+                            vlan_groups[client_vlan].append(client)
+                        
+                        for vlan_num, clients in sorted(vlan_groups.items()):
+                            vlan_name = vlans_dict.get(vlan_num, {}).get('name', f'VLAN {vlan_num}')
+                            result += f"\n#### VLAN {vlan_num} - {vlan_name} ({len(clients)} devices)\n"
+                            for client in clients[:5]:  # Show first 5 per VLAN
+                                result += f"- **{client.get('description', 'Unknown Device')}**\n"
+                                result += f"  - IP: `{client.get('ip', 'No IP')}`\n"
+                                result += f"  - MAC: `{client.get('mac', 'Unknown')}`\n"
+                                result += f"  - Manufacturer: {client.get('manufacturer', 'Unknown')}\n"
+                                if client.get('usage'):
+                                    sent_mb = client['usage'].get('sent', 0) / 1024 / 1024
+                                    recv_mb = client['usage'].get('recv', 0) / 1024 / 1024
+                                    result += f"  - Usage: ↑ {sent_mb:.1f} MB / ↓ {recv_mb:.1f} MB\n"
+                            if len(clients) > 5:
+                                result += f"\n... and {len(clients) - 5} more devices on VLAN {vlan_num}\n"
+                    else:
+                        # Single VLAN or access port
+                        for client in vlan_clients[:10]:  # Show first 10
+                            result += f"- **{client.get('description', 'Unknown Device')}**\n"
+                            result += f"  - IP: `{client.get('ip', 'No IP')}`\n"
+                            result += f"  - MAC: `{client.get('mac', 'Unknown')}`\n"
+                            result += f"  - VLAN: {client.get('vlan', 'Unknown')}\n"
+                            result += f"  - Manufacturer: {client.get('manufacturer', 'Unknown')}\n"
+                            if client.get('usage'):
+                                sent_mb = client['usage'].get('sent', 0) / 1024 / 1024
+                                recv_mb = client['usage'].get('recv', 0) / 1024 / 1024
+                                result += f"  - Usage: ↑ {sent_mb:.1f} MB / ↓ {recv_mb:.1f} MB\n"
+                        
+                        if len(vlan_clients) > 10:
+                            result += f"\n... and {len(vlan_clients) - 10} more devices\n"
+                else:
+                    result += "No active clients found on this port/VLAN.\n"
+                    result += "\nPossible reasons:\n"
+                    result += "- No devices currently connected\n"
+                    result += "- Devices may be on a different VLAN\n"
+                    result += "- Port may be physically disconnected\n"
+                
+                # Show recent port events
+                port_specific_events = [e for e in recent_events if f'port{port_num}' in str(e).lower() or f'lan{port_num}' in str(e).lower()]
+                if port_specific_events:
+                    result += f"\n### 📊 Recent Port Events\n"
+                    for event in port_specific_events[:5]:
+                        result += f"- {event.get('occurredAt', 'Unknown time')}: {event.get('type', 'Unknown event')}\n"
+                        if event.get('details'):
+                            result += f"  Details: {event['details']}\n"
+                
+                result += "\n" + "="*60 + "\n\n"
+            
+            if port_number and not port_found:
+                result += f"❌ Port {port_number} not found on this MX appliance.\n"
+            
+            # Add summary
+            result += "### 💡 Quick Actions\n"
+            result += "- To see port link status: Check dashboard or event logs for 'carrier change' events\n"
+            result += "- To modify port: Use `update_network_appliance_port`\n"
+            result += "- To check specific client: Use `get_network_clients` with MAC filter\n"
+            result += "- To view DHCP leases: Check dashboard under Security & SD-WAN > DHCP\n"
+            
+            return result
+            
+        except Exception as e:
+            return f"❌ Error getting comprehensive port status: {str(e)}"
