@@ -341,7 +341,10 @@ def register_alert_tool_handlers():
                     if filters:
                         result += "  Filters:\n"
                         for key, value in filters.items():
-                            result += f"  - {key}: {value}\n"
+                            if key == 'timeout':
+                                result += f"  - {key}: {value} seconds\n"
+                            else:
+                                result += f"  - {key}: {value}\n"
                             
                     alert_dest = alert.get('alertDestinations', {})
                     if alert_dest:
