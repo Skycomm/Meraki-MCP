@@ -674,6 +674,64 @@ def register_appliance_tool_handlers():
             return f"❌ Error getting content filtering categories: {str(e)}"
     
     @app.tool(
+        name="get_network_appliance_ports",
+        description="🔌 Get MX appliance port VLAN configuration"
+    )
+    def get_network_appliance_ports(network_id: str):
+        """
+        Get per-port VLAN settings for all ports of a MX appliance.
+        Note: This shows configuration only, not port status (up/down).
+        
+        Args:
+            network_id: Network ID
+            
+        Returns:
+            Port VLAN configuration for the MX appliance
+        """
+        try:
+            ports = meraki_client.get_network_appliance_ports(network_id)
+            
+            result = f"# 🔌 MX Appliance Port Configuration for Network {network_id}\n\n"
+            result += "ℹ️ **Note**: This shows VLAN configuration only. Port up/down status is not available via API.\n\n"
+            
+            if not ports:
+                result += "No port configuration found.\n"
+                return result
+            
+            for port in ports:
+                port_num = port.get('number', 'Unknown')
+                result += f"## Port {port_num}\n"
+                result += f"- **Enabled**: {'✅' if port.get('enabled', False) else '❌'}\n"
+                result += f"- **Type**: {port.get('type', 'Unknown')}\n"
+                
+                # Show VLAN configuration based on type
+                port_type = port.get('type', '')
+                if port_type == 'access':
+                    result += f"- **Access VLAN**: {port.get('vlan', 'Unknown')}\n"
+                elif port_type == 'trunk':
+                    result += f"- **Native VLAN**: {port.get('vlan', 'Unknown')}\n"
+                    allowed_vlans = port.get('allowedVlans', 'all')
+                    result += f"- **Allowed VLANs**: {allowed_vlans}\n"
+                
+                # Drop untagged traffic setting
+                drop_untagged = port.get('dropUntaggedTraffic', False)
+                if drop_untagged:
+                    result += f"- **Drop Untagged Traffic**: ✅\n"
+                
+                result += "\n"
+            
+            result += "💡 **Tip**: To check port status (up/down), check the event log for 'Ethernet port carrier change' events.\n"
+            
+            return result
+            
+        except Exception as e:
+            error_msg = str(e)
+            if "400" in error_msg:
+                return f"❌ This network does not have an MX appliance or does not support port configuration."
+            else:
+                return f"❌ Error getting appliance ports: {error_msg}"
+    
+    @app.tool(
         name="get_network_appliance_firewall_l7_rules",
         description="🔥 Get Layer 7 (application) firewall rules - Including geo-blocking"
     )

@@ -39,6 +39,13 @@ def register_switch_tool_handlers():
             Formatted list of switch ports
         """
         try:
+            # First check if this is actually a switch
+            device = meraki_client.get_device(serial)
+            model = device.get('model', '')
+            
+            if not model.startswith('MS'):
+                return f"❌ Device {serial} ({model}) is not a switch. Switch port operations are only available for MS series switches."
+            
             ports = meraki_client.get_device_switch_ports(serial)
             
             if not ports:
@@ -74,7 +81,15 @@ def register_switch_tool_handlers():
             return result
             
         except Exception as e:
-            return f"Failed to list switch ports for device {serial}: {str(e)}"
+            error_msg = str(e)
+            if "400" in error_msg or "Bad Request" in error_msg:
+                return f"❌ Device {serial} does not support switch port operations. This is likely not a switch."
+            elif "404" in error_msg:
+                return f"❌ Device {serial} not found."
+            elif "403" in error_msg:
+                return f"❌ Access denied to device {serial}."
+            else:
+                return f"❌ Failed to list switch ports: {error_msg}"
     
     @app.tool(
         name="update_device_switch_port",

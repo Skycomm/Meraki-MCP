@@ -177,7 +177,15 @@ def register_network_tool_handlers():
             return result
             
         except Exception as e:
-            return f"Failed to list clients for network {network_id}: {str(e)}"
+            error_msg = str(e)
+            if "400" in error_msg:
+                return f"❌ Cannot get clients for network {network_id}. This network may not have wireless or may not track clients."
+            elif "404" in error_msg:
+                return f"❌ Network {network_id} not found."
+            elif "403" in error_msg:
+                return f"❌ Access denied to network {network_id}."
+            else:
+                return f"❌ Failed to list clients: {error_msg}"
     
     @app.tool(
         name="create_network",
