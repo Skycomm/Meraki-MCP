@@ -364,7 +364,8 @@ def register_alert_tool_handlers():
     def update_network_alerts_settings(network_id: str, emails: str = None, all_admins: bool = None, 
                                      enable_device_down: bool = None, enable_gateway_down: bool = None,
                                      enable_dhcp_failure: bool = None, enable_high_usage: bool = None,
-                                     enable_ip_conflict: bool = None):
+                                     enable_ip_conflict: bool = None, enable_security_events: bool = None,
+                                     enable_rogue_ap: bool = None, enable_client_connectivity: bool = None):
         """
         Update alert settings for a network.
         
@@ -372,11 +373,14 @@ def register_alert_tool_handlers():
             network_id: Network ID
             emails: Comma-separated email addresses for alerts
             all_admins: Send alerts to all admins
-            enable_device_down: Enable device down alerts
-            enable_gateway_down: Enable gateway connectivity alerts
+            enable_device_down: Enable device down alerts (MX, camera, switch, AP)
+            enable_gateway_down: Enable gateway connectivity alerts (VPN, uplink)
             enable_dhcp_failure: Enable DHCP failure alerts
             enable_high_usage: Enable high wireless usage alerts
             enable_ip_conflict: Enable IP conflict detection alerts
+            enable_security_events: Enable security event alerts (IDS/IPS, malware)
+            enable_rogue_ap: Enable rogue access point detection alerts
+            enable_client_connectivity: Enable client connectivity failure alerts
             
         Returns:
             Updated alert settings
@@ -401,6 +405,7 @@ def register_alert_tool_handlers():
             
             # Device down alerts
             if enable_device_down is not None:
+                # MX/Security appliance down
                 alerts.append({
                     'type': 'gatewayDown',
                     'enabled': enable_device_down,
@@ -408,6 +413,15 @@ def register_alert_tool_handlers():
                         'allAdmins': True
                     }
                 })
+                # Camera down
+                alerts.append({
+                    'type': 'cameraDown',
+                    'enabled': enable_device_down,
+                    'alertDestinations': {
+                        'allAdmins': True
+                    }
+                })
+                # Repeater down
                 alerts.append({
                     'type': 'repeaterDown',
                     'enabled': enable_device_down,
@@ -415,6 +429,7 @@ def register_alert_tool_handlers():
                         'allAdmins': True
                     }
                 })
+                # Switch down
                 alerts.append({
                     'type': 'switchDown',
                     'enabled': enable_device_down,
@@ -422,6 +437,7 @@ def register_alert_tool_handlers():
                         'allAdmins': True
                     }
                 })
+                # Access point down
                 alerts.append({
                     'type': 'wirelessDown',
                     'enabled': enable_device_down,
@@ -484,6 +500,64 @@ def register_alert_tool_handlers():
                     }
                 })
             
+            # Security events (IDS/IPS, malware)
+            if enable_security_events is not None:
+                alerts.append({
+                    'type': 'securityAlert',
+                    'enabled': enable_security_events,
+                    'alertDestinations': {
+                        'allAdmins': True
+                    }
+                })
+                alerts.append({
+                    'type': 'ampMalwareDetected',
+                    'enabled': enable_security_events,
+                    'alertDestinations': {
+                        'allAdmins': True
+                    }
+                })
+                alerts.append({
+                    'type': 'idsAlert',
+                    'enabled': enable_security_events,
+                    'alertDestinations': {
+                        'allAdmins': True
+                    }
+                })
+            
+            # Rogue AP detection
+            if enable_rogue_ap is not None:
+                alerts.append({
+                    'type': 'rogueAp',
+                    'enabled': enable_rogue_ap,
+                    'alertDestinations': {
+                        'allAdmins': True
+                    }
+                })
+                alerts.append({
+                    'type': 'containmentStatus',
+                    'enabled': enable_rogue_ap,
+                    'alertDestinations': {
+                        'allAdmins': True
+                    }
+                })
+            
+            # Client connectivity failures
+            if enable_client_connectivity is not None:
+                alerts.append({
+                    'type': 'clientConnectivity',
+                    'enabled': enable_client_connectivity,
+                    'alertDestinations': {
+                        'allAdmins': True
+                    }
+                })
+                alerts.append({
+                    'type': 'failedConnection',
+                    'enabled': enable_client_connectivity,
+                    'alertDestinations': {
+                        'allAdmins': True
+                    }
+                })
+            
             if alerts:
                 update_data['alerts'] = alerts
                 
@@ -492,7 +566,7 @@ def register_alert_tool_handlers():
             result = "✅ Alert settings updated successfully!\n\n"
             result += "Enabled alerts:\n"
             if enable_device_down:
-                result += "- Device down alerts (gateway, repeater, switch, wireless)\n"
+                result += "- Device down alerts (MX/appliance, camera, repeater, switch, wireless AP)\n"
             if enable_gateway_down:
                 result += "- Gateway connectivity issues (VPN, uplink status)\n"
             if enable_dhcp_failure:
@@ -501,6 +575,12 @@ def register_alert_tool_handlers():
                 result += "- High wireless usage\n"
             if enable_ip_conflict:
                 result += "- IP conflict detection\n"
+            if enable_security_events:
+                result += "- Security events (IDS/IPS alerts, malware detection)\n"
+            if enable_rogue_ap:
+                result += "- Rogue access point detection and containment\n"
+            if enable_client_connectivity:
+                result += "- Client connectivity failures\n"
             
             return result
             

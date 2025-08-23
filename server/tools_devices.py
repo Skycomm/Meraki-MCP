@@ -42,9 +42,10 @@ def register_device_tool_handlers():
     
     @app.tool(
         name="update_device",
-        description="Update a Meraki device"
+        description="Update a Meraki device - name, tags, address, or coordinates"
     )
-    def update_device(serial: str, name: str = None, tags: list = None, address: str = None):
+    def update_device(serial: str, name: str = None, tags: list = None, address: str = None,
+                     lat: float = None, lng: float = None):
         """
         Update a Meraki device.
         
@@ -53,11 +54,30 @@ def register_device_tool_handlers():
             name: New name for the device (optional)
             tags: New tags for the device (optional)
             address: New address for the device (optional)
+            lat: Latitude coordinate (optional)
+            lng: Longitude coordinate (optional)
             
         Returns:
             Updated device details
         """
-        return meraki_client.update_device(serial, name, tags, address)
+        try:
+            result = meraki_client.update_device(serial, name, tags, address, lat, lng)
+            
+            # Build response message
+            updates = []
+            if name:
+                updates.append(f"name: {name}")
+            if tags:
+                updates.append(f"tags: {tags}")
+            if address:
+                updates.append(f"address: {address}")
+            if lat is not None and lng is not None:
+                updates.append(f"coordinates: ({lat}, {lng})")
+            
+            return f"✅ Device updated successfully - {', '.join(updates)}"
+            
+        except Exception as e:
+            return f"❌ Failed to update device: {str(e)}"
     
     @app.tool(
         name="reboot_device",

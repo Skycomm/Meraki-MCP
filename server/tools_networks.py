@@ -44,9 +44,9 @@ def register_network_tool_handlers():
     
     @app.tool(
         name="update_network",
-        description="Update a Meraki network"
+        description="Update a Meraki network - name, tags, or timezone"
     )
-    def update_network(network_id: str, name: str = None, tags: list = None):
+    def update_network(network_id: str, name: str = None, tags: list = None, timezone: str = None):
         """
         Update a Meraki network.
         
@@ -54,6 +54,7 @@ def register_network_tool_handlers():
             network_id: ID of the network to update
             name: New name for the network (optional)
             tags: New tags for the network (optional)
+            timezone: New timezone for the network (e.g., 'Australia/Perth', 'America/Los_Angeles') (optional)
             
         Returns:
             Updated network details
@@ -76,8 +77,18 @@ def register_network_tool_handlers():
                     return "❌ Network rename cancelled by user"
             
             # Perform update
-            result = meraki_client.update_network(network_id, name, tags)
-            return f"✅ Network updated successfully"
+            result = meraki_client.update_network(network_id, name, tags, timezone)
+            
+            # Build response message
+            updates = []
+            if name:
+                updates.append(f"name: {name}")
+            if tags:
+                updates.append(f"tags: {tags}")
+            if timezone:
+                updates.append(f"timezone: {timezone}")
+            
+            return f"✅ Network updated successfully - {', '.join(updates)}"
             
         except Exception as e:
             return f"Failed to update network: {str(e)}"

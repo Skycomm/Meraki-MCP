@@ -153,13 +153,15 @@ class MerakiClient:
         return self.dashboard.wireless.updateNetworkWirelessSsid(network_id, number, **kwargs)
     
     # REAL Network Management Methods
-    def update_network(self, network_id: str, name: str = None, tags: List[str] = None) -> Dict[str, Any]:
+    def update_network(self, network_id: str, name: str = None, tags: List[str] = None, timezone: str = None) -> Dict[str, Any]:
         """Update a network - REAL method."""
         kwargs = {}
         if name is not None:
             kwargs['name'] = name
         if tags is not None:
             kwargs['tags'] = tags
+        if timezone is not None:
+            kwargs['timeZone'] = timezone
         return self.dashboard.networks.updateNetwork(network_id, **kwargs)
     
     def create_network(self, organization_id: str, name: str, productTypes: List[str]) -> Dict[str, Any]:
@@ -175,7 +177,8 @@ class MerakiClient:
         return self.dashboard.networks.deleteNetwork(network_id)
     
     # REAL Device Management Methods  
-    def update_device(self, serial: str, name: str = None, tags: List[str] = None, address: str = None) -> Dict[str, Any]:
+    def update_device(self, serial: str, name: str = None, tags: List[str] = None, address: str = None, 
+                     lat: float = None, lng: float = None) -> Dict[str, Any]:
         """Update a device - REAL method."""
         kwargs = {}
         if name is not None:
@@ -184,6 +187,10 @@ class MerakiClient:
             kwargs['tags'] = tags
         if address is not None:
             kwargs['address'] = address
+        if lat is not None:
+            kwargs['lat'] = lat
+        if lng is not None:
+            kwargs['lng'] = lng
         return self.dashboard.devices.updateDevice(serial, **kwargs)
     
     def get_device_clients(self, serial: str, timespan: int = 86400) -> List[Dict[str, Any]]:
