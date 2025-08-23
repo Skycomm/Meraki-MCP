@@ -614,6 +614,66 @@ def register_appliance_tool_handlers():
             return f"❌ Error updating content filtering: {str(e)}"
     
     @app.tool(
+        name="get_network_appliance_content_filtering_categories",
+        description="📋 Get all available content filtering categories with IDs"
+    )
+    def get_network_appliance_content_filtering_categories(network_id: str):
+        """
+        Get all available content filtering categories for a network.
+        
+        Args:
+            network_id: Network ID
+            
+        Returns:
+            List of all available content filtering categories with their IDs
+        """
+        try:
+            categories = meraki_client.get_network_appliance_content_filtering_categories(network_id)
+            
+            result = f"# 📋 Content Filtering Categories for Network {network_id}\n\n"
+            
+            # Group categories by type if available
+            if 'categories' in categories:
+                cat_list = categories['categories']
+                result += f"**Total Categories**: {len(cat_list)}\n\n"
+                
+                # Separate security-related categories
+                security_keywords = ['malware', 'phishing', 'spam', 'threat', 'illegal', 'fraud', 
+                                   'exploit', 'virus', 'trojan', 'spyware', 'adware', 'botnet',
+                                   'proxy', 'tor', 'crypto', 'hack']
+                
+                security_cats = []
+                other_cats = []
+                
+                for cat in cat_list:
+                    cat_name = cat.get('name', '').lower()
+                    if any(keyword in cat_name for keyword in security_keywords):
+                        security_cats.append(cat)
+                    else:
+                        other_cats.append(cat)
+                
+                # Show security categories first
+                if security_cats:
+                    result += "## 🔒 Security Categories\n"
+                    for cat in security_cats:
+                        result += f"- **{cat.get('name')}**: `{cat.get('id')}`\n"
+                    result += "\n"
+                
+                # Show other categories
+                if other_cats:
+                    result += "## 📂 Other Categories\n"
+                    for cat in other_cats:
+                        result += f"- **{cat.get('name')}**: `{cat.get('id')}`\n"
+            else:
+                # Fallback format
+                result += str(categories)
+            
+            return result
+            
+        except Exception as e:
+            return f"❌ Error getting content filtering categories: {str(e)}"
+    
+    @app.tool(
         name="get_network_appliance_firewall_l7_rules",
         description="🔥 Get Layer 7 (application) firewall rules - Including geo-blocking"
     )

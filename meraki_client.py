@@ -252,20 +252,69 @@ class MerakiClient:
     
     # REAL Alert & Webhook Methods
     def get_organization_webhooks(self, org_id: str):
-        """Get organization webhook alert types - REAL method."""
-        return self.dashboard.organizations.getOrganizationWebhooksAlertTypes(org_id)
+        """Get all webhook HTTP servers across all networks in the organization - REAL method."""
+        # Since regular webhooks are network-level, we need to iterate through all networks
+        try:
+            networks = self.dashboard.organizations.getOrganizationNetworks(org_id)
+            all_webhooks = []
+            
+            for network in networks:
+                network_id = network['id']
+                try:
+                    webhooks = self.dashboard.networks.getNetworkWebhooksHttpServers(network_id)
+                    # Add network info to each webhook
+                    for webhook in webhooks:
+                        webhook['networkId'] = network_id
+                        webhook['networkName'] = network.get('name', 'Unknown')
+                        all_webhooks.append(webhook)
+                except Exception:
+                    # Skip networks that don't support webhooks or have errors
+                    pass
+            
+            return all_webhooks
+        except Exception as e:
+            # Fallback to organization level if available (for Meraki Insight)
+            try:
+                return self.dashboard.organizations.getOrganizationWebhooksHttpServers(org_id)
+            except:
+                raise e
     
     def create_organization_webhook(self, org_id: str, **kwargs):
         """Create organization webhook HTTP server - REAL method."""
         return self.dashboard.organizations.createOrganizationWebhooksHttpServer(org_id, **kwargs)
     
+    def delete_organization_webhook(self, org_id: str, webhook_id: str, network_id: str = None):
+        """Delete webhook HTTP server - REAL method."""
+        # If network_id is provided, delete from network level
+        if network_id:
+            return self.dashboard.networks.deleteNetworkWebhooksHttpServer(network_id, webhook_id)
+        else:
+            # Try organization level (for Meraki Insight)
+            try:
+                return self.dashboard.organizations.deleteOrganizationWebhooksHttpServer(org_id, webhook_id)
+            except:
+                # If that fails, search all networks for the webhook
+                networks = self.dashboard.organizations.getOrganizationNetworks(org_id)
+                for network in networks:
+                    try:
+                        webhooks = self.dashboard.networks.getNetworkWebhooksHttpServers(network['id'])
+                        if any(w.get('id') == webhook_id for w in webhooks):
+                            return self.dashboard.networks.deleteNetworkWebhooksHttpServer(network['id'], webhook_id)
+                    except:
+                        pass
+                raise Exception(f"Webhook {webhook_id} not found in organization {org_id}")
+    
     def get_network_webhook_http_servers(self, network_id: str):
-        """Get network webhook payload templates - REAL method."""
-        return self.dashboard.networks.getNetworkWebhooksPayloadTemplates(network_id)
+        """Get network webhook HTTP servers - REAL method."""
+        return self.dashboard.networks.getNetworkWebhooksHttpServers(network_id)
     
     def create_network_webhook_http_server(self, network_id: str, **kwargs):
-        """Create network webhook payload template - REAL method."""
-        return self.dashboard.networks.createNetworkWebhooksPayloadTemplate(network_id, **kwargs)
+        """Create network webhook HTTP server - REAL method."""
+        return self.dashboard.networks.createNetworkWebhooksHttpServer(network_id, **kwargs)
+    
+    def delete_network_webhook(self, network_id: str, webhook_id: str):
+        """Delete network webhook HTTP server - REAL method."""
+        return self.dashboard.networks.deleteNetworkWebhooksHttpServer(network_id, webhook_id)
     
     def get_network_alerts_settings(self, network_id: str):
         """Get network alerts settings - REAL method."""
@@ -307,6 +356,10 @@ class MerakiClient:
     def update_network_appliance_content_filtering(self, network_id: str, **kwargs):
         """Update content filtering settings - REAL method."""
         return self.dashboard.appliance.updateNetworkApplianceContentFiltering(network_id, **kwargs)
+    
+    def get_network_appliance_content_filtering_categories(self, network_id: str):
+        """Get all available content filtering categories - REAL method."""
+        return self.dashboard.appliance.getNetworkApplianceContentFilteringCategories(network_id)
     
     def get_network_appliance_vpn_site_to_site(self, network_id: str):
         """Get site-to-site VPN settings - REAL method."""

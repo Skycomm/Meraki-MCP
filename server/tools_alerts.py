@@ -45,17 +45,18 @@ def register_alert_tool_handlers():
                 return f"No webhooks found for organization {org_id}."
                 
             result = f"# 🔔 Webhooks for Organization {org_id}\n\n"
+            result += f"**Total Webhooks**: {len(webhooks)}\n\n"
             
-            for webhook in webhooks:
-                result += f"## {webhook.get('name', 'Unnamed Webhook')}\n"
+            for i, webhook in enumerate(webhooks, 1):
+                result += f"## {i}. {webhook.get('name', 'Unnamed Webhook')}\n"
+                result += f"- **ID**: `{webhook.get('id', 'N/A')}`\n"
                 result += f"- **URL**: {webhook.get('url', 'N/A')}\n"
                 result += f"- **Shared Secret**: {'***' if webhook.get('sharedSecret') else 'Not set'}\n"
-                result += f"- **Network ID**: {webhook.get('networkId', 'All Networks')}\n"
                 
-                # Alert types
-                alert_types = webhook.get('alertTypeIds', [])
-                if alert_types:
-                    result += f"- **Alert Types**: {', '.join(alert_types)}\n"
+                # Payload template
+                template = webhook.get('payloadTemplate')
+                if template:
+                    result += f"- **Payload Template**: {template.get('name', 'Default')}\n"
                 
                 result += "\n"
                 
@@ -179,6 +180,113 @@ def register_alert_tool_handlers():
             
         except Exception as e:
             return f"Error creating webhook HTTP server: {str(e)}"
+    
+    @app.tool(
+        name="delete_organization_webhook",
+        description="🗑️ Delete a webhook from an organization"
+    )
+    def delete_organization_webhook(org_id: str, webhook_id: str, network_id: str = None):
+        """
+        Delete a webhook HTTP server from an organization.
+        
+        Args:
+            org_id: Organization ID
+            webhook_id: Webhook HTTP server ID
+            network_id: Network ID (optional - if known, makes deletion faster)
+            
+        Returns:
+            Success or error message
+        """
+        try:
+            meraki_client.delete_organization_webhook(org_id, webhook_id, network_id)
+            if network_id:
+                return f"✅ Successfully deleted webhook {webhook_id} from network {network_id}"
+            else:
+                return f"✅ Successfully deleted webhook {webhook_id} from organization {org_id}"
+            
+        except Exception as e:
+            return f"❌ Error deleting webhook: {str(e)}"
+    
+    @app.tool(
+        name="delete_network_webhook",
+        description="🗑️ Delete a webhook HTTP server from a network"
+    )
+    def delete_network_webhook(network_id: str, webhook_id: str):
+        """
+        Delete a webhook HTTP server from a network.
+        
+        Args:
+            network_id: Network ID
+            webhook_id: Webhook HTTP server ID
+            
+        Returns:
+            Success or error message
+        """
+        try:
+            meraki_client.delete_network_webhook(network_id, webhook_id)
+            return f"✅ Successfully deleted webhook {webhook_id} from network {network_id}"
+            
+        except Exception as e:
+            return f"❌ Error deleting webhook: {str(e)}"
+    
+    @app.tool(
+        name="delete_all_organization_webhooks",
+        description="🗑️ Delete ALL webhooks from an organization (use with caution!)"
+    )
+    def delete_all_organization_webhooks(org_id: str, confirm: bool = False):
+        """
+        Delete all webhook HTTP servers from an organization.
+        
+        Args:
+            org_id: Organization ID
+            confirm: Must be True to proceed (safety check)
+            
+        Returns:
+            Summary of deleted webhooks
+        """
+        if not confirm:
+            return "❌ Safety check: Set confirm=True to delete all webhooks"
+            
+        try:
+            # Get all webhooks
+            webhooks = meraki_client.get_organization_webhooks(org_id)
+            
+            if not webhooks:
+                return f"No webhooks found for organization {org_id}"
+            
+            result = f"# 🗑️ Deleting All Webhooks from Organization {org_id}\n\n"
+            result += f"**Total webhooks to delete**: {len(webhooks)}\n\n"
+            
+            deleted = 0
+            failed = 0
+            
+            for webhook in webhooks:
+                webhook_id = webhook.get('id')
+                webhook_name = webhook.get('name', 'Unnamed')
+                
+                if not webhook_id:
+                    result += f"⚠️ Skipped {webhook_name} - No ID found\n"
+                    failed += 1
+                    continue
+                    
+                try:
+                    # Pass network_id if available
+                    network_id = webhook.get('networkId')
+                    meraki_client.delete_organization_webhook(org_id, webhook_id, network_id)
+                    result += f"✅ Deleted: {webhook_name} (ID: {webhook_id}) from network {webhook.get('networkName', 'Unknown')}\n"
+                    deleted += 1
+                except Exception as e:
+                    result += f"❌ Failed to delete {webhook_name}: {str(e)}\n"
+                    failed += 1
+            
+            result += f"\n## Summary\n"
+            result += f"- **Deleted**: {deleted} webhooks\n"
+            result += f"- **Failed**: {failed} webhooks\n"
+            
+            return result
+            
+        except Exception as e:
+            return f"❌ Error deleting webhooks: {str(e)}"
     
     @app.tool(
         name="get_network_alerts_settings",

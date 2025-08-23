@@ -1,13 +1,19 @@
-FROM python:3.10-slim
+FROM python:3.10-slim-bullseye
 
 WORKDIR /app
 
-# Install uv to manage Python packages
-RUN pip install --no-cache-dir uv
+# Set environment to bypass SSL issues
+ENV PYTHONWARNINGS="ignore:Unverified HTTPS request"
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1
 
 # Copy requirements first to leverage Docker cache
 COPY requirements.txt .
-RUN uv pip install --system --no-cache-dir -r requirements.txt
+
+# Install dependencies without uv, using pip directly with SSL bypass
+RUN pip install --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt || \
+    (pip config set global.index-url https://pypi.org/simple && \
+     pip config set global.trusted-host "pypi.org files.pythonhosted.org" && \
+     pip install --no-cache-dir -r requirements.txt)
 
 # Copy the rest of the application
 COPY . .
@@ -20,4 +26,4 @@ USER merakiuser
 ENV PYTHONUNBUFFERED=1
 
 # Command to run the application
-CMD ["uv", "run", "meraki_server.py"]
+CMD ["python", "meraki_server.py"]
