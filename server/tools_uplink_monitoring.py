@@ -117,89 +117,102 @@ def get_uplink_status(network_id: str) -> str:
             # Fallback - just show basic info
             pass
         
-        # Get recent loss and latency metrics
+        # Get recent loss and latency metrics to 8.8.8.8
         try:
-            output.append("\n📊 Link Quality (Last 5 minutes):")
+            output.append("\n📊 Link Quality to 8.8.8.8 (Last 5 minutes):")
             
-            # Get loss and latency for active WAN interfaces
-            for wan in ['wan1', 'wan2']:
+            # Try to get loss/latency data using the device-specific API that tests to 8.8.8.8
+            if mx_device:
                 try:
-                    loss_latency = meraki.dashboard.appliance.getNetworkApplianceUplinksUsageHistory(
-                        network_id,
-                        timespan=300  # 5 minutes
+                    loss_data = meraki.dashboard.devices.getDeviceLossAndLatencyHistory(
+                        mx_device['serial'],
+                        timespan=300,  # 5 minutes
+                        ip='8.8.8.8'
                     )
                     
-                    if loss_latency:
-                        # Parse the most recent entry
-                        latest = loss_latency[-1] if loss_latency else None
-                        if latest and 'byInterface' in latest:
-                            for iface in latest['byInterface']:
-                                if iface.get('interface', '').lower() == wan:
-                                    output.append(f"\n{wan.upper()}:")
-                                    
-                                    # Check if we have loss/latency data
-                                    if 'lossPercent' in iface or 'latencyMs' in iface:
-                                        loss = iface.get('lossPercent', 0)
-                                        latency = iface.get('latencyMs', 0)
-                                        
-                                        # Don't show 0.0ms latency - it's not real
-                                        if latency == 0:
-                                            latency = None
-                                        
-                                        # Loss indicator
-                                        loss_icon = '🟢' if loss < 1 else '🟡' if loss < 5 else '🔴'
-                                        output.append(f"   📉 Packet Loss: {loss_icon} {loss:.1f}%")
-                                        
-                                        # Latency indicator
-                                        if latency is not None:
-                                            lat_icon = '🟢' if latency < 50 else '🟡' if latency < 100 else '🔴'
-                                            quality = "Excellent" if latency < 20 else "Good" if latency < 50 else "Fair" if latency < 100 else "Poor"
-                                            output.append(f"   ⏱️ Latency: {lat_icon} {latency:.1f} ms ({quality})")
-                                        else:
-                                            output.append(f"   ⏱️ Latency: Measuring...")
-                                    else:
-                                        # Try alternative API
-                                        try:
-                                            perf_data = meraki.dashboard.organizations.getOrganizationDevicesUplinksLossAndLatency(
-                                                org_id,
-                                                timespan=300,
-                                                uplink=wan,
-                                                networkId=network_id
-                                            )
-                                            if perf_data:
-                                                # Average the recent samples
-                                                recent = perf_data[-5:] if len(perf_data) > 5 else perf_data
-                                                avg_loss = sum(p.get('lossPercent', 0) for p in recent) / len(recent) if recent else 0
-                                                
-                                                # Calculate average latency, excluding zeros
-                                                latencies = [p.get('latencyMs', 0) for p in recent if p.get('latencyMs', 0) > 0]
-                                                avg_latency = sum(latencies) / len(latencies) if latencies else None
-                                                
-                                                loss_icon = '🟢' if avg_loss < 1 else '🟡' if avg_loss < 5 else '🔴'
-                                                output.append(f"   📉 Packet Loss: {loss_icon} {avg_loss:.1f}%")
-                                                
-                                                if avg_latency is not None:
-                                                    lat_icon = '🟢' if avg_latency < 50 else '🟡' if avg_latency < 100 else '🔴'
-                                                    quality = "Excellent" if avg_latency < 20 else "Good" if avg_latency < 50 else "Fair" if avg_latency < 100 else "Poor"
-                                                    output.append(f"   ⏱️ Latency: {lat_icon} {avg_latency:.1f} ms ({quality})")
-                                                else:
-                                                    output.append(f"   ⏱️ Latency: Measuring...")
-                                        except:
-                                            pass
-                except:
-                    continue
+                    if loss_data:
+                        # Calculate averages from the time series data
+                        losses = [item.get('lossPercent', 0) for item in loss_data if item.get('lossPercent') is not None]
+                        latencies = [item.get('latencyMs', 0) for item in loss_data if item.get('latencyMs', 0) > 0]
+                        
+                        if losses:
+                            avg_loss = sum(losses) / len(losses)
+                            max_loss = max(losses)
+                            current_loss = losses[-1] if losses else 0
+                        else:
+                            avg_loss = max_loss = current_loss = 0
+                            
+                        if latencies:
+                            avg_latency = sum(latencies) / len(latencies)
+                            max_latency = max(latencies)
+                            current_latency = latencies[-1] if latencies else 0
+                        else:
+                            avg_latency = max_latency = current_latency = None
+                        
+                        # Current status with indicators
+                        loss_icon = '🔴' if current_loss > 5 else '🟡' if current_loss > 1 else '🟢'
+                        
+                        output.append(f"\n🌐 Current Status:")
+                        output.append(f"   📉 Packet Loss: {loss_icon} {current_loss:.1f}%")
+                        
+                        if current_latency is not None:
+                            lat_icon = '🟢' if current_latency < 50 else '🟡' if current_latency < 100 else '🔴'
+                            quality = "Excellent" if current_latency < 20 else "Good" if current_latency < 50 else "Fair" if current_latency < 100 else "Poor"
+                            output.append(f"   ⏱️ Latency: {lat_icon} {current_latency:.1f} ms ({quality})")
+                        else:
+                            output.append(f"   ⏱️ Latency: Measuring...")
+                        
+                        # Show averages if we have enough data
+                        if len(losses) > 1:
+                            output.append(f"\n📊 5-Minute Averages:")
+                            output.append(f"   📉 Avg Loss: {avg_loss:.1f}% (Max: {max_loss:.1f}%)")
+                            if avg_latency is not None:
+                                output.append(f"   ⏱️ Avg Latency: {avg_latency:.1f} ms (Max: {max_latency:.1f} ms)")
+                            output.append(f"   📈 Data Points: {len(loss_data)}")
+                    else:
+                        output.append("   ⚠️ No loss/latency data available")
+                        output.append("   💡 Tip: Wait a few minutes for data to populate")
+                except Exception as e:
+                    # Fallback to organization-level API
+                    try:
+                        output.append("   ℹ️ Using organization-wide metrics...")
+                        perf_data = meraki.dashboard.organizations.getOrganizationDevicesUplinksLossAndLatency(
+                            org_id,
+                            timespan=300,
+                            networkId=network_id
+                        )
+                        if perf_data:
+                            # Average the recent samples
+                            recent = perf_data[-5:] if len(perf_data) > 5 else perf_data
+                            avg_loss = sum(p.get('lossPercent', 0) for p in recent) / len(recent) if recent else 0
+                            
+                            # Calculate average latency, excluding zeros
+                            latencies = [p.get('latencyMs', 0) for p in recent if p.get('latencyMs', 0) > 0]
+                            avg_latency = sum(latencies) / len(latencies) if latencies else None
+                            
+                            loss_icon = '🟢' if avg_loss < 1 else '🟡' if avg_loss < 5 else '🔴'
+                            output.append(f"   📉 Packet Loss: {loss_icon} {avg_loss:.1f}%")
+                            
+                            if avg_latency is not None:
+                                lat_icon = '🟢' if avg_latency < 50 else '🟡' if avg_latency < 100 else '🔴'
+                                quality = "Excellent" if avg_latency < 20 else "Good" if avg_latency < 50 else "Fair" if avg_latency < 100 else "Poor"
+                                output.append(f"   ⏱️ Latency: {lat_icon} {avg_latency:.1f} ms ({quality})")
+                            else:
+                                output.append(f"   ⏱️ Latency: Measuring...")
+                    except:
+                        output.append("   ⚠️ Could not retrieve loss/latency metrics")
         except Exception as e:
             output.append(f"\n⚠️ Could not retrieve link quality metrics: {str(e)}")
         
         # If we didn't get latency data, suggest running a ping test
         need_ping_test = True
         for line in output:
-            if "Latency:" in line and "Measuring..." not in line:
+            if "Latency:" in line and "Measuring..." not in line and "ms" in line:
                 need_ping_test = False
                 break
         
         if need_ping_test and mx_device:
-            output.append("\n💡 Tip: Run a ping test for accurate latency measurement:")
+            output.append("\n💡 Tip: Run a ping test for real-time latency measurement:")
             output.append(f"   create_device_ping_test(serial='{mx_device['serial']}', target='8.8.8.8')")
         
         # Show quick actions
@@ -768,7 +781,7 @@ Analysis Period: Last {timespan // 3600} hours
                         wan1_history = meraki.dashboard.devices.getDeviceLossAndLatencyHistory(
                             mx_device['serial'],
                             timespan=min(timespan, 300),  # This API may be limited to 5 minutes
-                            uplink='wan1'
+                            ip='8.8.8.8'
                         )
                 except:
                     pass
@@ -782,7 +795,7 @@ Analysis Period: Last {timespan // 3600} hours
                 avg_loss = total_loss / count if count > 0 else 0
                 avg_latency = total_latency / count if count > 0 else 0
                 
-                result += f"\n📊 WAN 1 Health:"
+                result += f"\n📊 WAN 1 Health (to 8.8.8.8):"
                 result += f"\n   Avg Packet Loss: {avg_loss:.2f}%"
                 result += f"\n   Avg Latency: {avg_latency:.1f} ms"
                 
