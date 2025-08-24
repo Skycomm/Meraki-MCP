@@ -41,7 +41,7 @@ class MerakiClient:
     # Devices
     def get_network_devices(self, network_id: str) -> List[Dict[str, Any]]:
         """Get devices in a network."""
-        return self.dashboard.networks.getNetworkDevices(network_id, perPage=1000, total_pages='all')
+        return self.dashboard.networks.getNetworkDevices(network_id)
     
     def get_device(self, serial: str) -> Dict[str, Any]:
         """Get information about a specific device."""
