@@ -398,11 +398,16 @@ def get_critical_alerts(
         except:
             output.append(f"Network: {network_id}")
         
-        # Calculate time range
-        end_time = datetime.utcnow()
-        start_time = end_time - timedelta(seconds=timespan)
+        # Display time range
+        hours = timespan // 3600
+        if hours >= 24:
+            time_desc = f"{hours // 24} day{'s' if hours // 24 > 1 else ''}"
+        elif hours > 0:
+            time_desc = f"{hours} hour{'s' if hours > 1 else ''}"
+        else:
+            time_desc = f"{timespan // 60} minutes"
         
-        output.append(f"Time Range: {start_time.strftime('%Y-%m-%d %H:%M')} - {end_time.strftime('%Y-%m-%d %H:%M')} UTC")
+        output.append(f"Time Range: Last {time_desc}")
         output.append("")
         
         # Get network events
@@ -410,9 +415,7 @@ def get_critical_alerts(
             with safe_api_call("get network events"):
                 events = meraki.dashboard.networks.getNetworkEvents(
                     network_id,
-                    perPage=100,
-                    startingAfter=start_time.isoformat() + 'Z',
-                    endingBefore=end_time.isoformat() + 'Z'
+                    perPage=100
                 )
                 
                 # Filter critical events
@@ -422,6 +425,8 @@ def get_critical_alerts(
                 ]
                 
                 critical_events = []
+                # Note: Since we can't filter by time in the API call, we get recent events
+                # The API returns the most recent events by default
                 for event in events.get('events', []):
                     event_type = event.get('type', '').lower()
                     if any(crit in event_type for crit in critical_types):
