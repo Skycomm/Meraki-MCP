@@ -50,7 +50,14 @@ class MerakiClient:
     # Clients
     def get_network_clients(self, network_id: str, timespan: Optional[int] = 86400) -> List[Dict[str, Any]]:
         """Get clients in a network (default timespan: 24 hours)."""
-        return self.dashboard.networks.getNetworkClients(network_id, timespan=timespan)
+        # The SDK should handle pagination automatically with the iterator
+        # Let's explicitly set perPage to maximum (1000) to reduce API calls
+        return self.dashboard.networks.getNetworkClients(
+            network_id, 
+            timespan=timespan,
+            perPage=1000,  # Maximum allowed by Meraki API
+            total_pages='all'  # Ensure we get all pages
+        )
     
     # SSID
     def get_network_wireless_ssids(self, network_id: str) -> List[Dict[str, Any]]:
@@ -143,13 +150,25 @@ class MerakiClient:
             
         return self.dashboard.wireless.getNetworkWirelessUsageHistory(network_id, **kwargs)
     
-    def update_network_wireless_ssid(self, network_id: str, number: int, name: str = None, enabled: bool = None):
-        """Update wireless SSID - REAL method."""
+    def update_network_wireless_ssid(self, network_id: str, number: int, name: str = None, enabled: bool = None,
+                                    authMode: str = None, psk: str = None, encryptionMode: str = None, 
+                                    wpaEncryptionMode: str = None, visible: bool = None):
+        """Update wireless SSID - REAL method with full authentication support."""
         kwargs = {}
         if name is not None:
             kwargs['name'] = name
         if enabled is not None:
             kwargs['enabled'] = enabled
+        if authMode is not None:
+            kwargs['authMode'] = authMode
+        if psk is not None:
+            kwargs['psk'] = psk
+        if encryptionMode is not None:
+            kwargs['encryptionMode'] = encryptionMode
+        if wpaEncryptionMode is not None:
+            kwargs['wpaEncryptionMode'] = wpaEncryptionMode
+        if visible is not None:
+            kwargs['visible'] = visible
         return self.dashboard.wireless.updateNetworkWirelessSsid(network_id, number, **kwargs)
     
     # REAL Network Management Methods
