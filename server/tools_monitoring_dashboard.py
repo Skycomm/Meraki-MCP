@@ -44,6 +44,12 @@ def get_network_health_summary(network_id: str, timespan: Optional[int] = 300) -
     try:
         output = ["🏥 Network Health Summary", "=" * 50, ""]
         
+        # Initialize counters
+        online_count = 0
+        alerting_count = 0
+        offline_count = 0
+        client_count = 0
+        
         # Network info
         try:
             network = meraki.get_network(network_id)
@@ -62,7 +68,8 @@ def get_network_health_summary(network_id: str, timespan: Optional[int] = 300) -
                 )
                 
                 if statuses:
-                    output.append("📡 Device Status:")
+                    output.append("📡 Infrastructure Device Status (Switches, APs, Firewalls):")
+                    output.append("   ℹ️  These are Meraki hardware devices, not user devices")
                     online_count = sum(1 for s in statuses if s.get('status') == 'online')
                     alerting_count = sum(1 for s in statuses if s.get('status') == 'alerting')
                     offline_count = sum(1 for s in statuses if s.get('status') == 'offline')
@@ -90,8 +97,10 @@ def get_network_health_summary(network_id: str, timespan: Optional[int] = 300) -
                 )
                 
                 if conn_stats:
-                    output.append("👥 Client Connection Stats:")
-                    output.append(f"   Total Clients: {conn_stats.get('totalCount', 0)}")
+                    output.append("👥 Connected Client Devices (Computers, Phones, Tablets, etc.):")
+                    output.append("   ℹ️  These are end-user devices connected to the network")
+                    client_count = conn_stats.get('totalCount', 0)
+                    output.append(f"   Connected Devices: {client_count}")
                     
                     # Connection success rate
                     assoc = conn_stats.get('assoc', 0)
@@ -186,9 +195,17 @@ def get_network_health_summary(network_id: str, timespan: Optional[int] = 300) -
         except:
             pass
         
-        # Summary status
-        output.append("📈 Overall Status:")
-        # Simple health calculation
+        # Device Summary Box
+        output.append("📊 Device Summary:")
+        output.append("=" * 50)
+        output.append(f"Infrastructure Devices: {online_count} online")
+        output.append(f"Client Devices: {client_count} connected")
+        output.append("=" * 50)
+        output.append("")
+        
+        # Overall health status
+        output.append("📈 Network Health:")
+        # Simple health calculation based on infrastructure devices
         health_score = 100
         if offline_count > 0:
             health_score -= (offline_count * 20)
@@ -197,6 +214,7 @@ def get_network_health_summary(network_id: str, timespan: Optional[int] = 300) -
         
         health_icon = "🟢" if health_score >= 80 else "🟡" if health_score >= 60 else "🔴"
         output.append(f"   Health Score: {health_icon} {max(0, health_score)}%")
+        output.append("   ℹ️  Score based on infrastructure device status")
         
         return "\n".join(output)
         
