@@ -426,6 +426,160 @@ class MerakiClient:
             
         return self.dashboard.wireless.getNetworkWirelessChannelUtilizationHistory(network_id, **kwargs)
     
+    def get_network_wireless_client_count_history(self, network_id: str, timespan: int = 86400, 
+                                                  resolution: int = None, band: str = None, 
+                                                  ssid: int = None, device_serial: str = None,
+                                                  ap_tag: str = None, client_id: str = None):
+        """Get wireless client count history - REAL method."""
+        kwargs = {'timespan': timespan}
+        if resolution:
+            # Ensure resolution is one of the valid values
+            valid_resolutions = [300, 600, 1200, 3600, 14400, 86400]
+            if resolution in valid_resolutions:
+                kwargs['resolution'] = resolution
+        if band:
+            kwargs['band'] = band
+        if ssid is not None:
+            kwargs['ssid'] = ssid
+        if device_serial:
+            kwargs['deviceSerial'] = device_serial
+        if ap_tag:
+            kwargs['apTag'] = ap_tag
+        if client_id:
+            kwargs['clientId'] = client_id
+        return self.dashboard.wireless.getNetworkWirelessClientCountHistory(network_id, **kwargs)
+    
+    def get_network_wireless_clients_health_scores(self, network_id: str):
+        """Get wireless clients health scores - REAL method."""
+        return self.dashboard.wireless.getNetworkWirelessClientsHealthScores(network_id)
+    
+    def get_network_wireless_connection_stats(self, network_id: str, timespan: int = 86400,
+                                             band: str = None, ssid: int = None, 
+                                             vlan: int = None, ap_tag: str = None):
+        """Get wireless connection statistics - REAL method."""
+        kwargs = {'timespan': timespan}
+        if band:
+            kwargs['band'] = band
+        if ssid is not None:
+            kwargs['ssid'] = ssid
+        if vlan is not None:
+            kwargs['vlan'] = vlan
+        if ap_tag:
+            kwargs['apTag'] = ap_tag
+        return self.dashboard.wireless.getNetworkWirelessConnectionStats(network_id, **kwargs)
+    
+    def get_network_wireless_clients_connection_stats(self, network_id: str, timespan: int = 86400,
+                                                     band: str = None, ssid: int = None,
+                                                     vlan: int = None, ap_tag: str = None):
+        """Get detailed wireless client connection statistics - REAL method."""
+        kwargs = {'timespan': timespan}
+        if band:
+            kwargs['band'] = band
+        if ssid is not None:
+            kwargs['ssid'] = ssid
+        if vlan is not None:
+            kwargs['vlan'] = vlan
+        if ap_tag:
+            kwargs['apTag'] = ap_tag
+        return self.dashboard.wireless.getNetworkWirelessClientsConnectionStats(network_id, **kwargs)
+    
+    def get_network_wireless_failed_connections(self, network_id: str, timespan: int = 86400,
+                                               band: str = None, ssid: int = None,
+                                               vlan: int = None, ap_tag: str = None):
+        """Get wireless failed connection attempts - REAL method."""
+        kwargs = {'timespan': timespan}
+        if band:
+            kwargs['band'] = band
+        if ssid is not None:
+            kwargs['ssid'] = ssid
+        if vlan is not None:
+            kwargs['vlan'] = vlan
+        if ap_tag:
+            kwargs['apTag'] = ap_tag
+        return self.dashboard.wireless.getNetworkWirelessFailedConnections(network_id, **kwargs)
+    
+    def get_network_wireless_data_rate_history(self, network_id: str, timespan: int = 86400,
+                                              resolution: int = None, auto_resolution: bool = True,
+                                              client_id: str = None, device_serial: str = None,
+                                              ap_tag: str = None, band: str = None, ssid: int = None):
+        """Get wireless data rate history - REAL method."""
+        kwargs = {'timespan': timespan, 'autoResolution': auto_resolution}
+        if resolution:
+            kwargs['resolution'] = resolution
+        if client_id:
+            kwargs['clientId'] = client_id
+        if device_serial:
+            kwargs['deviceSerial'] = device_serial
+        if ap_tag:
+            kwargs['apTag'] = ap_tag
+        if band:
+            kwargs['band'] = band
+        if ssid is not None:
+            kwargs['ssid'] = ssid
+        return self.dashboard.wireless.getNetworkWirelessDataRateHistory(network_id, **kwargs)
+    
+    def get_network_wireless_clients_latency_history(self, network_id: str, timespan: int = 86400,
+                                                    resolution: int = None, auto_resolution: bool = True,
+                                                    client_id: str = None, device_serial: str = None,
+                                                    ap_tag: str = None, band: str = None, ssid: int = None):
+        """Get wireless clients latency history - REAL method."""
+        kwargs = {'timespan': timespan, 'autoResolution': auto_resolution}
+        if resolution:
+            kwargs['resolution'] = resolution
+        if client_id:
+            kwargs['clientId'] = client_id
+        if device_serial:
+            kwargs['deviceSerial'] = device_serial
+        if ap_tag:
+            kwargs['apTag'] = ap_tag
+        if band:
+            kwargs['band'] = band
+        if ssid is not None:
+            kwargs['ssid'] = ssid
+        return self.dashboard.wireless.getNetworkWirelessClientsLatencyHistory(network_id, **kwargs)
+    
+    def get_organization_wireless_devices_packet_loss(self, org_id: str, timespan: int = 86400,
+                                                     band: str = None, ssid: int = None,
+                                                     network_ids: List[str] = None):
+        """Get organization wireless devices packet loss - REAL method."""
+        kwargs = {'timespan': timespan}
+        if band:
+            kwargs['band'] = band
+        if ssid is not None:
+            kwargs['ssid'] = ssid
+        if network_ids:
+            kwargs['networkIds'] = network_ids
+        return self.dashboard.organizations.getOrganizationWirelessDevicesPacketLoss(org_id, **kwargs)
+    
+    def get_organization_wireless_devices_channel_utilization_by_device(self, org_id: str, 
+                                                                       timespan: int = 86400,
+                                                                       network_ids: List[str] = None):
+        """Get organization wireless devices channel utilization by device - REAL method."""
+        kwargs = {'timespan': timespan}
+        if network_ids:
+            kwargs['networkIds'] = network_ids
+        return self.dashboard.organizations.getOrganizationWirelessDevicesChannelUtilizationByDevice(org_id, **kwargs)
+    
+    def get_network_wireless_signal_quality_history(self, network_id: str, timespan: int = 86400,
+                                                   resolution: int = None, auto_resolution: bool = True,
+                                                   client_id: str = None, device_serial: str = None,
+                                                   ap_tag: str = None, band: str = None, ssid: int = None):
+        """Get wireless signal quality history - REAL method."""
+        kwargs = {'timespan': timespan, 'autoResolution': auto_resolution}
+        if resolution:
+            kwargs['resolution'] = resolution
+        if client_id:
+            kwargs['clientId'] = client_id
+        if device_serial:
+            kwargs['deviceSerial'] = device_serial
+        if ap_tag:
+            kwargs['apTag'] = ap_tag
+        if band:
+            kwargs['band'] = band
+        if ssid is not None:
+            kwargs['ssid'] = ssid
+        return self.dashboard.wireless.getNetworkWirelessSignalQualityHistory(network_id, **kwargs)
+    
     # REAL Systems Manager (SM) Methods
     def get_network_sm_devices(self, network_id: str):
         """Get all Systems Manager devices - REAL method."""
@@ -589,3 +743,23 @@ class MerakiClient:
     def create_device_live_tools_leds_blink(self, serial: str, **kwargs):
         """Blink device LEDs - REAL method."""
         return self.dashboard.devices.createDeviceLiveToolsLedsBlink(serial, **kwargs)
+    
+    # Network Health and Monitoring Methods
+    def get_network_clients_connection_stats(self, network_id: str, timespan: int = 86400):
+        """Get network client connection statistics - REAL method."""
+        return self.dashboard.networks.getNetworkClientsConnectionStats(network_id, timespan=timespan)
+    
+    def get_device_loss_and_latency_history(self, serial: str, timespan: int = 300, ip: str = '8.8.8.8'):
+        """Get device loss and latency history - REAL method."""
+        return self.dashboard.devices.getDeviceLossAndLatencyHistory(serial, timespan=timespan, ip=ip)
+    
+    def get_organization_devices_statuses(self, org_id: str, network_ids: List[str] = None):
+        """Get organization device statuses - REAL method."""
+        kwargs = {}
+        if network_ids:
+            kwargs['networkIds'] = network_ids
+        return self.dashboard.organizations.getOrganizationDevicesStatuses(org_id, **kwargs)
+    
+    def get_device_appliance_uplinks_settings(self, serial: str):
+        """Get device appliance uplinks settings - REAL method."""
+        return self.dashboard.appliance.getDeviceApplianceUplinksSettings(serial)

@@ -371,7 +371,7 @@ def get_organization_summary_top_applications_by_usage(
         return format_error("get top applications by usage", e)
 
 
-def get_organization_summary_top_applications_categories_by_usage(
+def get_org_top_app_categories_by_usage(
     org_id: str,
     t0: Optional[str] = None,
     t1: Optional[str] = None,
@@ -776,7 +776,7 @@ Available tools for organization-wide analytics:
    - Usage percentages
    - Traffic patterns
 
-4. get_organization_summary_top_applications_categories_by_usage()
+4. get_org_top_app_categories_by_usage()
    - Application categories overview
    - Business vs non-business
    - Policy insights
@@ -847,7 +847,7 @@ def register_summary_tools(app: FastMCP, meraki_client: MerakiClient):
         (get_organization_summary_top_devices_by_usage, "Get top devices by data usage"),
         (get_organization_summary_top_appliances_by_utilization, "Get top appliances by utilization"),
         (get_organization_summary_top_applications_by_usage, "Get top applications by usage"),
-        (get_organization_summary_top_applications_categories_by_usage, "Get top app categories by usage"),
+        (get_org_top_app_categories_by_usage, "Get top app categories by usage"),
         (get_organization_summary_top_clients_by_usage, "Get top clients by data usage"),
         (get_organization_summary_top_ssids_by_usage, "Get top SSIDs by usage"),
         (summary_help, "Get help with summary analytics"),

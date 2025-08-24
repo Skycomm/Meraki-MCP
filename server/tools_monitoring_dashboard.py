@@ -46,7 +46,7 @@ def get_network_health_summary(network_id: str, timespan: Optional[int] = 300) -
         
         # Network info
         try:
-            network = meraki.dashboard.networks.getNetwork(network_id)
+            network = meraki.get_network(network_id)
             output.append(f"Network: {network['name']}")
             output.append(f"Type: {', '.join(network.get('productTypes', []))}")
             output.append("")
@@ -56,9 +56,9 @@ def get_network_health_summary(network_id: str, timespan: Optional[int] = 300) -
         # Device statuses
         try:
             with safe_api_call("get device statuses"):
-                statuses = meraki.dashboard.organizations.getOrganizationDevicesStatuses(
+                statuses = meraki.get_organization_devices_statuses(
                     network['organizationId'],
-                    networkIds=[network_id]
+                    network_ids=[network_id]
                 )
                 
                 if statuses:
@@ -84,7 +84,7 @@ def get_network_health_summary(network_id: str, timespan: Optional[int] = 300) -
         # Connection stats (clients)
         try:
             with safe_api_call("get connection stats"):
-                conn_stats = meraki.dashboard.networks.getNetworkClientsConnectionStats(
+                conn_stats = meraki.get_network_clients_connection_stats(
                     network_id,
                     timespan=timespan
                 )
@@ -116,13 +116,13 @@ def get_network_health_summary(network_id: str, timespan: Optional[int] = 300) -
         # Uplink status
         try:
             with safe_api_call("get uplink status"):
-                devices = meraki.dashboard.networks.getNetworkDevices(network_id)
+                devices = meraki.get_network_devices(network_id)
                 mx_devices = [d for d in devices if d.get('model', '').startswith('MX')]
                 
                 if mx_devices:
                     for mx in mx_devices:
                         try:
-                            uplinks = meraki.dashboard.appliance.getDeviceApplianceUplinksSettings(mx['serial'])
+                            uplinks = meraki.get_device_appliance_uplinks_settings(mx['serial'])
                             output.append(f"🌐 WAN Status ({mx['name']}):")
                             
                             for interface in uplinks.get('interfaces', {}).values():
@@ -144,7 +144,7 @@ def get_network_health_summary(network_id: str, timespan: Optional[int] = 300) -
                 end_time = datetime.utcnow()
                 start_time = end_time - timedelta(seconds=timespan)
                 
-                alerts = meraki.dashboard.organizations.getOrganizationAlertsProfiles(
+                alerts = meraki.get_organization_alerts(
                     network['organizationId']
                 )
                 
@@ -166,7 +166,7 @@ def get_network_health_summary(network_id: str, timespan: Optional[int] = 300) -
                 if mx_devices:
                     try:
                         for mx in mx_devices[:1]:  # Just first MX
-                            loss_and_latency = meraki.dashboard.devices.getDeviceLossAndLatencyHistory(
+                            loss_and_latency = meraki.get_device_loss_and_latency_history(
                                 mx['serial'],
                                 timespan=min(timespan, 300),  # Max 5 minutes
                                 ip='8.8.8.8'
@@ -389,7 +389,7 @@ def get_critical_alerts(
         # Check current device alerts
         try:
             if network_id:
-                devices = meraki.dashboard.networks.getNetworkDevices(network_id)
+                devices = meraki.get_network_devices(network_id)
                 alerting_devices = []
                 
                 for device in devices:

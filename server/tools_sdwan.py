@@ -350,7 +350,7 @@ def update_organization_appliance_vpn_third_party_vpn_peers(
         return format_error("update third-party VPN peers", e)
 
 
-def get_network_appliance_traffic_shaping_custom_performance_classes(network_id: str) -> str:
+def get_traffic_shaping_performance_classes(network_id: str) -> str:
     """
     📊 Get custom performance classes.
     
@@ -417,7 +417,7 @@ def get_network_appliance_traffic_shaping_custom_performance_classes(network_id:
         return format_error("get custom performance classes", e)
 
 
-def create_network_appliance_traffic_shaping_custom_performance_class(
+def create_traffic_shaping_performance_class(
     network_id: str,
     name: str,
     max_latency: Optional[int] = None,
@@ -733,13 +733,13 @@ Available tools for SD-WAN configuration:
    - Set remote subnets
    - Enable hybrid WAN
 
-5. get_network_appliance_traffic_shaping_custom_performance_classes()
+5. get_traffic_shaping_performance_classes()
    - View SLA definitions
    - Performance thresholds
    - Failover criteria
    - Custom classes
 
-6. create_network_appliance_traffic_shaping_custom_performance_class()
+6. create_traffic_shaping_performance_class()
    - Define SLA thresholds
    - Set performance metrics
    - Create failover rules
@@ -818,8 +818,8 @@ def register_sdwan_tools(app: FastMCP, meraki_client: MerakiClient):
         (update_network_appliance_sdwan_internet_policies, "Update SD-WAN policies"),
         (get_organization_appliance_vpn_third_party_vpn_peers, "Get third-party VPN peers"),
         (update_organization_appliance_vpn_third_party_vpn_peers, "Update VPN peers"),
-        (get_network_appliance_traffic_shaping_custom_performance_classes, "Get custom performance classes"),
-        (create_network_appliance_traffic_shaping_custom_performance_class, "Create performance class"),
+        (get_traffic_shaping_performance_classes, "Get custom performance classes"),
+        (create_traffic_shaping_performance_class, "Create performance class"),
         (analyze_sdwan_performance, "Analyze SD-WAN performance"),
         (sdwan_policy_examples, "Show SD-WAN policy examples"),
         (sdwan_help, "Get help with SD-WAN tools"),
