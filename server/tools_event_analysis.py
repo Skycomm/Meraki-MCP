@@ -35,7 +35,8 @@ def search_event_logs(
     event_types: Optional[List[str]] = None,
     timespan: Optional[int] = 86400,
     device_serial: Optional[str] = None,
-    client_mac: Optional[str] = None
+    client_mac: Optional[str] = None,
+    product_type: Optional[str] = None
 ) -> str:
     """
     🔍 Search event logs for specific patterns or errors.
@@ -49,6 +50,7 @@ def search_event_logs(
         timespan: Time period in seconds (default: 86400 = 24 hours)
         device_serial: Filter by specific device
         client_mac: Filter by specific client
+        product_type: Filter by product type (appliance, wireless, switch, camera, etc.)
         
     Returns:
         Filtered event log results
@@ -58,9 +60,12 @@ def search_event_logs(
         
         # Build parameters
         params = {
-            'perPage': 1000,
-            'timespan': timespan
+            'perPage': 1000
         }
+        
+        # Note: timespan is not always supported with other parameters
+        if not device_serial and not client_mac:
+            params['timespan'] = timespan
         
         if event_types:
             params['includedEventTypes'] = event_types
@@ -69,17 +74,63 @@ def search_event_logs(
         if client_mac:
             params['clientMac'] = client_mac
         
-        # Get events
-        with safe_api_call("search events"):
-            events_response = meraki.dashboard.networks.getNetworkEvents(
-                network_id,
-                **params
-            )
-            
-            events = events_response.get('events', []) if isinstance(events_response, dict) else []
-            
-            # Filter by search term if provided
-            if search_term and events:
+        all_events = []
+        errors = []
+        
+        # Determine product types to check
+        types_to_check = []
+        if product_type:
+            types_to_check = [product_type]
+        else:
+            # Try to determine network types
+            try:
+                network_info = meraki.dashboard.networks.getNetwork(network_id)
+                if 'productTypes' in network_info and len(network_info['productTypes']) > 1:
+                    types_to_check = network_info['productTypes']
+                else:
+                    types_to_check = [None]  # Try without productType first
+            except:
+                types_to_check = [None]
+        
+        # Get events for each product type
+        for ptype in types_to_check:
+            try:
+                search_params = params.copy()
+                if ptype:
+                    search_params['productType'] = ptype
+                
+                with safe_api_call("search events"):
+                    events_response = meraki.dashboard.networks.getNetworkEvents(
+                        network_id,
+                        **search_params
+                    )
+                    
+                    events = events_response.get('events', []) if isinstance(events_response, dict) else []
+                    all_events.extend(events)
+            except Exception as e:
+                error_msg = str(e)
+                if 'productType is required' in error_msg and not ptype:
+                    # Try common product types
+                    for common_type in ['appliance', 'wireless', 'switch', 'camera']:
+                        try:
+                            search_params = params.copy()
+                            search_params['productType'] = common_type
+                            events_response = meraki.dashboard.networks.getNetworkEvents(
+                                network_id,
+                                **search_params
+                            )
+                            events = events_response.get('events', []) if isinstance(events_response, dict) else []
+                            all_events.extend(events)
+                        except:
+                            continue
+                elif ptype:
+                    errors.append(f"Could not search {ptype} events: {error_msg}")
+        
+        # Use all collected events
+        events = all_events
+        
+        # Filter by search term if provided
+        if search_term and events:
                 search_lower = search_term.lower()
                 filtered_events = []
                 for event in events:
@@ -155,6 +206,12 @@ def search_event_logs(
                     "• Checking different event types"
                 ])
         
+        # Show any errors encountered
+        if errors:
+            output.append("\n⚠️ Some event types could not be retrieved:")
+            for error in errors:
+                output.append(f"   • {error}")
+        
         return "\n".join(output)
         
     except Exception as e:
@@ -197,27 +254,80 @@ def analyze_error_patterns(
             'wireless_auth_fail'
         ]
         
-        # Get error events
-        with safe_api_call("get error events"):
-            events_response = meraki.dashboard.networks.getNetworkEvents(
-                network_id,
-                perPage=1000,
-                timespan=timespan,
-                includedEventTypes=error_event_types
-            )
+        # Get error events - need to handle productType requirement
+        all_events = []
+        errors = []
+        
+        # Try to determine network types
+        types_to_check = []
+        try:
+            network_info = meraki.dashboard.networks.getNetwork(network_id)
+            if 'productTypes' in network_info and len(network_info['productTypes']) > 1:
+                types_to_check = network_info['productTypes']
+            else:
+                types_to_check = [None]  # Try without productType first
+        except:
+            types_to_check = [None]
+        
+        for ptype in types_to_check:
+            try:
+                params = {
+                    'perPage': 1000,
+                    'includedEventTypes': error_event_types
+                }
+                # Note: timespan may not work with includedEventTypes
+                if ptype:
+                    params['productType'] = ptype
+                
+                with safe_api_call("get error events"):
+                    events_response = meraki.dashboard.networks.getNetworkEvents(
+                        network_id,
+                        **params
+                    )
+                    
+                    events = events_response.get('events', []) if isinstance(events_response, dict) else []
+                    all_events.extend(events)
+            except Exception as e:
+                error_msg = str(e)
+                if 'productType is required' in error_msg and not ptype:
+                    # Try common product types
+                    for common_type in ['appliance', 'wireless', 'switch', 'camera']:
+                        try:
+                            params = {
+                                'perPage': 1000,
+                                'includedEventTypes': error_event_types,
+                                'productType': common_type
+                            }
+                            events_response = meraki.dashboard.networks.getNetworkEvents(
+                                network_id,
+                                **params
+                            )
+                            events = events_response.get('events', []) if isinstance(events_response, dict) else []
+                            all_events.extend(events)
+                        except:
+                            continue
+                elif ptype:
+                    errors.append(f"Could not get {ptype} error events: {error_msg}")
+        
+        events = all_events
+        
+        if not events:
+            output.append("✅ No error events found in the specified time period")
+            output.append(f"   Analyzed: Last {timespan//3600} hours")
             
-            events = events_response.get('events', []) if isinstance(events_response, dict) else []
+            # Show any errors encountered
+            if errors:
+                output.append("\n⚠️ Some event types could not be retrieved:")
+                for error in errors:
+                    output.append(f"   • {error}")
             
-            if not events:
-                output.append("✅ No error events found in the specified time period")
-                output.append(f"   Analyzed: Last {timespan//3600} hours")
-                return "\n".join(output)
-            
-            output.append(f"Analyzing {len(events)} error events from the last {timespan//3600} hours")
-            output.append("")
-            
-            # Analyze patterns
-            patterns = {
+            return "\n".join(output)
+        
+        output.append(f"Analyzing {len(events)} error events from the last {timespan//3600} hours")
+        output.append("")
+        
+        # Analyze patterns
+        patterns = {
                 'by_type': defaultdict(int),
                 'by_device': defaultdict(lambda: defaultdict(int)),
                 'by_client': defaultdict(lambda: defaultdict(int)),
@@ -384,6 +494,12 @@ def analyze_error_patterns(
                 "4. Review configuration for top error types",
                 "5. Set up alerts for recurring patterns"
             ])
+        
+        # Show any errors encountered
+        if errors:
+            output.append("\n⚠️ Some event types could not be retrieved:")
+            for error in errors:
+                output.append(f"   • {error}")
         
         return "\n".join(output)
         

@@ -374,7 +374,8 @@ def get_uplink_bandwidth_summary(
 
 def get_critical_alerts(
     network_id: str,
-    timespan: Optional[int] = 86400
+    timespan: Optional[int] = 86400,
+    product_type: Optional[str] = None
 ) -> str:
     """
     🚨 Get critical alerts and events for a network.
@@ -384,6 +385,8 @@ def get_critical_alerts(
     Args:
         network_id: Network ID to check
         timespan: Time period in seconds (default: 86400 = 24 hours)
+        product_type: Filter by product type (appliance, wireless, switch, camera, etc.)
+                     If not specified, will try to get events for all product types
         
     Returns:
         Critical alerts and events
@@ -391,10 +394,31 @@ def get_critical_alerts(
     try:
         output = ["🚨 Critical Alerts & Events", "=" * 50, ""]
         
-        # Get network name for display
+        # Get network info for display and to determine product types
+        network_info = None
+        network_types = []
         try:
-            network = meraki.dashboard.networks.getNetwork(network_id)
-            output.append(f"Network: {network.get('name', network_id)}")
+            network_info = meraki.dashboard.networks.getNetwork(network_id)
+            output.append(f"Network: {network_info.get('name', network_id)}")
+            
+            # Parse product types from network
+            if 'productTypes' in network_info:
+                network_types = network_info['productTypes']
+            else:
+                # Fall back to checking devices if productTypes not available
+                devices = meraki.dashboard.networks.getNetworkDevices(network_id)
+                device_types = set()
+                for device in devices:
+                    model = device.get('model', '')
+                    if model.startswith('MX'):
+                        device_types.add('appliance')
+                    elif model.startswith('MS'):
+                        device_types.add('switch')
+                    elif model.startswith('MR'):
+                        device_types.add('wireless')
+                    elif model.startswith('MV'):
+                        device_types.add('camera')
+                network_types = list(device_types)
         except:
             output.append(f"Network: {network_id}")
         
@@ -411,58 +435,107 @@ def get_critical_alerts(
         output.append("")
         
         # Get network events
-        try:
-            with safe_api_call("get network events"):
-                events = meraki.dashboard.networks.getNetworkEvents(
-                    network_id,
-                    perPage=100
-                )
-                
-                # Filter critical events
-                critical_types = [
-                    'went_down', 'came_up', 'reboot', 'failover',
-                    'critical', 'alert', 'error', 'warning'
-                ]
-                
-                critical_events = []
-                # Note: Since we can't filter by time in the API call, we get recent events
-                # The API returns the most recent events by default
-                for event in events.get('events', []):
-                    event_type = event.get('type', '').lower()
-                    if any(crit in event_type for crit in critical_types):
-                        critical_events.append(event)
-                
-                if critical_events:
-                    output.append(f"Found {len(critical_events)} critical events:")
+        all_events = []
+        errors = []
+        
+        # If specific product type requested, use that
+        if product_type:
+            types_to_check = [product_type]
+        # If we have multiple network types, check each
+        elif len(network_types) > 1:
+            types_to_check = network_types
+        # Otherwise try without productType first
+        else:
+            types_to_check = [None]
+        
+        for ptype in types_to_check:
+            try:
+                with safe_api_call("get network events"):
+                    params = {
+                        'perPage': 100
+                    }
+                    if ptype:
+                        params['productType'] = ptype
                     
-                    # Group by category
-                    by_category = {}
-                    for event in critical_events[:20]:  # Show max 20
-                        category = event.get('category', 'Other')
-                        if category not in by_category:
-                            by_category[category] = []
-                        by_category[category].append(event)
+                    events = meraki.dashboard.networks.getNetworkEvents(
+                        network_id,
+                        **params
+                    )
                     
-                    for category, cat_events in by_category.items():
-                        output.append(f"\n📁 {category}:")
-                        for event in cat_events:
-                            timestamp = event.get('occurredAt', 'Unknown time')
-                            event_type = event.get('type', 'Unknown')
-                            description = event.get('description', 'No description')
-                            device_name = event.get('deviceName', '')
-                            
-                            # Event icon
-                            icon = "🔴" if 'down' in event_type.lower() else "🟢" if 'up' in event_type.lower() else "⚠️"
-                            
-                            output.append(f"   {icon} {timestamp}")
-                            if device_name:
-                                output.append(f"      Device: {device_name}")
-                            output.append(f"      Type: {event_type}")
-                            output.append(f"      {description}")
-                else:
-                    output.append("✅ No critical events in the specified time range")
-        except Exception as e:
-            output.append(f"⚠️ Could not retrieve events: {str(e)}")
+                    if events and 'events' in events:
+                        all_events.extend(events['events'])
+            except Exception as e:
+                error_msg = str(e)
+                # If we get productType required error, try with product types
+                if 'productType is required' in error_msg and not ptype and len(network_types) == 0:
+                    # Try common product types
+                    for common_type in ['appliance', 'wireless', 'switch', 'camera']:
+                        try:
+                            events = meraki.dashboard.networks.getNetworkEvents(
+                                network_id,
+                                productType=common_type,
+                                perPage=100
+                            )
+                            if events and 'events' in events:
+                                all_events.extend(events['events'])
+                        except:
+                            continue
+                elif ptype:
+                    errors.append(f"Could not get {ptype} events: {error_msg}")
+        
+        # Process all collected events
+        if all_events:
+            # Filter critical events
+            critical_types = [
+                'went_down', 'came_up', 'reboot', 'failover',
+                'critical', 'alert', 'error', 'warning'
+            ]
+            
+            critical_events = []
+            # Note: Since we can't filter by time in the API call, we get recent events
+            # The API returns the most recent events by default
+            for event in all_events:
+                event_type = event.get('type', '').lower()
+                if any(crit in event_type for crit in critical_types):
+                    critical_events.append(event)
+            
+            if critical_events:
+                output.append(f"Found {len(critical_events)} critical events:")
+                
+                # Group by category
+                by_category = {}
+                for event in critical_events[:20]:  # Show max 20
+                    category = event.get('category', 'Other')
+                    if category not in by_category:
+                        by_category[category] = []
+                    by_category[category].append(event)
+                
+                for category, cat_events in by_category.items():
+                    output.append(f"\n📁 {category}:")
+                    for event in cat_events:
+                        timestamp = event.get('occurredAt', 'Unknown time')
+                        event_type = event.get('type', 'Unknown')
+                        description = event.get('description', 'No description')
+                        device_name = event.get('deviceName', '')
+                        
+                        # Event icon
+                        icon = "🔴" if 'down' in event_type.lower() else "🟢" if 'up' in event_type.lower() else "⚠️"
+                        
+                        output.append(f"   {icon} {timestamp}")
+                        if device_name:
+                            output.append(f"      Device: {device_name}")
+                        output.append(f"      Type: {event_type}")
+                        output.append(f"      {description}")
+            else:
+                output.append("✅ No critical events in the specified time range")
+        else:
+            output.append("⚠️ No events data available")
+            
+        # Show any errors encountered
+        if errors:
+            output.append("\n⚠️ Some event types could not be retrieved:")
+            for error in errors:
+                output.append(f"   • {error}")
         
         # Check current device alerts
         try:
