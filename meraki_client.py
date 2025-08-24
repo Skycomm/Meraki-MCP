@@ -152,8 +152,12 @@ class MerakiClient:
     
     def update_network_wireless_ssid(self, network_id: str, number: int, name: str = None, enabled: bool = None,
                                     authMode: str = None, psk: str = None, encryptionMode: str = None, 
-                                    wpaEncryptionMode: str = None, visible: bool = None):
-        """Update wireless SSID - REAL method with full authentication support."""
+                                    wpaEncryptionMode: str = None, visible: bool = None,
+                                    ipAssignmentMode: str = None, useVlanTagging: bool = None,
+                                    vlanId: int = None, defaultVlanId: int = None,
+                                    apTagsAndVlanIds: List[Dict[str, Any]] = None,
+                                    lanIsolationEnabled: bool = None):
+        """Update wireless SSID - REAL method with full authentication and bridging support."""
         kwargs = {}
         if name is not None:
             kwargs['name'] = name
@@ -169,6 +173,19 @@ class MerakiClient:
             kwargs['wpaEncryptionMode'] = wpaEncryptionMode
         if visible is not None:
             kwargs['visible'] = visible
+        # Bridge mode parameters
+        if ipAssignmentMode is not None:
+            kwargs['ipAssignmentMode'] = ipAssignmentMode
+        if useVlanTagging is not None:
+            kwargs['useVlanTagging'] = useVlanTagging
+        if vlanId is not None:
+            kwargs['vlanId'] = vlanId
+        if defaultVlanId is not None:
+            kwargs['defaultVlanId'] = defaultVlanId
+        if apTagsAndVlanIds is not None:
+            kwargs['apTagsAndVlanIds'] = apTagsAndVlanIds
+        if lanIsolationEnabled is not None:
+            kwargs['lanIsolationEnabled'] = lanIsolationEnabled
         return self.dashboard.wireless.updateNetworkWirelessSsid(network_id, number, **kwargs)
     
     # REAL Network Management Methods
