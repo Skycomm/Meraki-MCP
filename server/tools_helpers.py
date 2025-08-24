@@ -454,3 +454,174 @@ def register_helper_tool_handlers():
             
         except Exception as e:
             return f"❌ Error analyzing security posture: {str(e)}"
+    
+    @app.tool(
+        name="apply_common_security_rules",
+        description="🔒 Apply common security rules - easily block malicious traffic, countries, and content"
+    )
+    def apply_common_security_rules(
+        network_id: str,
+        block_malicious_sites: bool = True,
+        block_high_risk_countries: bool = False,
+        block_p2p: bool = False,
+        block_social_media: bool = False,
+        custom_blocked_countries: str = None,
+        custom_blocked_ports: str = None
+    ):
+        """
+        Apply common security rules to a network with a single command.
+        
+        Args:
+            network_id: Network ID to apply rules to
+            block_malicious_sites: Block malware, phishing, and spam sites (default: True)
+            block_high_risk_countries: Block traffic from high-risk countries (default: False)
+            block_p2p: Block peer-to-peer applications (default: False)
+            block_social_media: Block social media sites (default: False)
+            custom_blocked_countries: Additional countries to block (e.g., "CN,RU,KP")
+            custom_blocked_ports: TCP ports to block (e.g., "445,3389,22")
+            
+        Returns:
+            Summary of applied security rules
+        """
+        try:
+            results = []
+            results.append(f"# 🔒 Applying Security Rules to Network {network_id}\n")
+            
+            # 1. Content Filtering for malicious sites
+            if block_malicious_sites:
+                try:
+                    # Block dangerous content categories
+                    dangerous_categories = [
+                        "5",   # Malware sites
+                        "6",   # Phishing and other frauds
+                        "3",   # Illegal content
+                        "4",   # Illegal downloads
+                        "83"   # Peer to peer (if not separately handled)
+                    ]
+                    
+                    if block_social_media:
+                        dangerous_categories.extend(["70"])  # Social networking
+                    
+                    if block_p2p:
+                        if "83" not in dangerous_categories:
+                            dangerous_categories.append("83")
+                    
+                    meraki_client.update_network_appliance_content_filtering(
+                        network_id,
+                        blockedUrlCategories=[f"meraki:contentFiltering/category/{cat}" for cat in dangerous_categories],
+                        urlCategoryListSize='fullList'
+                    )
+                    results.append("✅ **Content Filtering**: Blocked malicious site categories")
+                except Exception as e:
+                    results.append(f"❌ **Content Filtering**: Failed - {str(e)}")
+            
+            # 2. Layer 7 Firewall Rules
+            l7_rules = []
+            
+            # Block high-risk countries
+            if block_high_risk_countries or custom_blocked_countries:
+                countries = []
+                if block_high_risk_countries:
+                    # Common high-risk countries
+                    countries.extend(["CN", "RU", "KP", "IR"])
+                if custom_blocked_countries:
+                    countries.extend([c.strip().upper() for c in custom_blocked_countries.split(',')])
+                
+                # Remove duplicates
+                countries = list(set(countries))
+                
+                if countries:
+                    l7_rules.append({
+                        "policy": "deny",
+                        "type": "blacklistedCountries",
+                        "value": {"countries": countries}
+                    })
+                    results.append(f"✅ **Geo-blocking**: Blocked {len(countries)} countries: {', '.join(countries)}")
+            
+            # Block P2P applications
+            if block_p2p:
+                # Common P2P applications
+                p2p_apps = [
+                    "meraki:layer7/application/17",   # BitTorrent
+                    "meraki:layer7/application/169"   # Tor
+                ]
+                for app_id in p2p_apps:
+                    l7_rules.append({
+                        "policy": "deny",
+                        "type": "application",
+                        "value": {"id": app_id}
+                    })
+                results.append("✅ **L7 Firewall**: Blocked P2P applications")
+            
+            # Apply L7 rules if any
+            if l7_rules:
+                try:
+                    meraki_client.update_network_appliance_firewall_l7_rules(network_id, rules=l7_rules)
+                except Exception as e:
+                    results.append(f"❌ **L7 Firewall**: Failed - {str(e)}")
+            
+            # 3. Layer 3 Firewall Rules for specific ports
+            if custom_blocked_ports:
+                try:
+                    # Get existing L3 rules
+                    current_l3 = meraki_client.get_network_appliance_firewall_l3_rules(network_id)
+                    existing_rules = current_l3.get('rules', [])
+                    
+                    # Add port blocking rules
+                    ports = [p.strip() for p in custom_blocked_ports.split(',')]
+                    for port in ports:
+                        new_rule = {
+                            'comment': f'Block port {port} - Added by security helper',
+                            'policy': 'deny',
+                            'protocol': 'tcp',
+                            'srcCidr': 'any',
+                            'destCidr': 'any',
+                            'destPort': port,
+                            'syslogEnabled': True
+                        }
+                        existing_rules.insert(0, new_rule)  # Add to beginning
+                    
+                    # Update rules
+                    meraki_client.update_network_appliance_firewall_l3_rules(network_id, rules=existing_rules)
+                    results.append(f"✅ **L3 Firewall**: Blocked TCP ports: {custom_blocked_ports}")
+                except Exception as e:
+                    results.append(f"❌ **L3 Firewall**: Failed - {str(e)}")
+            
+            # 4. Enable IDS/IPS if not already enabled
+            try:
+                ids_status = meraki_client.get_network_appliance_security_intrusion(network_id)
+                if ids_status.get('mode') == 'disabled':
+                    meraki_client.update_network_appliance_security_intrusion(
+                        network_id,
+                        mode='prevention',
+                        idsRulesets='balanced'
+                    )
+                    results.append("✅ **IDS/IPS**: Enabled in prevention mode")
+                else:
+                    results.append(f"ℹ️ **IDS/IPS**: Already enabled ({ids_status.get('mode')})")
+            except Exception as e:
+                results.append(f"❌ **IDS/IPS**: Failed - {str(e)}")
+            
+            # 5. Enable AMP if not already enabled
+            try:
+                amp_status = meraki_client.get_network_appliance_security_malware(network_id)
+                if amp_status.get('mode') == 'disabled':
+                    meraki_client.update_network_appliance_security_malware(network_id, mode='enabled')
+                    results.append("✅ **Malware Protection**: Enabled AMP")
+                else:
+                    results.append("ℹ️ **Malware Protection**: Already enabled")
+            except Exception as e:
+                results.append(f"❌ **Malware Protection**: Failed - {str(e)}")
+            
+            # Summary
+            results.append("\n## 📋 Summary")
+            results.append("Security rules have been applied. Review the results above.")
+            results.append("\n💡 **Next Steps**:")
+            results.append("- Review firewall logs for blocked traffic")
+            results.append("- Monitor security events")
+            results.append("- Consider adding custom rules for your specific needs")
+            
+            return "\n".join(results)
+            
+        except Exception as e:
+            return f"❌ Error applying security rules: {str(e)}"

@@ -70,7 +70,7 @@ def register_appliance_tool_handlers():
     
     @app.tool(
         name="update_network_appliance_firewall_l3_rules",
-        description="🔥 Update Layer 3 firewall rules (BE CAREFUL!)"
+        description="🔥 Update Layer 3 firewall rules - Block/allow traffic by IP, port, protocol"
     )
     def update_network_appliance_firewall_l3_rules(
         network_id: str, 
@@ -90,9 +90,9 @@ def register_appliance_tool_handlers():
             comment: Description of the rule
             policy: 'allow' or 'deny'
             protocol: 'tcp', 'udp', 'icmp', or 'any'
-            src_cidr: Source CIDR (e.g., '192.168.1.0/24')
-            dest_cidr: Destination CIDR
-            dest_port: Destination port (optional)
+            src_cidr: Source CIDR (e.g., '192.168.1.0/24') or 'any'
+            dest_cidr: Destination CIDR (e.g., '10.0.0.0/8') or 'any'
+            dest_port: Destination port - Examples: '80', '443', '80-443', 'any' (optional)
             syslog_enabled: Enable syslog for this rule
             
         Returns:
@@ -113,8 +113,11 @@ def register_appliance_tool_handlers():
                 'syslogEnabled': syslog_enabled
             }
             
-            if dest_port:
+            # Handle destination port - IMPORTANT: only add if not 'any' and protocol supports ports
+            if dest_port and dest_port.lower() != 'any' and protocol.lower() in ['tcp', 'udp']:
                 new_rule['destPort'] = dest_port
+            elif protocol.lower() not in ['tcp', 'udp', 'any'] and dest_port:
+                return f"❌ Cannot specify port for protocol '{protocol}'. Ports only work with TCP/UDP."
                 
             # Add new rule to beginning (processed first)
             updated_rules = [new_rule] + existing_rules
@@ -125,10 +128,24 @@ def register_appliance_tool_handlers():
                 rules=updated_rules
             )
             
-            return f"✅ Firewall rule added successfully!\n\nNew rule: {comment}\nPolicy: {policy}\nTotal rules: {len(updated_rules)}"
+            # Build detailed response
+            response = f"✅ Firewall rule added successfully!\n\n"
+            response += f"**New Rule**: {comment}\n"
+            response += f"**Policy**: {policy.upper()}\n"
+            response += f"**Protocol**: {protocol}\n"
+            response += f"**Source**: {src_cidr}\n"
+            response += f"**Destination**: {dest_cidr}\n"
+            if dest_port and dest_port.lower() != 'any' and protocol.lower() in ['tcp', 'udp']:
+                response += f"**Port**: {dest_port}\n"
+            response += f"\n**Total rules**: {len(updated_rules)}"
+            
+            return response
             
         except Exception as e:
-            return f"Error updating L3 firewall rules: {str(e)}"
+            error_msg = str(e)
+            if "destPort" in error_msg:
+                return f"❌ Port format error. Use: '80', '443', '80-443', or omit for any port\n{error_msg}"
+            return f"❌ Error updating L3 firewall rules: {error_msg}"
     
     @app.tool(
         name="get_network_appliance_content_filtering",
@@ -545,9 +562,12 @@ def register_appliance_tool_handlers():
         
         Args:
             network_id: Network ID
-            allowed_url_patterns: Comma-separated list of allowed URL patterns
-            blocked_url_patterns: Comma-separated list of blocked URL patterns
-            blocked_categories: Comma-separated list of categories to block (e.g., "meraki:contentFiltering/category/1,meraki:contentFiltering/category/2")
+            allowed_url_patterns: Comma-separated list of allowed URL patterns (e.g., "*.example.com,*.education.gov")
+            blocked_url_patterns: Comma-separated list of blocked URL patterns (e.g., "*.gambling.com,*.adult.com")
+            blocked_categories: Comma-separated list of categories to block. Can use:
+                - Category IDs: "meraki:contentFiltering/category/1,meraki:contentFiltering/category/2"
+                - Category numbers: "1,2,3"
+                - Category names: "Adult and Pornography,Illegal Content"
             url_category_list_size: Size of URL category list ('topSites' or 'fullList')
             
         Returns:
@@ -567,7 +587,61 @@ def register_appliance_tool_handlers():
             
             # Handle blocked categories
             if blocked_categories:
-                kwargs['blockedUrlCategories'] = [cat.strip() for cat in blocked_categories.split(',')]
+                # Category name to ID mapping
+                category_mapping = {
+                    "adult and pornography": "meraki:contentFiltering/category/1",
+                    "abortion": "meraki:contentFiltering/category/2",
+                    "illegal content": "meraki:contentFiltering/category/3",
+                    "illegal downloads": "meraki:contentFiltering/category/4",
+                    "malware sites": "meraki:contentFiltering/category/5",
+                    "phishing and other frauds": "meraki:contentFiltering/category/6",
+                    "violence": "meraki:contentFiltering/category/7",
+                    "gambling": "meraki:contentFiltering/category/8",
+                    "hate and intolerance": "meraki:contentFiltering/category/9",
+                    "recreational drugs": "meraki:contentFiltering/category/10",
+                    "alcohol and tobacco": "meraki:contentFiltering/category/11",
+                    "web advertisements": "meraki:contentFiltering/category/67",
+                    "swimsuits and intimate apparel": "meraki:contentFiltering/category/68",
+                    "sex education": "meraki:contentFiltering/category/69",
+                    "social networking": "meraki:contentFiltering/category/70",
+                    "file sharing": "meraki:contentFiltering/category/71",
+                    "shopping": "meraki:contentFiltering/category/72",
+                    "weapons": "meraki:contentFiltering/category/73",
+                    "games": "meraki:contentFiltering/category/74",
+                    "music": "meraki:contentFiltering/category/75",
+                    "video and movies": "meraki:contentFiltering/category/76",
+                    "reference and research": "meraki:contentFiltering/category/77",
+                    "health and medicine": "meraki:contentFiltering/category/78",
+                    "peer to peer": "meraki:contentFiltering/category/83"
+                }
+                
+                category_ids = []
+                for cat in blocked_categories.split(','):
+                    cat = cat.strip()
+                    
+                    # If it's already a full ID, use it
+                    if cat.startswith("meraki:contentFiltering/category/"):
+                        category_ids.append(cat)
+                    # If it's just a number, format it
+                    elif cat.isdigit():
+                        category_ids.append(f"meraki:contentFiltering/category/{cat}")
+                    # Otherwise try to map the name
+                    else:
+                        cat_lower = cat.lower()
+                        if cat_lower in category_mapping:
+                            category_ids.append(category_mapping[cat_lower])
+                        else:
+                            # Try partial match
+                            matched = False
+                            for name, id in category_mapping.items():
+                                if cat_lower in name or name in cat_lower:
+                                    category_ids.append(id)
+                                    matched = True
+                                    break
+                            if not matched:
+                                return f"❌ Unknown category: '{cat}'. Use get_network_appliance_content_filtering_categories to see valid categories."
+                
+                kwargs['blockedUrlCategories'] = category_ids
             
             # Handle URL category list size
             if url_category_list_size:
@@ -1092,15 +1166,20 @@ def register_appliance_tool_handlers():
     )
     def update_network_appliance_firewall_l7_rules(
         network_id: str,
-        rules: str
+        rules: str = None,
+        block_countries: str = None,
+        block_applications: str = None,
+        block_categories: str = None
     ):
         """
         Update Layer 7 firewall rules for a network.
         
         Args:
             network_id: Network ID
-            rules: JSON string of rules array. Each rule needs: policy (deny), type, and value.
-                   Example: '[{"policy":"deny","type":"blacklistedCountries","value":{"countries":["CN","RU"]}}]'
+            rules: (Optional) JSON string of custom rules array
+            block_countries: (Optional) Comma-separated country codes to block (e.g., "CN,RU,KP")
+            block_applications: (Optional) Comma-separated applications to block (e.g., "FACEBOOK,YOUTUBE")
+            block_categories: (Optional) Comma-separated app categories to block (e.g., "SOCIAL_WEB_AND_PHOTO_SHARING")
             
         Returns:
             Updated L7 firewall rules
@@ -1108,11 +1187,70 @@ def register_appliance_tool_handlers():
         try:
             import json
             
-            # Parse rules
-            try:
-                rules_list = json.loads(rules)
-            except:
-                return "❌ Invalid rules format. Must be valid JSON array"
+            # If rules provided directly, use them
+            if rules:
+                try:
+                    rules_list = json.loads(rules)
+                except:
+                    return "❌ Invalid rules format. Must be valid JSON array"
+            else:
+                # Build rules from simplified parameters
+                rules_list = []
+                
+                # Add country blocking rules
+                if block_countries:
+                    countries = [c.strip().upper() for c in block_countries.split(',')]
+                    rules_list.append({
+                        "policy": "deny",
+                        "type": "blacklistedCountries",
+                        "value": {"countries": countries}
+                    })
+                
+                # Add application blocking rules
+                if block_applications:
+                    for app in block_applications.split(','):
+                        app_name = app.strip()
+                        # Map common names to Meraki application IDs
+                        app_mapping = {
+                            "FACEBOOK": "meraki:layer7/application/68",
+                            "YOUTUBE": "meraki:layer7/application/142",
+                            "TWITTER": "meraki:layer7/application/141",
+                            "INSTAGRAM": "meraki:layer7/application/189",
+                            "NETFLIX": "meraki:layer7/application/209",
+                            "BITTORRENT": "meraki:layer7/application/17",
+                            "TOR": "meraki:layer7/application/169"
+                        }
+                        
+                        # Use mapping or assume it's already an ID
+                        app_id = app_mapping.get(app_name.upper(), app_name)
+                        
+                        rules_list.append({
+                            "policy": "deny",
+                            "type": "application",
+                            "value": {"id": app_id}
+                        })
+                
+                # Add category blocking rules
+                if block_categories:
+                    for cat in block_categories.split(','):
+                        cat_name = cat.strip()
+                        # Map common names to Meraki category IDs
+                        cat_mapping = {
+                            "SOCIAL_WEB_AND_PHOTO_SHARING": "meraki:layer7/category/7",
+                            "PEER_TO_PEER": "meraki:layer7/category/14",
+                            "ONLINE_GAMING": "meraki:layer7/category/8",
+                            "ADULT_AND_PORNOGRAPHY": "meraki:layer7/category/1",
+                            "ILLEGAL_CONTENT": "meraki:layer7/category/3"
+                        }
+                        
+                        # Use mapping or assume it's already an ID
+                        cat_id = cat_mapping.get(cat_name.upper(), cat_name)
+                        
+                        rules_list.append({
+                            "policy": "deny",
+                            "type": "applicationCategory",
+                            "value": {"id": cat_id}
+                        })
             
             # Update rules
             result = meraki_client.update_network_appliance_firewall_l7_rules(
