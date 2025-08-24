@@ -122,7 +122,7 @@ def get_network_health_summary(network_id: str, timespan: Optional[int] = 300) -
         except:
             pass
         
-        # Uplink status
+        # Uplink status with packet loss
         try:
             with safe_api_call("get uplink status"):
                 devices = meraki.get_network_devices(network_id)
@@ -134,13 +134,48 @@ def get_network_health_summary(network_id: str, timespan: Optional[int] = 300) -
                             uplinks = meraki.get_device_appliance_uplinks_settings(mx['serial'])
                             output.append(f"🌐 WAN Status ({mx['name']}):")
                             
-                            for interface in uplinks.get('interfaces', {}).values():
-                                if interface.get('enabled'):
-                                    wan = interface.get('wan', {})
-                                    output.append(f"   {wan.get('interface', 'Unknown')}:")
-                                    output.append(f"     Status: {'✅ Enabled' if wan.get('enabled') else '❌ Disabled'}")
-                                    if wan.get('vlanTagging'):
-                                        output.append(f"     VLAN: {wan.get('vlanTagging', {}).get('vlanId', 'N/A')}")
+                            # Get uplink statuses with loss/latency
+                            try:
+                                org_uplinks = meraki.dashboard.appliance.getOrganizationApplianceUplinkStatuses(
+                                    network.get('organizationId')
+                                )
+                                network_uplinks = next((u for u in org_uplinks if u.get('networkId') == network_id), None)
+                                
+                                if network_uplinks:
+                                    for uplink in network_uplinks.get('uplinks', []):
+                                        interface = uplink.get('interface', '').upper()
+                                        status = uplink.get('status', 'unknown')
+                                        
+                                        status_icon = '🟢' if status == 'active' else '🔴'
+                                        output.append(f"   {interface}: {status_icon} {status.title()}")
+                                        
+                                        # Try to get recent loss/latency
+                                        try:
+                                            perf_data = meraki.dashboard.organizations.getOrganizationDevicesUplinksLossAndLatency(
+                                                network.get('organizationId'),
+                                                networkId=network_id,
+                                                timespan=300,  # Last 5 minutes
+                                                uplink=interface.lower()
+                                            )
+                                            if perf_data:
+                                                recent = perf_data[-5:] if len(perf_data) > 5 else perf_data
+                                                avg_loss = sum(p.get('lossPercent', 0) for p in recent) / len(recent)
+                                                avg_latency = sum(p.get('latencyMs', 0) for p in recent) / len(recent)
+                                                
+                                                loss_icon = '🟢' if avg_loss < 1 else '🟡' if avg_loss < 5 else '🔴'
+                                                lat_icon = '🟢' if avg_latency < 50 else '🟡' if avg_latency < 100 else '🔴'
+                                                
+                                                output.append(f"     Packet Loss: {loss_icon} {avg_loss:.1f}%")
+                                                output.append(f"     Latency: {lat_icon} {avg_latency:.1f} ms")
+                                        except:
+                                            pass
+                            except:
+                                # Fallback to just showing enabled/disabled
+                                for interface in uplinks.get('interfaces', {}).values():
+                                    if interface.get('enabled'):
+                                        wan = interface.get('wan', {})
+                                        output.append(f"   {wan.get('interface', 'Unknown')}:")
+                                        output.append(f"     Status: {'✅ Enabled' if wan.get('enabled') else '❌ Disabled'}")
                             output.append("")
                         except:
                             pass

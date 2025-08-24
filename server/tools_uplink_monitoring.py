@@ -117,6 +117,65 @@ def get_uplink_status(network_id: str) -> str:
             # Fallback - just show basic info
             pass
         
+        # Get recent loss and latency metrics
+        try:
+            output.append("\n📊 Link Quality (Last 5 minutes):")
+            
+            # Get loss and latency for active WAN interfaces
+            for wan in ['wan1', 'wan2']:
+                try:
+                    loss_latency = meraki.dashboard.appliance.getNetworkApplianceUplinksUsageHistory(
+                        network_id,
+                        timespan=300  # 5 minutes
+                    )
+                    
+                    if loss_latency:
+                        # Parse the most recent entry
+                        latest = loss_latency[-1] if loss_latency else None
+                        if latest and 'byInterface' in latest:
+                            for iface in latest['byInterface']:
+                                if iface.get('interface', '').lower() == wan:
+                                    output.append(f"\n{wan.upper()}:")
+                                    
+                                    # Check if we have loss/latency data
+                                    if 'lossPercent' in iface or 'latencyMs' in iface:
+                                        loss = iface.get('lossPercent', 0)
+                                        latency = iface.get('latencyMs', 0)
+                                        
+                                        # Loss indicator
+                                        loss_icon = '🟢' if loss < 1 else '🟡' if loss < 5 else '🔴'
+                                        output.append(f"   Packet Loss: {loss_icon} {loss:.1f}%")
+                                        
+                                        # Latency indicator
+                                        lat_icon = '🟢' if latency < 50 else '🟡' if latency < 100 else '🔴'
+                                        output.append(f"   Latency: {lat_icon} {latency:.1f} ms")
+                                    else:
+                                        # Try alternative API
+                                        try:
+                                            perf_data = meraki.dashboard.organizations.getOrganizationDevicesUplinksLossAndLatency(
+                                                org_id,
+                                                timespan=300,
+                                                uplink=wan,
+                                                networkId=network_id
+                                            )
+                                            if perf_data:
+                                                # Average the recent samples
+                                                recent = perf_data[-5:] if len(perf_data) > 5 else perf_data
+                                                avg_loss = sum(p.get('lossPercent', 0) for p in recent) / len(recent)
+                                                avg_latency = sum(p.get('latencyMs', 0) for p in recent) / len(recent)
+                                                
+                                                loss_icon = '🟢' if avg_loss < 1 else '🟡' if avg_loss < 5 else '🔴'
+                                                output.append(f"   Packet Loss: {loss_icon} {avg_loss:.1f}%")
+                                                
+                                                lat_icon = '🟢' if avg_latency < 50 else '🟡' if avg_latency < 100 else '🔴'
+                                                output.append(f"   Latency: {lat_icon} {avg_latency:.1f} ms")
+                                        except:
+                                            pass
+                except:
+                    continue
+        except Exception as e:
+            output.append(f"\n⚠️ Could not retrieve link quality metrics: {str(e)}")
+        
         # Show quick actions
         output.extend([
             "",
@@ -628,17 +687,43 @@ def analyze_uplink_health(
 Analysis Period: Last {timespan // 3600} hours
 """
             
+            # Get network info first
+            try:
+                network = meraki.dashboard.networks.getNetwork(network_id)
+            except Exception as e:
+                return f"❌ Failed to get network information: {str(e)}"
+            
             # Get uplink status
             uplinks = meraki.dashboard.appliance.getNetworkApplianceUplinksSettings(
                 networkId=network_id
             )
             
-            # Get performance history
-            wan1_history = meraki.dashboard.appliance.getNetworkApplianceLossAndLatencyHistory(
-                networkId=network_id,
-                timespan=timespan,
-                uplink='wan1'
-            )
+            # Get performance history with error handling
+            wan1_history = None
+            wan2_history = None
+            
+            try:
+                # Note: This API might have timespan limitations
+                actual_timespan = min(timespan, 86400)  # Limit to 24 hours max
+                wan1_history = meraki.dashboard.organizations.getOrganizationDevicesUplinksLossAndLatency(
+                    network.get('organizationId'),
+                    networkId=network_id,
+                    timespan=actual_timespan,
+                    uplink='wan1'
+                )
+            except Exception as e:
+                # Try alternative API
+                try:
+                    devices = meraki.dashboard.networks.getNetworkDevices(network_id)
+                    mx_device = next((d for d in devices if d.get('model', '').startswith('MX')), None)
+                    if mx_device:
+                        wan1_history = meraki.dashboard.devices.getDeviceLossAndLatencyHistory(
+                            mx_device['serial'],
+                            timespan=min(timespan, 300),  # This API may be limited to 5 minutes
+                            uplink='wan1'
+                        )
+                except:
+                    pass
             
             # Analyze WAN 1
             if wan1_history:
