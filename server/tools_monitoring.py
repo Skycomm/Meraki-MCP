@@ -300,7 +300,7 @@ def register_monitoring_tool_handlers():
     
     @app.tool(
         name="get_network_events",
-        description="📋 Get network events including port carrier changes for MX appliances"
+        description="📋 Get network events - security alerts, config changes, port flapping, device status, admin activity"
     )
     def get_network_events(network_id: str, product_type: str = None, event_types: str = None, 
                           per_page: int = 100, timespan: int = 86400):

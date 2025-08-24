@@ -1232,7 +1232,7 @@ def register_appliance_tool_handlers():
     
     @app.tool(
         name="get_network_appliance_security_events",
-        description="🚨 Get security events/threats detected on the network"
+        description="🚨 Get security threats detected - IDS/IPS blocks, malware detections, intrusion attempts, blocked attacks"
     )
     def get_network_appliance_security_events(
         network_id: str,

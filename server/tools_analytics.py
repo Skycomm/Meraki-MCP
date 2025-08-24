@@ -26,7 +26,7 @@ def register_analytics_tool_handlers():
     
     @app.tool(
         name="get_organization_uplinks_loss_and_latency", 
-        description="🚨 Get REAL packet loss and latency for all organization uplinks (5 minutes)"
+        description="🚨 Monitor packet loss & latency - detect DDoS attacks, ISP issues, network degradation across all sites"
     )
     def get_organization_uplinks_loss_and_latency(org_id: str, timespan: int = 300):
         """

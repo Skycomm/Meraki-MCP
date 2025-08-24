@@ -59,9 +59,24 @@ def register_wireless_tool_handlers():
                     encryption_mode = ssid.get('encryptionMode', 'Unknown')
                     result += f"- Encryption: {encryption_mode}\n"
                 
+                # Add IP assignment mode
+                ip_mode = ssid.get('ipAssignmentMode', 'Unknown')
+                result += f"- IP Assignment Mode: {ip_mode}\n"
+                
+                # Add VLAN settings if in bridge mode
+                if ip_mode == 'Bridge mode':
+                    use_vlan = ssid.get('useVlanTagging', False)
+                    if use_vlan:
+                        result += f"- VLAN Tagging: Enabled\n"
+                        result += f"- VLAN ID: {ssid.get('vlanId', 'Not set')}\n"
+                
                 # Add additional settings
                 result += f"- Band Selection: {ssid.get('bandSelection', 'Unknown')}\n"
                 result += f"- Minimum Bitrate: {ssid.get('minBitrate', 'Unknown')}\n"
+                
+                # LAN isolation
+                if ssid.get('lanIsolationEnabled'):
+                    result += f"- LAN Isolation: Enabled\n"
                 
                 result += "\n"
                 
@@ -72,7 +87,7 @@ def register_wireless_tool_handlers():
     
     @app.tool(
         name="get_network_wireless_passwords",
-        description="🔑 Get WiFi passwords/PSK for wireless networks"
+        description="🔑 Get WiFi passwords/PSK - retrieve for security audits, password complexity checks, credential sharing"
     )
     def get_network_wireless_passwords(network_id: str):
         """
@@ -128,13 +143,16 @@ def register_wireless_tool_handlers():
     
     @app.tool(
         name="update_network_wireless_ssid",
-        description="🔐 Update wireless SSID including security settings (WPA2-PSK, etc)"
+        description="🔐 Update wireless SSID - security, bridge mode, VLAN tagging, and more"
     )
     def update_network_wireless_ssid(network_id: str, ssid_number: int, name: str = None, enabled: bool = None,
                                    auth_mode: str = None, psk: str = None, encryption_mode: str = None,
-                                   wpa_encryption_mode: str = None, visible: bool = None):
+                                   wpa_encryption_mode: str = None, visible: bool = None,
+                                   ip_assignment_mode: str = None, use_vlan_tagging: bool = None,
+                                   vlan_id: int = None, default_vlan_id: int = None,
+                                   lan_isolation_enabled: bool = None):
         """
-        Update a wireless SSID for a Meraki network with full security configuration.
+        Update a wireless SSID for a Meraki network with full configuration support.
         
         Args:
             network_id: ID of the network
@@ -146,13 +164,24 @@ def register_wireless_tool_handlers():
             encryption_mode: Encryption mode - 'open', 'wep', 'wpa' (required if auth_mode is 'psk')
             wpa_encryption_mode: WPA mode - 'WPA2 only', 'WPA3 only', etc (optional)
             visible: Whether SSID is broadcast (optional)
+            ip_assignment_mode: 'NAT mode' or 'Bridge mode' or 'Layer 3 roaming' (optional)
+            use_vlan_tagging: Enable VLAN tagging (required for Bridge mode with VLANs) (optional)
+            vlan_id: The VLAN ID to use when use_vlan_tagging is true (optional)
+            default_vlan_id: Default VLAN ID for the SSID (optional)
+            lan_isolation_enabled: Prevent wireless clients from communicating with each other (optional)
             
         Returns:
             Updated SSID details
             
-        Example:
-            To set up WPA2-PSK with password:
-            auth_mode='psk', psk='YourPassword', encryption_mode='wpa', wpa_encryption_mode='WPA2 only'
+        Examples:
+            1. WPA2-PSK with password:
+               auth_mode='psk', psk='YourPassword', encryption_mode='wpa', wpa_encryption_mode='WPA2 only'
+            
+            2. Bridge mode to local network:
+               ip_assignment_mode='Bridge mode'
+            
+            3. Bridge mode with VLAN 100:
+               ip_assignment_mode='Bridge mode', use_vlan_tagging=True, vlan_id=100
         """
         try:
             # Convert snake_case to camelCase for API
@@ -165,7 +194,12 @@ def register_wireless_tool_handlers():
                 psk=psk,
                 encryptionMode=encryption_mode,
                 wpaEncryptionMode=wpa_encryption_mode,
-                visible=visible
+                visible=visible,
+                ipAssignmentMode=ip_assignment_mode,
+                useVlanTagging=use_vlan_tagging,
+                vlanId=vlan_id,
+                defaultVlanId=default_vlan_id,
+                lanIsolationEnabled=lan_isolation_enabled
             )
             
             # Format success message
@@ -184,6 +218,16 @@ def register_wireless_tool_handlers():
                 updates.append(f"wpa='{wpa_encryption_mode}'")
             if visible is not None:
                 updates.append(f"visible={visible}")
+            if ip_assignment_mode is not None:
+                updates.append(f"IP mode='{ip_assignment_mode}'")
+            if use_vlan_tagging is not None:
+                updates.append(f"VLAN tagging={use_vlan_tagging}")
+            if vlan_id is not None:
+                updates.append(f"VLAN ID={vlan_id}")
+            if default_vlan_id is not None:
+                updates.append(f"default VLAN={default_vlan_id}")
+            if lan_isolation_enabled is not None:
+                updates.append(f"LAN isolation={lan_isolation_enabled}")
                 
             return f"✅ SSID {ssid_number} updated successfully: {', '.join(updates)}"
             
@@ -475,3 +519,76 @@ def register_wireless_tool_handlers():
             
         except Exception as e:
             return f"Error retrieving channel utilization: {str(e)}"
+    
+    @app.tool(
+        name="configure_ssid_bridge_mode",
+        description="🌉 Quick setup for WiFi bridge mode - connects wireless clients to local network"
+    )
+    def configure_ssid_bridge_mode(network_id: str, ssid_number: int, vlan_id: int = None):
+        """
+        Configure an SSID for bridge mode to connect wireless clients to the local network.
+        
+        Args:
+            network_id: ID of the network
+            ssid_number: Number of the SSID to configure (0-14)
+            vlan_id: Optional VLAN ID for tagged traffic (omit for untagged/native VLAN)
+            
+        Returns:
+            Configuration result
+            
+        Example:
+            - Bridge to native VLAN: configure_ssid_bridge_mode(network_id, 0)
+            - Bridge to VLAN 100: configure_ssid_bridge_mode(network_id, 0, vlan_id=100)
+        """
+        try:
+            # Get current SSID config first
+            ssids = meraki_client.get_network_wireless_ssids(network_id)
+            current_ssid = next((s for s in ssids if s.get('number') == ssid_number), None)
+            
+            if not current_ssid:
+                return f"❌ SSID {ssid_number} not found"
+            
+            ssid_name = current_ssid.get('name', f'SSID {ssid_number}')
+            
+            # Configure bridge mode
+            kwargs = {
+                'ipAssignmentMode': 'Bridge mode',
+                'useVlanTagging': vlan_id is not None
+            }
+            
+            if vlan_id:
+                kwargs['vlanId'] = vlan_id
+            
+            result = meraki_client.update_network_wireless_ssid(
+                network_id,
+                ssid_number,
+                **kwargs
+            )
+            
+            # Format response
+            if vlan_id:
+                return f"""✅ Bridge Mode Configured for {ssid_name}!
+                
+**Configuration:**
+- IP Assignment: Bridge mode
+- VLAN Tagging: Enabled
+- VLAN ID: {vlan_id}
+
+**Result:** Wireless clients will now:
+- Receive IP addresses from VLAN {vlan_id}'s DHCP server
+- Be on the same network as wired devices in VLAN {vlan_id}
+- Have direct access to local network resources"""
+            else:
+                return f"""✅ Bridge Mode Configured for {ssid_name}!
+                
+**Configuration:**
+- IP Assignment: Bridge mode
+- VLAN Tagging: Disabled (native/untagged VLAN)
+
+**Result:** Wireless clients will now:
+- Receive IP addresses from your main network's DHCP server
+- Be on the same network as wired devices
+- Have direct access to all local network resources"""
+            
+        except Exception as e:
+            return f"❌ Error configuring bridge mode: {str(e)}"
