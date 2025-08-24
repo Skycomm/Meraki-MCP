@@ -142,13 +142,21 @@ def get_uplink_status(network_id: str) -> str:
                                         loss = iface.get('lossPercent', 0)
                                         latency = iface.get('latencyMs', 0)
                                         
+                                        # Don't show 0.0ms latency - it's not real
+                                        if latency == 0:
+                                            latency = None
+                                        
                                         # Loss indicator
                                         loss_icon = '🟢' if loss < 1 else '🟡' if loss < 5 else '🔴'
-                                        output.append(f"   Packet Loss: {loss_icon} {loss:.1f}%")
+                                        output.append(f"   📉 Packet Loss: {loss_icon} {loss:.1f}%")
                                         
                                         # Latency indicator
-                                        lat_icon = '🟢' if latency < 50 else '🟡' if latency < 100 else '🔴'
-                                        output.append(f"   Latency: {lat_icon} {latency:.1f} ms")
+                                        if latency is not None:
+                                            lat_icon = '🟢' if latency < 50 else '🟡' if latency < 100 else '🔴'
+                                            quality = "Excellent" if latency < 20 else "Good" if latency < 50 else "Fair" if latency < 100 else "Poor"
+                                            output.append(f"   ⏱️ Latency: {lat_icon} {latency:.1f} ms ({quality})")
+                                        else:
+                                            output.append(f"   ⏱️ Latency: Measuring...")
                                     else:
                                         # Try alternative API
                                         try:
@@ -161,20 +169,38 @@ def get_uplink_status(network_id: str) -> str:
                                             if perf_data:
                                                 # Average the recent samples
                                                 recent = perf_data[-5:] if len(perf_data) > 5 else perf_data
-                                                avg_loss = sum(p.get('lossPercent', 0) for p in recent) / len(recent)
-                                                avg_latency = sum(p.get('latencyMs', 0) for p in recent) / len(recent)
+                                                avg_loss = sum(p.get('lossPercent', 0) for p in recent) / len(recent) if recent else 0
+                                                
+                                                # Calculate average latency, excluding zeros
+                                                latencies = [p.get('latencyMs', 0) for p in recent if p.get('latencyMs', 0) > 0]
+                                                avg_latency = sum(latencies) / len(latencies) if latencies else None
                                                 
                                                 loss_icon = '🟢' if avg_loss < 1 else '🟡' if avg_loss < 5 else '🔴'
-                                                output.append(f"   Packet Loss: {loss_icon} {avg_loss:.1f}%")
+                                                output.append(f"   📉 Packet Loss: {loss_icon} {avg_loss:.1f}%")
                                                 
-                                                lat_icon = '🟢' if avg_latency < 50 else '🟡' if avg_latency < 100 else '🔴'
-                                                output.append(f"   Latency: {lat_icon} {avg_latency:.1f} ms")
+                                                if avg_latency is not None:
+                                                    lat_icon = '🟢' if avg_latency < 50 else '🟡' if avg_latency < 100 else '🔴'
+                                                    quality = "Excellent" if avg_latency < 20 else "Good" if avg_latency < 50 else "Fair" if avg_latency < 100 else "Poor"
+                                                    output.append(f"   ⏱️ Latency: {lat_icon} {avg_latency:.1f} ms ({quality})")
+                                                else:
+                                                    output.append(f"   ⏱️ Latency: Measuring...")
                                         except:
                                             pass
                 except:
                     continue
         except Exception as e:
             output.append(f"\n⚠️ Could not retrieve link quality metrics: {str(e)}")
+        
+        # If we didn't get latency data, suggest running a ping test
+        need_ping_test = True
+        for line in output:
+            if "Latency:" in line and "Measuring..." not in line:
+                need_ping_test = False
+                break
+        
+        if need_ping_test and mx_device:
+            output.append("\n💡 Tip: Run a ping test for accurate latency measurement:")
+            output.append(f"   create_device_ping_test(serial='{mx_device['serial']}', target='8.8.8.8')")
         
         # Show quick actions
         output.extend([
@@ -336,12 +362,13 @@ def get_realtime_bandwidth_usage(network_id: str) -> str:
                 latest = usage[-1] if usage else None
                 
                 if latest and 'byInterface' in latest:
-                    output.append(f"Time Period: {latest.get('startTime', '')} to {latest.get('endTime', '')}")
+                    output.append(f"⏰ Time Period: {latest.get('startTime', '')} to {latest.get('endTime', '')}")
                     output.append("")
                     
                     # Process each interface
                     total_sent = 0
                     total_recv = 0
+                    active_interfaces = []
                     
                     for iface_data in latest.get('byInterface', []):
                         interface = iface_data.get('interface', 'Unknown')
@@ -359,17 +386,38 @@ def get_realtime_bandwidth_usage(network_id: str) -> str:
                         
                         total_sent += sent_mbps
                         total_recv += recv_mbps
+                        active_interfaces.append((interface, sent_mbps, recv_mbps))
                         
-                        output.append(f"Interface: {interface}")
+                    # Show active interfaces first
+                    for interface, sent_mbps, recv_mbps in active_interfaces:
+                        output.append(f"🔌 Interface: {interface}")
+                        
+                        # Create visual bandwidth bars
+                        upload_bar = "█" * min(int(sent_mbps / 2), 20)  # 1 block = 2 Mbps, max 20 blocks
+                        download_bar = "█" * min(int(recv_mbps / 2), 20)
+                        
                         output.append(f"📤 Upload: {sent_mbps:.2f} Mbps")
+                        output.append(f"   [{upload_bar:<20}]")
                         output.append(f"📥 Download: {recv_mbps:.2f} Mbps")
+                        output.append(f"   [{download_bar:<20}]")
                         output.append("")
                     
                     if total_sent > 0 or total_recv > 0:
-                        output.append(f"📊 Total Bandwidth:")
-                        output.append(f"   Upload: {total_sent:.2f} Mbps")
-                        output.append(f"   Download: {total_recv:.2f} Mbps")
-                        output.append(f"   Combined: {(total_sent + total_recv):.2f} Mbps")
+                        output.append("📊 Total Bandwidth Summary:")
+                        output.append(f"   📤 Total Upload: {total_sent:.2f} Mbps")
+                        output.append(f"   📥 Total Download: {total_recv:.2f} Mbps")
+                        output.append(f"   🔗 Combined: {(total_sent + total_recv):.2f} Mbps")
+                        
+                        # Add usage interpretation
+                        total_mbps = total_sent + total_recv
+                        if total_mbps < 10:
+                            output.append(f"   📊 Usage: Light")
+                        elif total_mbps < 50:
+                            output.append(f"   📊 Usage: Moderate")
+                        elif total_mbps < 100:
+                            output.append(f"   📊 Usage: Heavy")
+                        else:
+                            output.append(f"   📊 Usage: Very Heavy")
                 else:
                     output.append("No recent bandwidth data available")
             else:

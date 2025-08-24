@@ -159,14 +159,20 @@ def get_network_health_summary(network_id: str, timespan: Optional[int] = 300) -
                                             )
                                             if perf_data:
                                                 recent = perf_data[-5:] if len(perf_data) > 5 else perf_data
-                                                avg_loss = sum(p.get('lossPercent', 0) for p in recent) / len(recent)
-                                                avg_latency = sum(p.get('latencyMs', 0) for p in recent) / len(recent)
+                                                avg_loss = sum(p.get('lossPercent', 0) for p in recent) / len(recent) if recent else 0
+                                                
+                                                # Calculate average latency, excluding zeros
+                                                latencies = [p.get('latencyMs', 0) for p in recent if p.get('latencyMs', 0) > 0]
+                                                avg_latency = sum(latencies) / len(latencies) if latencies else None
                                                 
                                                 loss_icon = '🟢' if avg_loss < 1 else '🟡' if avg_loss < 5 else '🔴'
-                                                lat_icon = '🟢' if avg_latency < 50 else '🟡' if avg_latency < 100 else '🔴'
-                                                
                                                 output.append(f"     Packet Loss: {loss_icon} {avg_loss:.1f}%")
-                                                output.append(f"     Latency: {lat_icon} {avg_latency:.1f} ms")
+                                                
+                                                if avg_latency is not None:
+                                                    lat_icon = '🟢' if avg_latency < 50 else '🟡' if avg_latency < 100 else '🔴'
+                                                    output.append(f"     Latency: {lat_icon} {avg_latency:.1f} ms")
+                                                else:
+                                                    output.append(f"     Latency: Checking...")
                                         except:
                                             pass
                             except:
@@ -284,6 +290,15 @@ def get_uplink_bandwidth_summary(
         
         if not mx_devices:
             return "❌ No MX devices found in this network"
+        
+        # Add time range header
+        hours = timespan // 3600
+        minutes = (timespan % 3600) // 60
+        if hours > 0:
+            output.append(f"⏰ Time Range: Last {hours} hour{'s' if hours > 1 else ''}")
+        else:
+            output.append(f"⏰ Time Range: Last {minutes} minutes")
+        output.append(f"📊 Resolution: {resolution // 60} minute intervals")
         
         for mx in mx_devices:
             output.append(f"\n🔧 Device: {mx['name']} ({mx['model']})")
