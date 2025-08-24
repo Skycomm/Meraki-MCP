@@ -1,10 +1,17 @@
 # 📚 Complete Cisco Meraki MCP Server Features Guide 2025
 
 ## 🎯 Overview
+<<<<<<< HEAD
 **Total Tools**: 98
 **Categories**: 15
 **New in 2025**: 39 tools
 **Latest Addition**: Safe port toggle functions (4 new port tools)
+=======
+**Total Tools**: 96
+**Categories**: 15
+**New in 2025**: 39 tools
+**Latest Addition**: Safe port toggle functions
+>>>>>>> main
 
 ---
 

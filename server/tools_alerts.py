@@ -45,17 +45,18 @@ def register_alert_tool_handlers():
                 return f"No webhooks found for organization {org_id}."
                 
             result = f"# 🔔 Webhooks for Organization {org_id}\n\n"
+            result += f"**Total Webhooks**: {len(webhooks)}\n\n"
             
-            for webhook in webhooks:
-                result += f"## {webhook.get('name', 'Unnamed Webhook')}\n"
+            for i, webhook in enumerate(webhooks, 1):
+                result += f"## {i}. {webhook.get('name', 'Unnamed Webhook')}\n"
+                result += f"- **ID**: `{webhook.get('id', 'N/A')}`\n"
                 result += f"- **URL**: {webhook.get('url', 'N/A')}\n"
                 result += f"- **Shared Secret**: {'***' if webhook.get('sharedSecret') else 'Not set'}\n"
-                result += f"- **Network ID**: {webhook.get('networkId', 'All Networks')}\n"
                 
-                # Alert types
-                alert_types = webhook.get('alertTypeIds', [])
-                if alert_types:
-                    result += f"- **Alert Types**: {', '.join(alert_types)}\n"
+                # Payload template
+                template = webhook.get('payloadTemplate')
+                if template:
+                    result += f"- **Payload Template**: {template.get('name', 'Default')}\n"
                 
                 result += "\n"
                 
@@ -181,6 +182,113 @@ def register_alert_tool_handlers():
             return f"Error creating webhook HTTP server: {str(e)}"
     
     @app.tool(
+        name="delete_organization_webhook",
+        description="🗑️ Delete a webhook from an organization"
+    )
+    def delete_organization_webhook(org_id: str, webhook_id: str, network_id: str = None):
+        """
+        Delete a webhook HTTP server from an organization.
+        
+        Args:
+            org_id: Organization ID
+            webhook_id: Webhook HTTP server ID
+            network_id: Network ID (optional - if known, makes deletion faster)
+            
+        Returns:
+            Success or error message
+        """
+        try:
+            meraki_client.delete_organization_webhook(org_id, webhook_id, network_id)
+            if network_id:
+                return f"✅ Successfully deleted webhook {webhook_id} from network {network_id}"
+            else:
+                return f"✅ Successfully deleted webhook {webhook_id} from organization {org_id}"
+            
+        except Exception as e:
+            return f"❌ Error deleting webhook: {str(e)}"
+    
+    @app.tool(
+        name="delete_network_webhook",
+        description="🗑️ Delete a webhook HTTP server from a network"
+    )
+    def delete_network_webhook(network_id: str, webhook_id: str):
+        """
+        Delete a webhook HTTP server from a network.
+        
+        Args:
+            network_id: Network ID
+            webhook_id: Webhook HTTP server ID
+            
+        Returns:
+            Success or error message
+        """
+        try:
+            meraki_client.delete_network_webhook(network_id, webhook_id)
+            return f"✅ Successfully deleted webhook {webhook_id} from network {network_id}"
+            
+        except Exception as e:
+            return f"❌ Error deleting webhook: {str(e)}"
+    
+    @app.tool(
+        name="delete_all_organization_webhooks",
+        description="🗑️ Delete ALL webhooks from an organization (use with caution!)"
+    )
+    def delete_all_organization_webhooks(org_id: str, confirm: bool = False):
+        """
+        Delete all webhook HTTP servers from an organization.
+        
+        Args:
+            org_id: Organization ID
+            confirm: Must be True to proceed (safety check)
+            
+        Returns:
+            Summary of deleted webhooks
+        """
+        if not confirm:
+            return "❌ Safety check: Set confirm=True to delete all webhooks"
+            
+        try:
+            # Get all webhooks
+            webhooks = meraki_client.get_organization_webhooks(org_id)
+            
+            if not webhooks:
+                return f"No webhooks found for organization {org_id}"
+            
+            result = f"# 🗑️ Deleting All Webhooks from Organization {org_id}\n\n"
+            result += f"**Total webhooks to delete**: {len(webhooks)}\n\n"
+            
+            deleted = 0
+            failed = 0
+            
+            for webhook in webhooks:
+                webhook_id = webhook.get('id')
+                webhook_name = webhook.get('name', 'Unnamed')
+                
+                if not webhook_id:
+                    result += f"⚠️ Skipped {webhook_name} - No ID found\n"
+                    failed += 1
+                    continue
+                    
+                try:
+                    # Pass network_id if available
+                    network_id = webhook.get('networkId')
+                    meraki_client.delete_organization_webhook(org_id, webhook_id, network_id)
+                    result += f"✅ Deleted: {webhook_name} (ID: {webhook_id}) from network {webhook.get('networkName', 'Unknown')}\n"
+                    deleted += 1
+                except Exception as e:
+                    result += f"❌ Failed to delete {webhook_name}: {str(e)}\n"
+                    failed += 1
+            
+            result += f"\n## Summary\n"
+            result += f"- **Deleted**: {deleted} webhooks\n"
+            result += f"- **Failed**: {failed} webhooks\n"
+            
+            return result
+            
+        except Exception as e:
+            return f"❌ Error deleting webhooks: {str(e)}"
+    
+    @app.tool(
         name="get_network_alerts_settings",
         description="⚠️ Get alert settings for a network"
     )
@@ -233,7 +341,10 @@ def register_alert_tool_handlers():
                     if filters:
                         result += "  Filters:\n"
                         for key, value in filters.items():
-                            result += f"  - {key}: {value}\n"
+                            if key == 'timeout':
+                                result += f"  - {key}: {value} seconds\n"
+                            else:
+                                result += f"  - {key}: {value}\n"
                             
                     alert_dest = alert.get('alertDestinations', {})
                     if alert_dest:
@@ -256,7 +367,8 @@ def register_alert_tool_handlers():
     def update_network_alerts_settings(network_id: str, emails: str = None, all_admins: bool = None, 
                                      enable_device_down: bool = None, enable_gateway_down: bool = None,
                                      enable_dhcp_failure: bool = None, enable_high_usage: bool = None,
-                                     enable_ip_conflict: bool = None):
+                                     enable_ip_conflict: bool = None, enable_security_events: bool = None,
+                                     enable_rogue_ap: bool = None, enable_client_connectivity: bool = None):
         """
         Update alert settings for a network.
         
@@ -264,11 +376,14 @@ def register_alert_tool_handlers():
             network_id: Network ID
             emails: Comma-separated email addresses for alerts
             all_admins: Send alerts to all admins
-            enable_device_down: Enable device down alerts
-            enable_gateway_down: Enable gateway connectivity alerts
+            enable_device_down: Enable device down alerts (MX, camera, switch, AP)
+            enable_gateway_down: Enable gateway connectivity alerts (VPN, uplink)
             enable_dhcp_failure: Enable DHCP failure alerts
             enable_high_usage: Enable high wireless usage alerts
             enable_ip_conflict: Enable IP conflict detection alerts
+            enable_security_events: Enable security event alerts (IDS/IPS, malware)
+            enable_rogue_ap: Enable rogue access point detection alerts
+            enable_client_connectivity: Enable client connectivity failure alerts
             
         Returns:
             Updated alert settings
@@ -293,6 +408,23 @@ def register_alert_tool_handlers():
             
             # Device down alerts
             if enable_device_down is not None:
+                # MX/Security appliance down
+                alerts.append({
+                    'type': 'applianceDown',
+                    'enabled': enable_device_down,
+                    'alertDestinations': {
+                        'allAdmins': True
+                    }
+                })
+                # Camera down
+                alerts.append({
+                    'type': 'cameraDown',
+                    'enabled': enable_device_down,
+                    'alertDestinations': {
+                        'allAdmins': True
+                    }
+                })
+                # Gateway down (for gateway devices)
                 alerts.append({
                     'type': 'gatewayDown',
                     'enabled': enable_device_down,
@@ -300,6 +432,7 @@ def register_alert_tool_handlers():
                         'allAdmins': True
                     }
                 })
+                # Repeater down
                 alerts.append({
                     'type': 'repeaterDown',
                     'enabled': enable_device_down,
@@ -307,15 +440,17 @@ def register_alert_tool_handlers():
                         'allAdmins': True
                     }
                 })
+                # Cellular backup up/down
                 alerts.append({
-                    'type': 'switchDown',
+                    'type': 'cellularUpDown',
                     'enabled': enable_device_down,
                     'alertDestinations': {
                         'allAdmins': True
                     }
                 })
+                # Node hardware failure (covers switches and APs)
                 alerts.append({
-                    'type': 'wirelessDown',
+                    'type': 'nodeHardwareFailure',
                     'enabled': enable_device_down,
                     'alertDestinations': {
                         'allAdmins': True
@@ -332,7 +467,7 @@ def register_alert_tool_handlers():
                     }
                 })
                 alerts.append({
-                    'type': 'uplinkStatusChange',
+                    'type': 'failoverEvent',
                     'enabled': enable_gateway_down,
                     'alertDestinations': {
                         'allAdmins': True
@@ -349,7 +484,7 @@ def register_alert_tool_handlers():
                     }
                 })
                 alerts.append({
-                    'type': 'dhcpServerProblem',
+                    'type': 'rogueDhcp',
                     'enabled': enable_dhcp_failure,
                     'alertDestinations': {
                         'allAdmins': True
@@ -376,6 +511,45 @@ def register_alert_tool_handlers():
                     }
                 })
             
+            # Security events (IDS/IPS, malware)
+            if enable_security_events is not None:
+                # AMP malware detected
+                alerts.append({
+                    'type': 'ampMalwareDetected',
+                    'enabled': enable_security_events,
+                    'alertDestinations': {
+                        'allAdmins': True
+                    }
+                })
+                # AMP malware blocked
+                alerts.append({
+                    'type': 'ampMalwareBlocked',
+                    'enabled': enable_security_events,
+                    'alertDestinations': {
+                        'allAdmins': True
+                    }
+                })
+            
+            # Rogue AP detection
+            if enable_rogue_ap is not None:
+                alerts.append({
+                    'type': 'rogueAp',
+                    'enabled': enable_rogue_ap,
+                    'alertDestinations': {
+                        'allAdmins': True
+                    }
+                })
+            
+            # Client connectivity failures
+            if enable_client_connectivity is not None:
+                alerts.append({
+                    'type': 'clientConnectivity',
+                    'enabled': enable_client_connectivity,
+                    'alertDestinations': {
+                        'allAdmins': True
+                    }
+                })
+            
             if alerts:
                 update_data['alerts'] = alerts
                 
@@ -384,15 +558,21 @@ def register_alert_tool_handlers():
             result = "✅ Alert settings updated successfully!\n\n"
             result += "Enabled alerts:\n"
             if enable_device_down:
-                result += "- Device down alerts (gateway, repeater, switch, wireless)\n"
+                result += "- Device down alerts (MX/appliance, camera, gateway, repeater, cellular, hardware failures)\n"
             if enable_gateway_down:
-                result += "- Gateway connectivity issues (VPN, uplink status)\n"
+                result += "- Gateway connectivity issues (VPN changes, failover events)\n"
             if enable_dhcp_failure:
-                result += "- DHCP failures (no leases, server problems)\n"
+                result += "- DHCP issues (no leases available, rogue DHCP servers)\n"
             if enable_high_usage:
-                result += "- High wireless usage\n"
+                result += "- High wireless usage alerts\n"
             if enable_ip_conflict:
                 result += "- IP conflict detection\n"
+            if enable_security_events:
+                result += "- Security events (malware detected/blocked)\n"
+            if enable_rogue_ap:
+                result += "- Rogue access point detection\n"
+            if enable_client_connectivity:
+                result += "- Client connectivity monitoring\n"
             
             return result
             

@@ -32,7 +32,7 @@ class MerakiClient:
     # Networks
     def get_organization_networks(self, org_id: str) -> List[Dict[str, Any]]:
         """Get networks in an organization."""
-        return self.dashboard.organizations.getOrganizationNetworks(org_id)
+        return self.dashboard.organizations.getOrganizationNetworks(org_id, perPage=1000, total_pages='all')
     
     def get_network(self, network_id: str) -> Dict[str, Any]:
         """Get information about a specific network."""
@@ -41,7 +41,7 @@ class MerakiClient:
     # Devices
     def get_network_devices(self, network_id: str) -> List[Dict[str, Any]]:
         """Get devices in a network."""
-        return self.dashboard.networks.getNetworkDevices(network_id)
+        return self.dashboard.networks.getNetworkDevices(network_id, perPage=1000, total_pages='all')
     
     def get_device(self, serial: str) -> Dict[str, Any]:
         """Get information about a specific device."""
@@ -50,7 +50,14 @@ class MerakiClient:
     # Clients
     def get_network_clients(self, network_id: str, timespan: Optional[int] = 86400) -> List[Dict[str, Any]]:
         """Get clients in a network (default timespan: 24 hours)."""
-        return self.dashboard.networks.getNetworkClients(network_id, timespan=timespan)
+        # The SDK should handle pagination automatically with the iterator
+        # Let's explicitly set perPage to maximum (1000) to reduce API calls
+        return self.dashboard.networks.getNetworkClients(
+            network_id, 
+            timespan=timespan,
+            perPage=1000,  # Maximum allowed by Meraki API
+            total_pages='all'  # Ensure we get all pages
+        )
     
     # SSID
     def get_network_wireless_ssids(self, network_id: str) -> List[Dict[str, Any]]:
@@ -143,23 +150,37 @@ class MerakiClient:
             
         return self.dashboard.wireless.getNetworkWirelessUsageHistory(network_id, **kwargs)
     
-    def update_network_wireless_ssid(self, network_id: str, number: int, name: str = None, enabled: bool = None):
-        """Update wireless SSID - REAL method."""
+    def update_network_wireless_ssid(self, network_id: str, number: int, name: str = None, enabled: bool = None,
+                                    authMode: str = None, psk: str = None, encryptionMode: str = None, 
+                                    wpaEncryptionMode: str = None, visible: bool = None):
+        """Update wireless SSID - REAL method with full authentication support."""
         kwargs = {}
         if name is not None:
             kwargs['name'] = name
         if enabled is not None:
             kwargs['enabled'] = enabled
+        if authMode is not None:
+            kwargs['authMode'] = authMode
+        if psk is not None:
+            kwargs['psk'] = psk
+        if encryptionMode is not None:
+            kwargs['encryptionMode'] = encryptionMode
+        if wpaEncryptionMode is not None:
+            kwargs['wpaEncryptionMode'] = wpaEncryptionMode
+        if visible is not None:
+            kwargs['visible'] = visible
         return self.dashboard.wireless.updateNetworkWirelessSsid(network_id, number, **kwargs)
     
     # REAL Network Management Methods
-    def update_network(self, network_id: str, name: str = None, tags: List[str] = None) -> Dict[str, Any]:
+    def update_network(self, network_id: str, name: str = None, tags: List[str] = None, timezone: str = None) -> Dict[str, Any]:
         """Update a network - REAL method."""
         kwargs = {}
         if name is not None:
             kwargs['name'] = name
         if tags is not None:
             kwargs['tags'] = tags
+        if timezone is not None:
+            kwargs['timeZone'] = timezone
         return self.dashboard.networks.updateNetwork(network_id, **kwargs)
     
     def create_network(self, organization_id: str, name: str, productTypes: List[str]) -> Dict[str, Any]:
@@ -175,7 +196,8 @@ class MerakiClient:
         return self.dashboard.networks.deleteNetwork(network_id)
     
     # REAL Device Management Methods  
-    def update_device(self, serial: str, name: str = None, tags: List[str] = None, address: str = None) -> Dict[str, Any]:
+    def update_device(self, serial: str, name: str = None, tags: List[str] = None, address: str = None, 
+                     lat: float = None, lng: float = None) -> Dict[str, Any]:
         """Update a device - REAL method."""
         kwargs = {}
         if name is not None:
@@ -184,11 +206,15 @@ class MerakiClient:
             kwargs['tags'] = tags
         if address is not None:
             kwargs['address'] = address
+        if lat is not None:
+            kwargs['lat'] = lat
+        if lng is not None:
+            kwargs['lng'] = lng
         return self.dashboard.devices.updateDevice(serial, **kwargs)
     
     def get_device_clients(self, serial: str, timespan: int = 86400) -> List[Dict[str, Any]]:
         """Get clients for a specific device - REAL method."""
-        return self.dashboard.devices.getDeviceClients(serial, timespan=timespan)
+        return self.dashboard.devices.getDeviceClients(serial, timespan=timespan, perPage=1000, total_pages='all')
     
     def get_device_status(self, serial: str) -> Dict[str, Any]:
         """Get device status - REAL method."""
@@ -252,20 +278,69 @@ class MerakiClient:
     
     # REAL Alert & Webhook Methods
     def get_organization_webhooks(self, org_id: str):
-        """Get organization webhook alert types - REAL method."""
-        return self.dashboard.organizations.getOrganizationWebhooksAlertTypes(org_id)
+        """Get all webhook HTTP servers across all networks in the organization - REAL method."""
+        # Since regular webhooks are network-level, we need to iterate through all networks
+        try:
+            networks = self.dashboard.organizations.getOrganizationNetworks(org_id)
+            all_webhooks = []
+            
+            for network in networks:
+                network_id = network['id']
+                try:
+                    webhooks = self.dashboard.networks.getNetworkWebhooksHttpServers(network_id)
+                    # Add network info to each webhook
+                    for webhook in webhooks:
+                        webhook['networkId'] = network_id
+                        webhook['networkName'] = network.get('name', 'Unknown')
+                        all_webhooks.append(webhook)
+                except Exception:
+                    # Skip networks that don't support webhooks or have errors
+                    pass
+            
+            return all_webhooks
+        except Exception as e:
+            # Fallback to organization level if available (for Meraki Insight)
+            try:
+                return self.dashboard.organizations.getOrganizationWebhooksHttpServers(org_id)
+            except:
+                raise e
     
     def create_organization_webhook(self, org_id: str, **kwargs):
         """Create organization webhook HTTP server - REAL method."""
         return self.dashboard.organizations.createOrganizationWebhooksHttpServer(org_id, **kwargs)
     
+    def delete_organization_webhook(self, org_id: str, webhook_id: str, network_id: str = None):
+        """Delete webhook HTTP server - REAL method."""
+        # If network_id is provided, delete from network level
+        if network_id:
+            return self.dashboard.networks.deleteNetworkWebhooksHttpServer(network_id, webhook_id)
+        else:
+            # Try organization level (for Meraki Insight)
+            try:
+                return self.dashboard.organizations.deleteOrganizationWebhooksHttpServer(org_id, webhook_id)
+            except:
+                # If that fails, search all networks for the webhook
+                networks = self.dashboard.organizations.getOrganizationNetworks(org_id)
+                for network in networks:
+                    try:
+                        webhooks = self.dashboard.networks.getNetworkWebhooksHttpServers(network['id'])
+                        if any(w.get('id') == webhook_id for w in webhooks):
+                            return self.dashboard.networks.deleteNetworkWebhooksHttpServer(network['id'], webhook_id)
+                    except:
+                        pass
+                raise Exception(f"Webhook {webhook_id} not found in organization {org_id}")
+    
     def get_network_webhook_http_servers(self, network_id: str):
-        """Get network webhook payload templates - REAL method."""
-        return self.dashboard.networks.getNetworkWebhooksPayloadTemplates(network_id)
+        """Get network webhook HTTP servers - REAL method."""
+        return self.dashboard.networks.getNetworkWebhooksHttpServers(network_id)
     
     def create_network_webhook_http_server(self, network_id: str, **kwargs):
-        """Create network webhook payload template - REAL method."""
-        return self.dashboard.networks.createNetworkWebhooksPayloadTemplate(network_id, **kwargs)
+        """Create network webhook HTTP server - REAL method."""
+        return self.dashboard.networks.createNetworkWebhooksHttpServer(network_id, **kwargs)
+    
+    def delete_network_webhook(self, network_id: str, webhook_id: str):
+        """Delete network webhook HTTP server - REAL method."""
+        return self.dashboard.networks.deleteNetworkWebhooksHttpServer(network_id, webhook_id)
     
     def get_network_alerts_settings(self, network_id: str):
         """Get network alerts settings - REAL method."""
@@ -308,6 +383,10 @@ class MerakiClient:
         """Update content filtering settings - REAL method."""
         return self.dashboard.appliance.updateNetworkApplianceContentFiltering(network_id, **kwargs)
     
+    def get_network_appliance_content_filtering_categories(self, network_id: str):
+        """Get all available content filtering categories - REAL method."""
+        return self.dashboard.appliance.getNetworkApplianceContentFilteringCategories(network_id)
+    
     def get_network_appliance_vpn_site_to_site(self, network_id: str):
         """Get site-to-site VPN settings - REAL method."""
         return self.dashboard.appliance.getNetworkApplianceVpnSiteToSiteVpn(network_id)
@@ -344,6 +423,16 @@ class MerakiClient:
     def get_network_appliance_client_security_events(self, network_id: str, client_id: str, **kwargs):
         """Get security events for a specific client - REAL method."""
         return self.dashboard.appliance.getNetworkApplianceClientSecurityEvents(network_id, client_id, **kwargs)
+    
+    # Network Events (including port status changes)
+    def get_network_events(self, network_id: str, **kwargs):
+        """Get network events including port carrier changes - REAL method."""
+        # Ensure we get all events, not just first page
+        if 'perPage' not in kwargs:
+            kwargs['perPage'] = 1000
+        if 'total_pages' not in kwargs:
+            kwargs['total_pages'] = 'all'
+        return self.dashboard.networks.getNetworkEvents(network_id, **kwargs)
     
     # NAT Rules Methods
     def get_network_appliance_firewall_one_to_one_nat_rules(self, network_id: str):
@@ -432,7 +521,8 @@ class MerakiClient:
     # REAL Systems Manager (SM) Methods
     def get_network_sm_devices(self, network_id: str):
         """Get all Systems Manager devices - REAL method."""
-        return self.dashboard.sm.getNetworkSmDevices(network_id)
+        # SM can have many devices, ensure we get all pages
+        return self.dashboard.sm.getNetworkSmDevices(network_id, perPage=1000, total_pages='all')
     
     def get_network_sm_device(self, network_id: str, device_id: str):
         """Get specific SM device details - REAL method."""
@@ -549,7 +639,7 @@ class MerakiClient:
     
     def get_organization_devices(self, org_id: str):
         """Get all devices in organization - REAL method."""
-        return self.dashboard.organizations.getOrganizationDevices(org_id)
+        return self.dashboard.organizations.getOrganizationDevices(org_id, perPage=1000, total_pages='all')
     
     # REAL Live Tools Methods (Beta/Early Access)
     def create_device_live_tools_ping(self, serial: str, **kwargs):

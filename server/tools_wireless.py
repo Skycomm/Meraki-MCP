@@ -128,22 +128,67 @@ def register_wireless_tool_handlers():
     
     @app.tool(
         name="update_network_wireless_ssid",
-        description="Update a wireless SSID for a Meraki network"
+        description="🔐 Update wireless SSID including security settings (WPA2-PSK, etc)"
     )
-    def update_network_wireless_ssid(network_id: str, ssid_number: int, name: str = None, enabled: bool = None):
+    def update_network_wireless_ssid(network_id: str, ssid_number: int, name: str = None, enabled: bool = None,
+                                   auth_mode: str = None, psk: str = None, encryption_mode: str = None,
+                                   wpa_encryption_mode: str = None, visible: bool = None):
         """
-        Update a wireless SSID for a Meraki network.
+        Update a wireless SSID for a Meraki network with full security configuration.
         
         Args:
             network_id: ID of the network
-            ssid_number: Number of the SSID to update
+            ssid_number: Number of the SSID to update (0-14)
             name: New name for the SSID (optional)
             enabled: Whether the SSID should be enabled (optional)
+            auth_mode: Authentication mode - 'open', 'psk', '8021x-radius', etc (optional)
+            psk: Pre-shared key (password) - only valid when auth_mode is 'psk' (optional)
+            encryption_mode: Encryption mode - 'open', 'wep', 'wpa' (required if auth_mode is 'psk')
+            wpa_encryption_mode: WPA mode - 'WPA2 only', 'WPA3 only', etc (optional)
+            visible: Whether SSID is broadcast (optional)
             
         Returns:
             Updated SSID details
+            
+        Example:
+            To set up WPA2-PSK with password:
+            auth_mode='psk', psk='YourPassword', encryption_mode='wpa', wpa_encryption_mode='WPA2 only'
         """
-        return meraki_client.update_network_wireless_ssid(network_id, ssid_number, name, enabled)
+        try:
+            # Convert snake_case to camelCase for API
+            result = meraki_client.update_network_wireless_ssid(
+                network_id, 
+                ssid_number, 
+                name=name, 
+                enabled=enabled,
+                authMode=auth_mode,
+                psk=psk,
+                encryptionMode=encryption_mode,
+                wpaEncryptionMode=wpa_encryption_mode,
+                visible=visible
+            )
+            
+            # Format success message
+            updates = []
+            if name is not None:
+                updates.append(f"name='{name}'")
+            if enabled is not None:
+                updates.append(f"enabled={enabled}")
+            if auth_mode is not None:
+                updates.append(f"auth='{auth_mode}'")
+            if psk is not None:
+                updates.append(f"password='***'")
+            if encryption_mode is not None:
+                updates.append(f"encryption='{encryption_mode}'")
+            if wpa_encryption_mode is not None:
+                updates.append(f"wpa='{wpa_encryption_mode}'")
+            if visible is not None:
+                updates.append(f"visible={visible}")
+                
+            return f"✅ SSID {ssid_number} updated successfully: {', '.join(updates)}"
+            
+        except Exception as e:
+            return f"❌ Failed to update SSID: {str(e)}"
     
     @app.tool(
         name="get_network_wireless_clients",
