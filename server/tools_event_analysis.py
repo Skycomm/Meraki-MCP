@@ -131,80 +131,80 @@ def search_event_logs(
         
         # Filter by search term if provided
         if search_term and events:
-            search_lower = search_term.lower()
-            filtered_events = []
-            for event in events:
-                if (search_lower in event.get('description', '').lower() or
-                    search_lower in event.get('type', '').lower() or
-                    search_lower in event.get('category', '').lower()):
-                    filtered_events.append(event)
-            events = filtered_events
-        
-        # Display results
-        output.append(f"Found {len(events)} matching events")
-        
-        if search_term:
-            output.append(f"Search term: '{search_term}'")
-        if event_types:
-            output.append(f"Event types: {', '.join(event_types)}")
-        if device_serial:
-            output.append(f"Device: {device_serial}")
-        if client_mac:
-            output.append(f"Client: {client_mac}")
-        
-        output.append(f"Time range: Last {timespan//3600} hours")
-        output.append("")
-        
-        if events:
-            # Group events by type
-            events_by_type = defaultdict(list)
-            for event in events:
-                event_type = event.get('type', 'unknown')
-                events_by_type[event_type].append(event)
+                search_lower = search_term.lower()
+                filtered_events = []
+                for event in events:
+                    if (search_lower in event.get('description', '').lower() or
+                        search_lower in event.get('type', '').lower() or
+                        search_lower in event.get('category', '').lower()):
+                        filtered_events.append(event)
+                events = filtered_events
             
-            # Display grouped events
-            for event_type, type_events in sorted(events_by_type.items()):
-                output.append(f"\n📌 {event_type} ({len(type_events)} events)")
-                output.append("-" * 40)
+            # Display results
+            output.append(f"Found {len(events)} matching events")
+            
+            if search_term:
+                output.append(f"Search term: '{search_term}'")
+            if event_types:
+                output.append(f"Event types: {', '.join(event_types)}")
+            if device_serial:
+                output.append(f"Device: {device_serial}")
+            if client_mac:
+                output.append(f"Client: {client_mac}")
+            
+            output.append(f"Time range: Last {timespan//3600} hours")
+            output.append("")
+            
+            if events:
+                # Group events by type
+                events_by_type = defaultdict(list)
+                for event in events:
+                    event_type = event.get('type', 'unknown')
+                    events_by_type[event_type].append(event)
                 
-                # Show first 5 events of each type
-                for event in type_events[:5]:
-                    timestamp = event.get('occurredAt', 'Unknown time')
-                    description = event.get('description', 'No description')
-                    category = event.get('category', 'Unknown')
-                    device_name = event.get('deviceName', '')
-                    client_name = event.get('clientName', event.get('clientMac', ''))
+                # Display grouped events
+                for event_type, type_events in sorted(events_by_type.items()):
+                    output.append(f"\n📌 {event_type} ({len(type_events)} events)")
+                    output.append("-" * 40)
                     
-                    output.append(f"⏰ {timestamp}")
-                    output.append(f"   Category: {category}")
-                    if device_name:
-                        output.append(f"   Device: {device_name}")
-                    if client_name:
-                        output.append(f"   Client: {client_name}")
-                    output.append(f"   {description}")
-                    output.append("")
+                    # Show first 5 events of each type
+                    for event in type_events[:5]:
+                        timestamp = event.get('occurredAt', 'Unknown time')
+                        description = event.get('description', 'No description')
+                        category = event.get('category', 'Unknown')
+                        device_name = event.get('deviceName', '')
+                        client_name = event.get('clientName', event.get('clientMac', ''))
+                        
+                        output.append(f"⏰ {timestamp}")
+                        output.append(f"   Category: {category}")
+                        if device_name:
+                            output.append(f"   Device: {device_name}")
+                        if client_name:
+                            output.append(f"   Client: {client_name}")
+                        output.append(f"   {description}")
+                        output.append("")
+                    
+                    if len(type_events) > 5:
+                        output.append(f"   ... and {len(type_events) - 5} more {event_type} events")
+                        output.append("")
                 
-                if len(type_events) > 5:
-                    output.append(f"   ... and {len(type_events) - 5} more {event_type} events")
-                    output.append("")
-            
-            # Summary statistics
-            output.append("\n📊 Event Summary:")
-            output.append("-" * 40)
-            for event_type, count in Counter(e.get('type', 'unknown') for e in events).most_common(10):
-                output.append(f"   {event_type}: {count}")
-        else:
-            output.append("No events found matching your criteria")
-            
-            # Suggest broader search
-            output.extend([
-                "",
-                "💡 Try:",
-                "• Expanding the timespan",
-                "• Using broader search terms",
-                "• Removing specific filters",
-                "• Checking different event types"
-            ])
+                # Summary statistics
+                output.append("\n📊 Event Summary:")
+                output.append("-" * 40)
+                for event_type, count in Counter(e.get('type', 'unknown') for e in events).most_common(10):
+                    output.append(f"   {event_type}: {count}")
+            else:
+                output.append("No events found matching your criteria")
+                
+                # Suggest broader search
+                output.extend([
+                    "",
+                    "💡 Try:",
+                    "• Expanding the timespan",
+                    "• Using broader search terms",
+                    "• Removing specific filters",
+                    "• Checking different event types"
+                ])
         
         # Show any errors encountered
         if errors:
@@ -328,172 +328,172 @@ def analyze_error_patterns(
         
         # Analyze patterns
         patterns = {
-            'by_type': defaultdict(int),
-            'by_device': defaultdict(lambda: defaultdict(int)),
-            'by_client': defaultdict(lambda: defaultdict(int)),
-            'by_hour': defaultdict(int),
-            'by_error_detail': defaultdict(int),
-            'temporal_patterns': defaultdict(list)
-        }
-        
-        # Process events
-        for event in events:
-            event_type = event.get('type', 'unknown')
-            device_name = event.get('deviceName', event.get('deviceSerial', 'Unknown'))
-            client_id = event.get('clientName', event.get('clientMac', 'Unknown'))
-            description = event.get('description', '')
+                'by_type': defaultdict(int),
+                'by_device': defaultdict(lambda: defaultdict(int)),
+                'by_client': defaultdict(lambda: defaultdict(int)),
+                'by_hour': defaultdict(int),
+                'by_error_detail': defaultdict(int),
+                'temporal_patterns': defaultdict(list)
+            }
             
-            # Count by type
-            patterns['by_type'][event_type] += 1
-            
-            # Count by device
-            if device_name != 'Unknown':
-                patterns['by_device'][device_name][event_type] += 1
-            
-            # Count by client
-            if client_id != 'Unknown':
-                patterns['by_client'][client_id][event_type] += 1
-            
-            # Extract hour for temporal analysis
-            try:
-                timestamp = event.get('occurredAt', '')
-                if timestamp:
-                    dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
-                    hour = dt.hour
-                    patterns['by_hour'][hour] += 1
-                    patterns['temporal_patterns'][event_type].append(dt)
-            except:
-                pass
-            
-            # Extract error details from description
-            if 'fail' in description.lower():
-                # Extract reason if present
-                if 'reason:' in description.lower():
-                    reason = description.lower().split('reason:')[1].split('.')[0].strip()
-                    patterns['by_error_detail'][f"{event_type}: {reason}"] += 1
-                else:
-                    patterns['by_error_detail'][event_type] += 1
-        
-        # Display analysis results
-        
-        # 1. Most common error types
-        output.append("🔴 Most Common Error Types:")
-        output.append("-" * 40)
-        for error_type, count in sorted(patterns['by_type'].items(), key=lambda x: x[1], reverse=True)[:10]:
-            if count >= min_occurrences:
-                percentage = (count / len(events)) * 100
-                output.append(f"   {error_type}: {count} ({percentage:.1f}%)")
-        output.append("")
-        
-        # 2. Devices with most errors
-        device_errors = []
-        for device, errors in patterns['by_device'].items():
-            total_errors = sum(errors.values())
-            if total_errors >= min_occurrences:
-                device_errors.append((device, total_errors, errors))
-        
-        if device_errors:
-            output.append("🖥️ Devices with Recurring Errors:")
-            output.append("-" * 40)
-            for device, total, errors in sorted(device_errors, key=lambda x: x[1], reverse=True)[:5]:
-                output.append(f"   {device}: {total} errors")
-                # Show top error types for this device
-                for error_type, count in sorted(errors.items(), key=lambda x: x[1], reverse=True)[:3]:
-                    output.append(f"      - {error_type}: {count}")
-            output.append("")
-        
-        # 3. Clients with most errors
-        client_errors = []
-        for client, errors in patterns['by_client'].items():
-            total_errors = sum(errors.values())
-            if total_errors >= min_occurrences:
-                client_errors.append((client, total_errors, errors))
-        
-        if client_errors:
-            output.append("👤 Clients with Recurring Errors:")
-            output.append("-" * 40)
-            for client, total, errors in sorted(client_errors, key=lambda x: x[1], reverse=True)[:5]:
-                output.append(f"   {client}: {total} errors")
-                # Show top error types for this client
-                for error_type, count in sorted(errors.items(), key=lambda x: x[1], reverse=True)[:2]:
-                    output.append(f"      - {error_type}: {count}")
-            output.append("")
-        
-        # 4. Temporal patterns
-        if patterns['by_hour']:
-            output.append("🕐 Temporal Patterns (Errors by Hour):")
-            output.append("-" * 40)
-            peak_hours = sorted(patterns['by_hour'].items(), key=lambda x: x[1], reverse=True)[:5]
-            for hour, count in peak_hours:
-                output.append(f"   {hour:02d}:00 - {count} errors")
-            output.append("")
-        
-        # 5. Error clustering detection
-        output.append("🔍 Error Clustering Analysis:")
-        output.append("-" * 40)
-        
-        for event_type, timestamps in patterns['temporal_patterns'].items():
-            if len(timestamps) >= min_occurrences:
-                # Check for clusters (multiple errors within 5 minutes)
-                timestamps.sort()
-                clusters = []
-                current_cluster = [timestamps[0]]
+            # Process events
+            for event in events:
+                event_type = event.get('type', 'unknown')
+                device_name = event.get('deviceName', event.get('deviceSerial', 'Unknown'))
+                client_id = event.get('clientName', event.get('clientMac', 'Unknown'))
+                description = event.get('description', '')
                 
-                for i in range(1, len(timestamps)):
-                    if (timestamps[i] - timestamps[i-1]).seconds < 300:  # 5 minutes
-                        current_cluster.append(timestamps[i])
+                # Count by type
+                patterns['by_type'][event_type] += 1
+                
+                # Count by device
+                if device_name != 'Unknown':
+                    patterns['by_device'][device_name][event_type] += 1
+                
+                # Count by client
+                if client_id != 'Unknown':
+                    patterns['by_client'][client_id][event_type] += 1
+                
+                # Extract hour for temporal analysis
+                try:
+                    timestamp = event.get('occurredAt', '')
+                    if timestamp:
+                        dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+                        hour = dt.hour
+                        patterns['by_hour'][hour] += 1
+                        patterns['temporal_patterns'][event_type].append(dt)
+                except:
+                    pass
+                
+                # Extract error details from description
+                if 'fail' in description.lower():
+                    # Extract reason if present
+                    if 'reason:' in description.lower():
+                        reason = description.lower().split('reason:')[1].split('.')[0].strip()
+                        patterns['by_error_detail'][f"{event_type}: {reason}"] += 1
                     else:
-                        if len(current_cluster) >= 3:
-                            clusters.append(current_cluster)
-                        current_cluster = [timestamps[i]]
-                
-                if len(current_cluster) >= 3:
-                    clusters.append(current_cluster)
-                
-                if clusters:
-                    output.append(f"   {event_type}:")
-                    output.append(f"      Found {len(clusters)} error clusters")
-                    for cluster in clusters[:3]:
-                        output.append(f"      - {len(cluster)} errors between {cluster[0].strftime('%H:%M')} - {cluster[-1].strftime('%H:%M')}")
-        
-        # 6. Root cause indicators
-        output.append("\n🎯 Potential Root Causes:")
-        output.append("-" * 40)
-        
-        # Authentication failures
-        auth_errors = patterns['by_type'].get('auth_fail', 0) + patterns['by_type'].get('wireless_auth_fail', 0)
-        if auth_errors > min_occurrences:
-            output.append(f"   🔐 Authentication Issues ({auth_errors} failures):")
-            output.append("      • Check RADIUS server connectivity")
-            output.append("      • Verify credentials and certificates")
-            output.append("      • Review authentication policies")
-        
-        # DHCP failures
-        dhcp_errors = patterns['by_type'].get('dhcp_no_lease', 0)
-        if dhcp_errors > min_occurrences:
-            output.append(f"   📡 DHCP Issues ({dhcp_errors} failures):")
-            output.append("      • Check DHCP pool exhaustion")
-            output.append("      • Verify VLAN configuration")
-            output.append("      • Review DHCP server settings")
-        
-        # Network connectivity
-        conn_errors = patterns['by_type'].get('device_down', 0) + patterns['by_type'].get('port_cycle', 0)
-        if conn_errors > min_occurrences:
-            output.append(f"   🌐 Connectivity Issues ({conn_errors} events):")
-            output.append("      • Check physical connections")
-            output.append("      • Review spanning tree")
-            output.append("      • Verify power and cabling")
-        
-        # Recommendations
-        output.extend([
-            "",
-            "💡 Recommendations:",
-            "1. Focus on devices/clients with highest error rates",
-            "2. Investigate temporal patterns for scheduled issues",
-            "3. Check error clusters for systemic problems",
-            "4. Review configuration for top error types",
-            "5. Set up alerts for recurring patterns"
-        ])
+                        patterns['by_error_detail'][event_type] += 1
+            
+            # Display analysis results
+            
+            # 1. Most common error types
+            output.append("🔴 Most Common Error Types:")
+            output.append("-" * 40)
+            for error_type, count in sorted(patterns['by_type'].items(), key=lambda x: x[1], reverse=True)[:10]:
+                if count >= min_occurrences:
+                    percentage = (count / len(events)) * 100
+                    output.append(f"   {error_type}: {count} ({percentage:.1f}%)")
+            output.append("")
+            
+            # 2. Devices with most errors
+            device_errors = []
+            for device, errors in patterns['by_device'].items():
+                total_errors = sum(errors.values())
+                if total_errors >= min_occurrences:
+                    device_errors.append((device, total_errors, errors))
+            
+            if device_errors:
+                output.append("🖥️ Devices with Recurring Errors:")
+                output.append("-" * 40)
+                for device, total, errors in sorted(device_errors, key=lambda x: x[1], reverse=True)[:5]:
+                    output.append(f"   {device}: {total} errors")
+                    # Show top error types for this device
+                    for error_type, count in sorted(errors.items(), key=lambda x: x[1], reverse=True)[:3]:
+                        output.append(f"      - {error_type}: {count}")
+                output.append("")
+            
+            # 3. Clients with most errors
+            client_errors = []
+            for client, errors in patterns['by_client'].items():
+                total_errors = sum(errors.values())
+                if total_errors >= min_occurrences:
+                    client_errors.append((client, total_errors, errors))
+            
+            if client_errors:
+                output.append("👤 Clients with Recurring Errors:")
+                output.append("-" * 40)
+                for client, total, errors in sorted(client_errors, key=lambda x: x[1], reverse=True)[:5]:
+                    output.append(f"   {client}: {total} errors")
+                    # Show top error types for this client
+                    for error_type, count in sorted(errors.items(), key=lambda x: x[1], reverse=True)[:2]:
+                        output.append(f"      - {error_type}: {count}")
+                output.append("")
+            
+            # 4. Temporal patterns
+            if patterns['by_hour']:
+                output.append("🕐 Temporal Patterns (Errors by Hour):")
+                output.append("-" * 40)
+                peak_hours = sorted(patterns['by_hour'].items(), key=lambda x: x[1], reverse=True)[:5]
+                for hour, count in peak_hours:
+                    output.append(f"   {hour:02d}:00 - {count} errors")
+                output.append("")
+            
+            # 5. Error clustering detection
+            output.append("🔍 Error Clustering Analysis:")
+            output.append("-" * 40)
+            
+            for event_type, timestamps in patterns['temporal_patterns'].items():
+                if len(timestamps) >= min_occurrences:
+                    # Check for clusters (multiple errors within 5 minutes)
+                    timestamps.sort()
+                    clusters = []
+                    current_cluster = [timestamps[0]]
+                    
+                    for i in range(1, len(timestamps)):
+                        if (timestamps[i] - timestamps[i-1]).seconds < 300:  # 5 minutes
+                            current_cluster.append(timestamps[i])
+                        else:
+                            if len(current_cluster) >= 3:
+                                clusters.append(current_cluster)
+                            current_cluster = [timestamps[i]]
+                    
+                    if len(current_cluster) >= 3:
+                        clusters.append(current_cluster)
+                    
+                    if clusters:
+                        output.append(f"   {event_type}:")
+                        output.append(f"      Found {len(clusters)} error clusters")
+                        for cluster in clusters[:3]:
+                            output.append(f"      - {len(cluster)} errors between {cluster[0].strftime('%H:%M')} - {cluster[-1].strftime('%H:%M')}")
+            
+            # 6. Root cause indicators
+            output.append("\n🎯 Potential Root Causes:")
+            output.append("-" * 40)
+            
+            # Authentication failures
+            auth_errors = patterns['by_type'].get('auth_fail', 0) + patterns['by_type'].get('wireless_auth_fail', 0)
+            if auth_errors > min_occurrences:
+                output.append(f"   🔐 Authentication Issues ({auth_errors} failures):")
+                output.append("      • Check RADIUS server connectivity")
+                output.append("      • Verify credentials and certificates")
+                output.append("      • Review authentication policies")
+            
+            # DHCP failures
+            dhcp_errors = patterns['by_type'].get('dhcp_no_lease', 0)
+            if dhcp_errors > min_occurrences:
+                output.append(f"   📡 DHCP Issues ({dhcp_errors} failures):")
+                output.append("      • Check DHCP pool exhaustion")
+                output.append("      • Verify VLAN configuration")
+                output.append("      • Review DHCP server settings")
+            
+            # Network connectivity
+            conn_errors = patterns['by_type'].get('device_down', 0) + patterns['by_type'].get('port_cycle', 0)
+            if conn_errors > min_occurrences:
+                output.append(f"   🌐 Connectivity Issues ({conn_errors} events):")
+                output.append("      • Check physical connections")
+                output.append("      • Review spanning tree")
+                output.append("      • Verify power and cabling")
+            
+            # Recommendations
+            output.extend([
+                "",
+                "💡 Recommendations:",
+                "1. Focus on devices/clients with highest error rates",
+                "2. Investigate temporal patterns for scheduled issues",
+                "3. Check error clusters for systemic problems",
+                "4. Review configuration for top error types",
+                "5. Set up alerts for recurring patterns"
+            ])
         
         # Show any errors encountered
         if errors:
