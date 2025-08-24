@@ -373,18 +373,16 @@ def get_uplink_bandwidth_summary(
 
 
 def get_critical_alerts(
-    org_id: str,
-    network_id: Optional[str] = None,
+    network_id: str,
     timespan: Optional[int] = 86400
 ) -> str:
     """
-    🚨 Get critical alerts and events.
+    🚨 Get critical alerts and events for a network.
     
     Shows high-priority network issues.
     
     Args:
-        org_id: Organization ID
-        network_id: Filter by specific network (optional)
+        network_id: Network ID to check
         timespan: Time period in seconds (default: 86400 = 24 hours)
         
     Returns:
@@ -392,6 +390,13 @@ def get_critical_alerts(
     """
     try:
         output = ["🚨 Critical Alerts & Events", "=" * 50, ""]
+        
+        # Get network name for display
+        try:
+            network = meraki.dashboard.networks.getNetwork(network_id)
+            output.append(f"Network: {network.get('name', network_id)}")
+        except:
+            output.append(f"Network: {network_id}")
         
         # Calculate time range
         end_time = datetime.utcnow()
@@ -404,7 +409,7 @@ def get_critical_alerts(
         try:
             with safe_api_call("get network events"):
                 events = meraki.dashboard.networks.getNetworkEvents(
-                    network_id or org_id,
+                    network_id,
                     perPage=100,
                     startingAfter=start_time.isoformat() + 'Z',
                     endingBefore=end_time.isoformat() + 'Z'
@@ -456,10 +461,17 @@ def get_critical_alerts(
         
         # Check current device alerts
         try:
-            if network_id:
-                devices = meraki.get_network_devices(network_id)
-                alerting_devices = []
-                
+            devices = meraki.get_network_devices(network_id)
+            alerting_devices = []
+            
+            # Get org_id from network
+            try:
+                network = meraki.dashboard.networks.getNetwork(network_id)
+                org_id = network.get('organizationId')
+            except:
+                org_id = None
+            
+            if org_id:
                 for device in devices:
                     try:
                         status = meraki.dashboard.organizations.getOrganizationDevicesStatuses(
