@@ -32,7 +32,7 @@ class MerakiClient:
     # Networks
     def get_organization_networks(self, org_id: str) -> List[Dict[str, Any]]:
         """Get networks in an organization."""
-        return self.dashboard.organizations.getOrganizationNetworks(org_id)
+        return self.dashboard.organizations.getOrganizationNetworks(org_id, perPage=1000, total_pages='all')
     
     def get_network(self, network_id: str) -> Dict[str, Any]:
         """Get information about a specific network."""
@@ -41,7 +41,7 @@ class MerakiClient:
     # Devices
     def get_network_devices(self, network_id: str) -> List[Dict[str, Any]]:
         """Get devices in a network."""
-        return self.dashboard.networks.getNetworkDevices(network_id)
+        return self.dashboard.networks.getNetworkDevices(network_id, perPage=1000, total_pages='all')
     
     def get_device(self, serial: str) -> Dict[str, Any]:
         """Get information about a specific device."""
@@ -214,7 +214,7 @@ class MerakiClient:
     
     def get_device_clients(self, serial: str, timespan: int = 86400) -> List[Dict[str, Any]]:
         """Get clients for a specific device - REAL method."""
-        return self.dashboard.devices.getDeviceClients(serial, timespan=timespan)
+        return self.dashboard.devices.getDeviceClients(serial, timespan=timespan, perPage=1000, total_pages='all')
     
     def get_device_status(self, serial: str) -> Dict[str, Any]:
         """Get device status - REAL method."""
@@ -427,6 +427,11 @@ class MerakiClient:
     # Network Events (including port status changes)
     def get_network_events(self, network_id: str, **kwargs):
         """Get network events including port carrier changes - REAL method."""
+        # Ensure we get all events, not just first page
+        if 'perPage' not in kwargs:
+            kwargs['perPage'] = 1000
+        if 'total_pages' not in kwargs:
+            kwargs['total_pages'] = 'all'
         return self.dashboard.networks.getNetworkEvents(network_id, **kwargs)
     
     # NAT Rules Methods
@@ -516,7 +521,8 @@ class MerakiClient:
     # REAL Systems Manager (SM) Methods
     def get_network_sm_devices(self, network_id: str):
         """Get all Systems Manager devices - REAL method."""
-        return self.dashboard.sm.getNetworkSmDevices(network_id)
+        # SM can have many devices, ensure we get all pages
+        return self.dashboard.sm.getNetworkSmDevices(network_id, perPage=1000, total_pages='all')
     
     def get_network_sm_device(self, network_id: str, device_id: str):
         """Get specific SM device details - REAL method."""
@@ -633,7 +639,7 @@ class MerakiClient:
     
     def get_organization_devices(self, org_id: str):
         """Get all devices in organization - REAL method."""
-        return self.dashboard.organizations.getOrganizationDevices(org_id)
+        return self.dashboard.organizations.getOrganizationDevices(org_id, perPage=1000, total_pages='all')
     
     # REAL Live Tools Methods (Beta/Early Access)
     def create_device_live_tools_ping(self, serial: str, **kwargs):
