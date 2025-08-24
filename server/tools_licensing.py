@@ -25,8 +25,82 @@ def register_licensing_tool_handlers():
     """Register all licensing tool handlers using ONLY REAL API methods."""
     
     @app.tool(
+        name="check_organization_licensing_type",
+        description="🔍 Check what type of licensing model the organization uses"
+    )
+    def check_organization_licensing_type(org_id: str):
+        """
+        Check the organization's licensing model type.
+        
+        Args:
+            org_id: Organization ID
+            
+        Returns:
+            Licensing model information
+        """
+        try:
+            result = f"# 🔍 Organization Licensing Model Check\n\n"
+            result += f"**Organization ID**: {org_id}\n\n"
+            
+            # Try to get licenses overview
+            try:
+                licenses = meraki_client.get_organization_licenses(org_id)
+                if licenses:
+                    result += "## ✅ Per-Device Licensing Detected\n"
+                    result += f"- Found {len(licenses)} individual licenses\n"
+                    result += "- This organization uses **per-device licensing**\n\n"
+                    
+                    # Check license states
+                    active = sum(1 for lic in licenses if lic.get('state') == 'active')
+                    expired = sum(1 for lic in licenses if lic.get('state') == 'expired')
+                    unused = sum(1 for lic in licenses if lic.get('state') == 'unused')
+                    
+                    result += f"**License States**:\n"
+                    result += f"- Active: {active}\n"
+                    result += f"- Expired: {expired}\n"
+                    result += f"- Unused: {unused}\n\n"
+            except:
+                pass
+            
+            # Try co-term licensing
+            try:
+                coterm = meraki_client.get_organization_licensing_coterm_licenses(org_id)
+                if coterm:
+                    result += "## ✅ Co-Termination Licensing Detected\n"
+                    result += "- This organization uses **co-term licensing**\n"
+                    result += "- All licenses share the same expiration date\n\n"
+                    
+                    exp_date = coterm.get('expirationDate')
+                    if exp_date:
+                        result += f"**Expiration**: {exp_date}\n\n"
+            except Exception as e:
+                error_msg = str(e)
+                if "404" in error_msg or "not found" in error_msg.lower():
+                    result += "## ℹ️ Co-Term Licensing Not Available\n"
+                    result += "- Co-term licensing is not enabled for this organization\n\n"
+            
+            result += "## 📋 Available Licensing Tools\n\n"
+            result += "Based on your licensing model, use these tools:\n\n"
+            result += "**All Organizations**:\n"
+            result += "- `get_organization_licenses` - List all licenses\n"
+            result += "- `claim_organization_license` - Claim new licenses\n\n"
+            
+            result += "**Co-Term Organizations Only**:\n"
+            result += "- `get_organization_licensing_coterm` - Get co-term details\n"
+            result += "- `move_organization_licenses` - Move licenses between orgs\n\n"
+            
+            result += "**Per-Device Licensing**:\n"
+            result += "- `update_organization_license` - Assign/unassign licenses\n"
+            result += "- `renew_organization_licenses_seats` - Renew SM seats\n"
+            
+            return result
+            
+        except Exception as e:
+            return f"Error checking licensing type: {str(e)}"
+    
+    @app.tool(
         name="get_organization_licenses",
-        description="📄 List all licenses in an organization"
+        description="📄 List all licenses in an organization (works with all licensing models)"
     )
     def get_organization_licenses(org_id: str):
         """
@@ -105,7 +179,7 @@ def register_licensing_tool_handlers():
     
     @app.tool(
         name="get_organization_licensing_coterm",
-        description="📊 Get co-termination licensing info for organization"
+        description="📊 Get co-termination licensing info (only for co-term organizations)"
     )
     def get_organization_licensing_coterm(org_id: str):
         """
@@ -159,7 +233,23 @@ def register_licensing_tool_handlers():
             return result
             
         except Exception as e:
-            return f"Error retrieving co-term licensing info: {str(e)}"
+            error_msg = str(e)
+            if "404" in error_msg or "not found" in error_msg.lower():
+                return (
+                    f"# ❌ Co-Term Licensing Not Available\n\n"
+                    f"This organization does not use co-termination licensing.\n\n"
+                    f"**Possible reasons**:\n"
+                    f"- Organization uses per-device licensing\n"
+                    f"- Organization uses subscription licensing\n"
+                    f"- Co-term licensing is not enabled in this region\n\n"
+                    f"**Try these instead**:\n"
+                    f"- Use `check_organization_licensing_type` to determine licensing model\n"
+                    f"- Use `get_organization_licenses` to list individual licenses\n"
+                )
+            elif "403" in error_msg:
+                return f"❌ Access denied to co-term licensing info. Check API key permissions."
+            else:
+                return f"❌ Error retrieving co-term licensing info: {error_msg}"
     
     @app.tool(
         name="claim_organization_license",
@@ -198,7 +288,17 @@ def register_licensing_tool_handlers():
             return response
             
         except Exception as e:
-            return f"Error claiming license: {str(e)}"
+            error_msg = str(e)
+            if "400" in error_msg:
+                return (
+                    f"❌ Invalid license key or format error\n\n"
+                    f"**Common issues**:\n"
+                    f"- License key format is incorrect\n"
+                    f"- License already claimed\n"
+                    f"- License is for different product\n\n"
+                    f"Error: {error_msg}"
+                )
+            return f"❌ Error claiming license: {error_msg}"
     
     @app.tool(
         name="update_organization_license",
@@ -237,11 +337,23 @@ def register_licensing_tool_handlers():
             return response
             
         except Exception as e:
-            return f"Error updating license: {str(e)}"
+            error_msg = str(e)
+            if "404" in error_msg:
+                return f"❌ License ID not found. Use `get_organization_licenses` to find valid IDs."
+            elif "400" in error_msg:
+                return (
+                    f"❌ Invalid request\n\n"
+                    f"**Possible issues**:\n"
+                    f"- Device serial not found\n"
+                    f"- License type incompatible with device\n"
+                    f"- Organization uses co-term licensing (per-device operations not allowed)\n\n"
+                    f"Error: {error_msg}"
+                )
+            return f"❌ Error updating license: {error_msg}"
     
     @app.tool(
         name="move_organization_licenses",
-        description="🔄 Move licenses between organizations"
+        description="🔄 Move licenses between organizations (co-term only)"
     )
     def move_organization_licenses(source_org_id: str, dest_org_id: str, license_ids: str):
         """
@@ -274,11 +386,30 @@ def register_licensing_tool_handlers():
             return response
             
         except Exception as e:
-            return f"Error moving licenses: {str(e)}"
+            error_msg = str(e)
+            if "404" in error_msg:
+                return (
+                    f"❌ Not found error\n\n"
+                    f"**Check**:\n"
+                    f"- Both organizations exist and are accessible\n"
+                    f"- License IDs are valid\n"
+                    f"- Organizations use co-term licensing\n\n"
+                    f"Error: {error_msg}"
+                )
+            elif "400" in error_msg:
+                return (
+                    f"❌ Invalid operation\n\n"
+                    f"**Common issues**:\n"
+                    f"- Organizations don't use co-term licensing\n"
+                    f"- Licenses cannot be moved (wrong type/state)\n"
+                    f"- License IDs invalid\n\n"
+                    f"Error: {error_msg}"
+                )
+            return f"❌ Error moving licenses: {error_msg}"
     
     @app.tool(
         name="renew_organization_licenses_seats",
-        description="🔄 Renew SM seats for an organization"
+        description="🔄 Renew Systems Manager seats (per-device licensing)"
     )
     def renew_organization_licenses_seats(org_id: str, license_id_to_renew: str, unused_license_id: str):
         """
@@ -311,4 +442,16 @@ def register_licensing_tool_handlers():
             return response
             
         except Exception as e:
-            return f"Error renewing SM seats: {str(e)}"
+            error_msg = str(e)
+            if "404" in error_msg:
+                return f"❌ License not found. Verify both license IDs exist."
+            elif "400" in error_msg:
+                return (
+                    f"❌ Cannot renew seats\n\n"
+                    f"**Requirements**:\n"
+                    f"- Both licenses must be Systems Manager licenses\n"
+                    f"- Unused license must not be assigned\n"
+                    f"- Organization must use per-device licensing\n\n"
+                    f"Error: {error_msg}"
+                )
+            return f"❌ Error renewing SM seats: {error_msg}"
