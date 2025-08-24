@@ -32,7 +32,7 @@ class MerakiClient:
     # Networks
     def get_organization_networks(self, org_id: str) -> List[Dict[str, Any]]:
         """Get networks in an organization."""
-        return self.dashboard.organizations.getOrganizationNetworks(org_id)
+        return self.dashboard.organizations.getOrganizationNetworks(org_id, perPage=1000, total_pages='all')
     
     def get_network(self, network_id: str) -> Dict[str, Any]:
         """Get information about a specific network."""
@@ -50,7 +50,14 @@ class MerakiClient:
     # Clients
     def get_network_clients(self, network_id: str, timespan: Optional[int] = 86400) -> List[Dict[str, Any]]:
         """Get clients in a network (default timespan: 24 hours)."""
-        return self.dashboard.networks.getNetworkClients(network_id, timespan=timespan, perPage=1000)
+        # The SDK should handle pagination automatically with the iterator
+        # Let's explicitly set perPage to maximum (1000) to reduce API calls
+        return self.dashboard.networks.getNetworkClients(
+            network_id, 
+            timespan=timespan,
+            perPage=1000,  # Maximum allowed by Meraki API
+            total_pages='all'  # Ensure we get all pages
+        )
     
     # SSID
     def get_network_wireless_ssids(self, network_id: str) -> List[Dict[str, Any]]:
@@ -143,23 +150,70 @@ class MerakiClient:
             
         return self.dashboard.wireless.getNetworkWirelessUsageHistory(network_id, **kwargs)
     
-    def update_network_wireless_ssid(self, network_id: str, number: int, name: str = None, enabled: bool = None):
-        """Update wireless SSID - REAL method."""
+    def update_network_wireless_ssid(self, network_id: str, number: int, name: str = None, enabled: bool = None,
+                                    authMode: str = None, psk: str = None, encryptionMode: str = None, 
+                                    wpaEncryptionMode: str = None, visible: bool = None,
+                                    ipAssignmentMode: str = None, useVlanTagging: bool = None,
+                                    vlanId: int = None, defaultVlanId: int = None,
+                                    apTagsAndVlanIds: List[Dict[str, Any]] = None,
+                                    lanIsolationEnabled: bool = None, minBitrate: float = None,
+                                    bandSelection: str = None, perClientBandwidthLimitDown: int = None,
+                                    perClientBandwidthLimitUp: int = None, perSsidBandwidthLimitDown: int = None,
+                                    perSsidBandwidthLimitUp: int = None):
+        """Update wireless SSID - REAL method with full authentication and bridging support."""
         kwargs = {}
         if name is not None:
             kwargs['name'] = name
         if enabled is not None:
             kwargs['enabled'] = enabled
+        if authMode is not None:
+            kwargs['authMode'] = authMode
+        if psk is not None:
+            kwargs['psk'] = psk
+        if encryptionMode is not None:
+            kwargs['encryptionMode'] = encryptionMode
+        if wpaEncryptionMode is not None:
+            kwargs['wpaEncryptionMode'] = wpaEncryptionMode
+        if visible is not None:
+            kwargs['visible'] = visible
+        # Bridge mode parameters
+        if ipAssignmentMode is not None:
+            kwargs['ipAssignmentMode'] = ipAssignmentMode
+        if useVlanTagging is not None:
+            kwargs['useVlanTagging'] = useVlanTagging
+        if vlanId is not None:
+            kwargs['vlanId'] = vlanId
+        if defaultVlanId is not None:
+            kwargs['defaultVlanId'] = defaultVlanId
+        if apTagsAndVlanIds is not None:
+            kwargs['apTagsAndVlanIds'] = apTagsAndVlanIds
+        if lanIsolationEnabled is not None:
+            kwargs['lanIsolationEnabled'] = lanIsolationEnabled
+        # RF and bandwidth parameters
+        if minBitrate is not None:
+            kwargs['minBitrate'] = minBitrate
+        if bandSelection is not None:
+            kwargs['bandSelection'] = bandSelection
+        if perClientBandwidthLimitDown is not None:
+            kwargs['perClientBandwidthLimitDown'] = perClientBandwidthLimitDown
+        if perClientBandwidthLimitUp is not None:
+            kwargs['perClientBandwidthLimitUp'] = perClientBandwidthLimitUp
+        if perSsidBandwidthLimitDown is not None:
+            kwargs['perSsidBandwidthLimitDown'] = perSsidBandwidthLimitDown
+        if perSsidBandwidthLimitUp is not None:
+            kwargs['perSsidBandwidthLimitUp'] = perSsidBandwidthLimitUp
         return self.dashboard.wireless.updateNetworkWirelessSsid(network_id, number, **kwargs)
     
     # REAL Network Management Methods
-    def update_network(self, network_id: str, name: str = None, tags: List[str] = None) -> Dict[str, Any]:
+    def update_network(self, network_id: str, name: str = None, tags: List[str] = None, timezone: str = None) -> Dict[str, Any]:
         """Update a network - REAL method."""
         kwargs = {}
         if name is not None:
             kwargs['name'] = name
         if tags is not None:
             kwargs['tags'] = tags
+        if timezone is not None:
+            kwargs['timeZone'] = timezone
         return self.dashboard.networks.updateNetwork(network_id, **kwargs)
     
     def create_network(self, organization_id: str, name: str, productTypes: List[str]) -> Dict[str, Any]:
@@ -175,7 +229,8 @@ class MerakiClient:
         return self.dashboard.networks.deleteNetwork(network_id)
     
     # REAL Device Management Methods  
-    def update_device(self, serial: str, name: str = None, tags: List[str] = None, address: str = None) -> Dict[str, Any]:
+    def update_device(self, serial: str, name: str = None, tags: List[str] = None, address: str = None, 
+                     lat: float = None, lng: float = None) -> Dict[str, Any]:
         """Update a device - REAL method."""
         kwargs = {}
         if name is not None:
@@ -184,11 +239,15 @@ class MerakiClient:
             kwargs['tags'] = tags
         if address is not None:
             kwargs['address'] = address
+        if lat is not None:
+            kwargs['lat'] = lat
+        if lng is not None:
+            kwargs['lng'] = lng
         return self.dashboard.devices.updateDevice(serial, **kwargs)
     
     def get_device_clients(self, serial: str, timespan: int = 86400) -> List[Dict[str, Any]]:
         """Get clients for a specific device - REAL method."""
-        return self.dashboard.devices.getDeviceClients(serial, timespan=timespan)
+        return self.dashboard.devices.getDeviceClients(serial, timespan=timespan, perPage=1000, total_pages='all')
     
     def get_device_status(self, serial: str) -> Dict[str, Any]:
         """Get device status - REAL method."""
@@ -370,7 +429,8 @@ class MerakiClient:
     # REAL Systems Manager (SM) Methods
     def get_network_sm_devices(self, network_id: str):
         """Get all Systems Manager devices - REAL method."""
-        return self.dashboard.sm.getNetworkSmDevices(network_id)
+        # SM can have many devices, ensure we get all pages
+        return self.dashboard.sm.getNetworkSmDevices(network_id, perPage=1000, total_pages='all')
     
     def get_network_sm_device(self, network_id: str, device_id: str):
         """Get specific SM device details - REAL method."""
@@ -487,7 +547,7 @@ class MerakiClient:
     
     def get_organization_devices(self, org_id: str):
         """Get all devices in organization - REAL method."""
-        return self.dashboard.organizations.getOrganizationDevices(org_id)
+        return self.dashboard.organizations.getOrganizationDevices(org_id, perPage=1000, total_pages='all')
     
     # REAL Live Tools Methods (Beta/Early Access)
     def create_device_live_tools_ping(self, serial: str, **kwargs):

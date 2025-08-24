@@ -1,0 +1,47 @@
+{
+  "network_id": "L_726205439913500692",
+  "network_name": "Skycomm Reserve St",
+  "action": "disabled_content_filtering",
+  "timestamp": "None",
+  "previous_settings": {
+    "blocked_categories_count": 8,
+    "blocked_categories": [
+      {
+        "id": "meraki:contentFiltering/category/C1",
+        "name": "Education"
+      },
+      {
+        "id": "meraki:contentFiltering/category/C2",
+        "name": "Arts"
+      },
+      {
+        "id": "meraki:contentFiltering/category/C3",
+        "name": "Computers and Internet"
+      },
+      {
+        "id": "meraki:contentFiltering/category/C4",
+        "name": "Job Search"
+      },
+      {
+        "id": "meraki:contentFiltering/category/C5",
+        "name": "Shopping"
+      },
+      {
+        "id": "meraki:contentFiltering/category/C7",
+        "name": "Games"
+      },
+      {
+        "id": "meraki:contentFiltering/category/C8",
+        "name": "Sports and Recreation"
+      },
+      {
+        "id": "meraki:contentFiltering/category/C10",
+        "name": "Society and Culture"
+      }
+    ]
+  },
+  "new_settings": {
+    "blocked_categories_count": 0,
+    "blocked_categories": []
+  }
+}

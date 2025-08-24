@@ -1,0 +1,23 @@
+{
+  "timestamp": "2025-08-22T23:34:09.354657",
+  "results": {
+    "passed": 37,
+    "failed": 1,
+    "errors": [
+      "get_network_vlans: appliance, getNetworkApplianceVlans - 400 Bad Request, {'errors': ['VLANs are not enabled for this network']}"
+    ],
+    "warnings": [
+      "get_network_vlans: Bad request (400) - check parameters",
+      "Skipped update_device and reboot_device to avoid production changes",
+      "No switch device found for testing switch-specific APIs",
+      "No camera device found for testing camera-specific APIs"
+    ]
+  },
+  "test_ids": {
+    "org_id": "686470",
+    "network_id": "L_726205439913492992",
+    "device_serial": "Q2MN-LXDL-EQWE",
+    "switch_serial": null,
+    "camera_serial": null
+  }
+}
