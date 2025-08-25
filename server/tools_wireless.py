@@ -273,6 +273,10 @@ def register_wireless_tool_handlers():
     def get_network_wireless_client_count_history(network_id: str, **kwargs):
         """Get historical client count data over time."""
         try:
+            # Add default timespan if not specified
+            if 'timespan' not in kwargs and 't0' not in kwargs:
+                kwargs['timespan'] = 604800  # Default to 7 days
+            
             history = meraki_client.dashboard.wireless.getNetworkWirelessClientCountHistory(
                 network_id, **kwargs
             )
@@ -414,6 +418,10 @@ def register_wireless_tool_handlers():
     def get_network_wireless_data_rate_history(network_id: str, **kwargs):
         """Get historical data rate information."""
         try:
+            # Add default timespan if not specified
+            if 'timespan' not in kwargs and 't0' not in kwargs:
+                kwargs['timespan'] = 604800  # Default to 7 days
+            
             history = meraki_client.dashboard.wireless.getNetworkWirelessDataRateHistory(
                 network_id, **kwargs
             )
@@ -455,6 +463,10 @@ def register_wireless_tool_handlers():
     def get_network_wireless_usage_history(network_id: str, **kwargs):
         """Get historical wireless usage data."""
         try:
+            # Add default timespan if not specified
+            if 'timespan' not in kwargs and 't0' not in kwargs:
+                kwargs['timespan'] = 604800  # Default to 7 days
+            
             history = meraki_client.dashboard.wireless.getNetworkWirelessUsageHistory(
                 network_id, **kwargs
             )

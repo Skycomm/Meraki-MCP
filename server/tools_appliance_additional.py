@@ -706,11 +706,15 @@ def register_appliance_additional_handlers():
         name="get_network_appliance_uplinks_usage_history",
         description="📊 Get network appliance uplinks usage history"
     )
-    def get_network_appliance_uplinks_usage_history(network_id: str):
+    def get_network_appliance_uplinks_usage_history(network_id: str, **kwargs):
         """Get network appliance uplinks usage history."""
         try:
+            # Add default timespan if not specified
+            if 'timespan' not in kwargs and 't0' not in kwargs:
+                kwargs['timespan'] = 86400  # Default to 1 day
+            
             result = meraki_client.dashboard.appliance.getNetworkApplianceUplinksUsageHistory(
-                network_id
+                network_id, **kwargs
             )
             
             if isinstance(result, dict):

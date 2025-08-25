@@ -223,11 +223,15 @@ def register_networks_additional_handlers():
         name="get_network_alerts_history",
         description="📊 Get network alerts history"
     )
-    def get_network_alerts_history(network_id: str):
+    def get_network_alerts_history(network_id: str, **kwargs):
         """Get network alerts history."""
         try:
+            # Add default perPage for better results
+            if 'perPage' not in kwargs:
+                kwargs['perPage'] = 100  # Default per API spec
+            
             result = meraki_client.dashboard.networks.getNetworkAlertsHistory(
-                network_id
+                network_id, **kwargs
             )
             
             if isinstance(result, dict):
@@ -265,11 +269,11 @@ def register_networks_additional_handlers():
         name="get_network_client_traffic_history",
         description="📊 Get network client traffic history"
     )
-    def get_network_client_traffic_history(network_id: str):
+    def get_network_client_traffic_history(network_id: str, client_id: str, **kwargs):
         """Get network client traffic history."""
         try:
             result = meraki_client.dashboard.networks.getNetworkClientTrafficHistory(
-                network_id
+                network_id, client_id, **kwargs
             )
             
             if isinstance(result, dict):
@@ -286,11 +290,11 @@ def register_networks_additional_handlers():
         name="get_network_client_usage_history",
         description="📊 Get network client usage history"
     )
-    def get_network_client_usage_history(network_id: str):
+    def get_network_client_usage_history(network_id: str, client_id: str, **kwargs):
         """Get network client usage history."""
         try:
             result = meraki_client.dashboard.networks.getNetworkClientUsageHistory(
-                network_id
+                network_id, client_id, **kwargs
             )
             
             if isinstance(result, dict):
@@ -307,11 +311,15 @@ def register_networks_additional_handlers():
         name="get_network_clients_application_usage",
         description="📊 Get network clients application usage"
     )
-    def get_network_clients_application_usage(network_id: str):
+    def get_network_clients_application_usage(network_id: str, **kwargs):
         """Get network clients application usage."""
         try:
+            # Add default timespan if not specified
+            if 'timespan' not in kwargs and 't0' not in kwargs:
+                kwargs['timespan'] = 86400  # Default to 1 day
+            
             result = meraki_client.dashboard.networks.getNetworkClientsApplicationUsage(
-                network_id
+                network_id, **kwargs
             )
             
             if isinstance(result, dict):
@@ -328,11 +336,17 @@ def register_networks_additional_handlers():
         name="get_network_clients_bandwidth_usage_history",
         description="📊 Get network clients bandwidth usage history"
     )
-    def get_network_clients_bandwidth_usage_history(network_id: str):
+    def get_network_clients_bandwidth_usage_history(network_id: str, **kwargs):
         """Get network clients bandwidth usage history."""
         try:
+            # Add default timespan if not specified
+            if 'timespan' not in kwargs and 't0' not in kwargs:
+                kwargs['timespan'] = 86400  # Default to 1 day
+            if 'perPage' not in kwargs:
+                kwargs['perPage'] = 1000  # Maximum for complete results
+            
             result = meraki_client.dashboard.networks.getNetworkClientsBandwidthUsageHistory(
-                network_id
+                network_id, **kwargs
             )
             
             if isinstance(result, dict):
@@ -370,11 +384,15 @@ def register_networks_additional_handlers():
         name="get_network_clients_usage_histories",
         description="📊 Get network clients usage histories"
     )
-    def get_network_clients_usage_histories(network_id: str):
+    def get_network_clients_usage_histories(network_id: str, **kwargs):
         """Get network clients usage histories."""
         try:
+            # Add default timespan if not specified
+            if 'timespan' not in kwargs and 't0' not in kwargs:
+                kwargs['timespan'] = 86400  # Default to 1 day
+            
             result = meraki_client.dashboard.networks.getNetworkClientsUsageHistories(
-                network_id
+                network_id, **kwargs
             )
             
             if isinstance(result, dict):
