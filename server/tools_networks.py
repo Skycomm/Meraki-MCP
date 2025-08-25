@@ -965,7 +965,8 @@ def register_network_tool_handlers():
     def get_network_health_channel_utilization(network_id: str, **kwargs):
         """Get channel utilization over time."""
         try:
-            utilization = meraki_client.dashboard.networks.getNetworkHealthChannelUtilization(
+            # Use the correct API endpoint from wireless module
+            utilization = meraki_client.dashboard.wireless.getNetworkWirelessChannelUtilizationHistory(
                 network_id, **kwargs
             )
             
@@ -974,19 +975,25 @@ def register_network_tool_handlers():
             
             result = f"# 📊 Channel Utilization\n\n"
             
-            for data in utilization:
-                result += f"## {data.get('startTs', 'Unknown time')}\n"
+            # Show last 10 entries for readability
+            for data in utilization[-10:]:
+                time = data.get('startTs', 'Unknown time')
+                result += f"## {time[:16] if len(time) > 16 else time}\n"
                 
-                wifi2_4 = data.get('wifi0', {})
-                wifi5 = data.get('wifi1', {})
+                # WiFi utilization
+                wifi = data.get('wifi', {})
+                if wifi:
+                    result += f"**WiFi Utilization**: {wifi.get('percentage', 0)}%\n"
                 
-                if wifi2_4:
-                    result += "**2.4 GHz Band**:\n"
-                    result += f"- Utilization: {wifi2_4.get('utilization', 0)}%\n"
+                # Non-WiFi interference
+                non_wifi = data.get('nonWifi', {})
+                if non_wifi:
+                    result += f"**Non-WiFi Interference**: {non_wifi.get('percentage', 0)}%\n"
                 
-                if wifi5:
-                    result += "**5 GHz Band**:\n"
-                    result += f"- Utilization: {wifi5.get('utilization', 0)}%\n"
+                # Total utilization
+                total = data.get('total', {})
+                if total:
+                    result += f"**Total Channel Utilization**: {total.get('percentage', 0)}%\n"
                 
                 result += "\n"
             
@@ -1005,18 +1012,79 @@ def register_network_tool_handlers():
             # Get various health metrics
             devices = meraki_client.dashboard.networks.getNetworkDevices(network_id)
             
-            # Count devices by status - handle missing status gracefully
-            online = sum(1 for d in devices if d.get('status') == 'online')
-            alerting = sum(1 for d in devices if d.get('status') == 'alerting')
-            offline = sum(1 for d in devices if d.get('status') == 'offline')
-            # Devices without status field (e.g., APs not reporting to cloud but still working)
-            no_status = sum(1 for d in devices if not d.get('status'))
+            # Get organization ID to fetch device statuses
+            org_id = None
+            try:
+                network = meraki_client.dashboard.networks.getNetwork(network_id)
+                org_id = network.get('organizationId')
+            except:
+                pass
+            
+            # Get real device statuses from organization API
+            device_statuses = {}
+            if org_id:
+                try:
+                    statuses = meraki_client.dashboard.organizations.getOrganizationDevicesStatuses(
+                        org_id,
+                        networkIds=[network_id],
+                        perPage=1000,
+                        total_pages='all'
+                    )
+                    # Create lookup by serial - handle both dict and list responses
+                    if isinstance(statuses, list):
+                        for status in statuses:
+                            if isinstance(status, dict):
+                                serial = status.get('serial')
+                                if serial:
+                                    device_statuses[serial] = status.get('status', 'unknown')
+                    elif isinstance(statuses, dict):
+                        # Handle single device response
+                        serial = statuses.get('serial')
+                        if serial:
+                            device_statuses[serial] = statuses.get('status', 'unknown')
+                except:
+                    pass
+            
+            # Count devices by status using real status data
+            online = 0
+            alerting = 0
+            offline = 0
+            dormant = 0
+            no_status = 0
+            
+            for device in devices:
+                serial = device.get('serial')
+                status = None
+                
+                # First try to get status from organization API
+                if serial and serial in device_statuses:
+                    status = device_statuses[serial]
+                else:
+                    # Fallback to device's own status field if available
+                    status = device.get('status')
+                
+                # Convert status to lowercase for consistent comparison
+                if status:
+                    status = status.lower()
+                
+                if status == 'online':
+                    online += 1
+                elif status == 'alerting':
+                    alerting += 1
+                elif status == 'offline':
+                    offline += 1
+                elif status == 'dormant':
+                    dormant += 1
+                else:
+                    no_status += 1
             
             result = f"# 🏥 Network Health Summary\n\n"
             result += f"**Total Infrastructure Devices**: {len(devices)}\n"
             result += f"- 🟢 Online: {online}\n"
             result += f"- 🟡 Alerting: {alerting}\n"
             result += f"- 🔴 Offline: {offline}\n"
+            if dormant > 0:
+                result += f"- 😴 Dormant: {dormant} (not reporting to cloud but may be operational)\n"
             if no_status > 0:
                 result += f"- ⚪ Status Not Reported: {no_status} (may be operating normally)\n"
             result += "\n"
@@ -1040,9 +1108,12 @@ def register_network_tool_handlers():
                     pass
             
             # Overall health score - base on devices with known status
-            devices_with_status = online + alerting + offline
+            # Include dormant devices as "working" since they may be operational
+            devices_with_status = online + alerting + offline + dormant
             if devices_with_status > 0:
-                health_percentage = (online / devices_with_status) * 100
+                # Consider online and dormant as healthy (dormant devices often still pass traffic)
+                healthy_devices = online + dormant
+                health_percentage = (healthy_devices / devices_with_status) * 100
                 if health_percentage >= 95:
                     result += f"\n**Overall Health**: 🟢 Excellent ({health_percentage:.1f}%)"
                 elif health_percentage >= 80:
@@ -1050,11 +1121,11 @@ def register_network_tool_handlers():
                 else:
                     result += f"\n**Overall Health**: 🔴 Poor ({health_percentage:.1f}%)"
                 
-                if no_status > 0:
-                    result += f"\n*Note: {no_status} device(s) not reporting status to cloud but may be operational*"
+                if dormant > 0:
+                    result += f"\n*Note: {dormant} dormant device(s) included as operational*"
             elif no_status > 0:
-                result += f"\n**Overall Health**: ⚪ Unknown - {no_status} devices not reporting cloud status"
-                result += f"\n*Devices may be operational but not connected to Meraki cloud*"
+                result += f"\n**Overall Health**: ⚪ Unknown - Unable to determine device status"
+                result += f"\n*Devices may be operational but status unavailable*"
             
             return result
             
