@@ -283,7 +283,7 @@ def register_organizations_additional_handlers():
             return f"Error: {str(e)}"
 
     @app.tool(
-        name="create_org_inventory_monitoring_export",
+        name="create_organization_inventory_onboarding_cloud_monitoring_export_event",
         description="➕ Create organization inventory onboarding cloud monitoring export event"
     )
     def create_organization_inventory_onboarding_cloud_monitoring_export_event(organization_id: str, **kwargs):
@@ -325,7 +325,7 @@ def register_organizations_additional_handlers():
             return f"Error: {str(e)}"
 
     @app.tool(
-        name="create_org_inventory_monitoring_prep",
+        name="create_organization_inventory_onboarding_cloud_monitoring_prepare",
         description="➕ Create organization inventory onboarding cloud monitoring prepare"
     )
     def create_organization_inventory_onboarding_cloud_monitoring_prepare(organization_id: str, **kwargs):
@@ -745,7 +745,7 @@ def register_organizations_additional_handlers():
             return f"Error: {str(e)}"
 
     @app.tool(
-        name="generate_org_packet_capture_url",
+        name="generate_organization_devices_packet_capture_capture_download_url",
         description="⚡ Execute organization devices packet capture capture download url"
     )
     def generate_organization_devices_packet_capture_capture_download_url(organization_id: str):
@@ -871,7 +871,7 @@ def register_organizations_additional_handlers():
             return f"Error: {str(e)}"
 
     @app.tool(
-        name="get_org_api_response_codes_by_interval",
+        name="get_organization_api_requests_overview_response_codes_by_interval",
         description="📊 Get organization api requests overview response codes by interval"
     )
     def get_organization_api_requests_overview_response_codes_by_interval(organization_id: str):

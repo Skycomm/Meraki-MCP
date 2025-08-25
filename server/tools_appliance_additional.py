@@ -52,7 +52,7 @@ def register_appliance_additional_handlers():
     """Register additional appliance tool handlers."""
 
     @app.tool(
-        name="bulk_org_appliance_dns_profiles_create",
+        name="bulk_organization_appliance_dns_local_profiles_assignments_create",
         description="⚡ Execute organization appliance dns local profiles assignments create"
     )
     def bulk_organization_appliance_dns_local_profiles_assignments_create(organization_id: str):
@@ -136,7 +136,7 @@ def register_appliance_additional_handlers():
             return f"Error: {str(e)}"
 
     @app.tool(
-        name="create_network_traffic_shaping_custom_class",
+        name="create_network_appliance_traffic_shaping_custom_performance_class",
         description="➕ Create network appliance traffic shaping custom performance class"
     )
     def create_network_appliance_traffic_shaping_custom_performance_class(network_id: str, **kwargs):
@@ -178,7 +178,7 @@ def register_appliance_additional_handlers():
             return f"Error: {str(e)}"
 
     @app.tool(
-        name="create_org_dns_profiles_bulk_delete",
+        name="create_organization_appliance_dns_local_profiles_assignments_bulk_delete",
         description="➕ Create organization appliance dns local profiles assignments bulk delete"
     )
     def create_organization_appliance_dns_local_profiles_assignments_bulk_delete(organization_id: str, **kwargs):
@@ -241,7 +241,7 @@ def register_appliance_additional_handlers():
             return f"Error: {str(e)}"
 
     @app.tool(
-        name="create_org_dns_split_bulk_create",
+        name="create_organization_appliance_dns_split_profiles_assignments_bulk_create",
         description="➕ Create organization appliance dns split profiles assignments bulk create"
     )
     def create_organization_appliance_dns_split_profiles_assignments_bulk_create(organization_id: str, **kwargs):
@@ -262,7 +262,7 @@ def register_appliance_additional_handlers():
             return f"Error: {str(e)}"
 
     @app.tool(
-        name="create_org_dns_split_bulk_delete",
+        name="create_organization_appliance_dns_split_profiles_assignments_bulk_delete",
         description="➕ Create organization appliance dns split profiles assignments bulk delete"
     )
     def create_organization_appliance_dns_split_profiles_assignments_bulk_delete(organization_id: str, **kwargs):
@@ -325,7 +325,7 @@ def register_appliance_additional_handlers():
             return f"Error: {str(e)}"
 
     @app.tool(
-        name="delete_network_traffic_shaping_custom_class",
+        name="delete_network_appliance_traffic_shaping_custom_performance_class",
         description="🗑️ Delete network appliance traffic shaping custom performance class"
     )
     def delete_network_appliance_traffic_shaping_custom_performance_class(network_id: str):
@@ -514,7 +514,7 @@ def register_appliance_additional_handlers():
             return f"Error: {str(e)}"
 
     @app.tool(
-        name="get_network_l7_firewall_app_categories",
+        name="get_network_appliance_firewall_l7_firewall_rules_application_categories",
         description="📊 Get network appliance firewall l7 firewall rules application categories"
     )
     def get_network_appliance_firewall_l7_firewall_rules_application_categories(network_id: str):
@@ -850,7 +850,7 @@ def register_appliance_additional_handlers():
             return f"Error: {str(e)}"
 
     @app.tool(
-        name="get_org_firewall_multicast_by_network",
+        name="get_organization_appliance_firewall_multicast_forwarding_by_network",
         description="📊 Get organization appliance firewall multicast forwarding by network"
     )
     def get_organization_appliance_firewall_multicast_forwarding_by_network(organization_id: str):
@@ -892,7 +892,7 @@ def register_appliance_additional_handlers():
             return f"Error: {str(e)}"
 
     @app.tool(
-        name="get_org_traffic_vpn_exclusions_by_network",
+        name="get_organization_appliance_traffic_shaping_vpn_exclusions_by_network",
         description="📊 Get organization appliance traffic shaping vpn exclusions by network"
     )
     def get_organization_appliance_traffic_shaping_vpn_exclusions_by_network(organization_id: str):
@@ -1144,7 +1144,7 @@ def register_appliance_additional_handlers():
             return f"Error: {str(e)}"
 
     @app.tool(
-        name="update_network_traffic_shaping_custom_class",
+        name="update_network_appliance_traffic_shaping_custom_performance_class",
         description="✏️ Update network appliance traffic shaping custom performance class"
     )
     def update_network_appliance_traffic_shaping_custom_performance_class(network_id: str, **kwargs):

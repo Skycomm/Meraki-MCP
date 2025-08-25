@@ -291,7 +291,7 @@ No devices were rebooted. Please use exact confirmation text if you really want 
         try:
             ids_list = [id.strip() for id in device_ids.split(',')]
             
-            result = meraki_client.reboot_network_sm_devices(network_id, ids=ids_list)
+            result = meraki_client.dashboard.sm.rebootNetworkSmDevices(network_id, ids=ids_list)
             
             response = f"""✅ SM REBOOT COMMAND SENT
 

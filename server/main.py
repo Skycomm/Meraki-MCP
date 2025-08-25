@@ -66,6 +66,16 @@ def register_all_tools():
     from server.tools_early_access import register_early_access_tools
     from server.tools_switch_dhcp_policy import register_switch_dhcp_policy_tools
     from server.tools_alternate_management import register_alternate_management_tools
+    
+    # Missing API methods for 100% coverage
+    from server.tools_administered_missing import register_administered_missing_tools
+    from server.tools_appliance_missing import register_appliance_missing_tools
+    from server.tools_camera_missing import register_camera_missing_tools
+    from server.tools_devices_missing import register_devices_missing_tools
+    from server.tools_licensing_missing import register_licensing_missing_tools
+    from server.tools_networks_missing import register_networks_missing_tools
+    from server.tools_organizations_missing import register_organizations_missing_tools
+    from server.tools_sm_missing import register_sm_missing_tools
 
     # Additional modules for 100% API coverage
     from server.tools_organizations_additional import register_organizations_additional_tools
@@ -119,6 +129,16 @@ def register_all_tools():
     register_early_access_tools(app, meraki)
     register_switch_dhcp_policy_tools(app, meraki)
     register_alternate_management_tools(app, meraki)
+    
+    # Register missing API methods for 100% coverage
+    register_administered_missing_tools(app, meraki)
+    register_appliance_missing_tools(app, meraki)
+    register_camera_missing_tools(app, meraki)
+    register_devices_missing_tools(app, meraki)
+    register_licensing_missing_tools(app, meraki)
+    register_networks_missing_tools(app, meraki)
+    register_organizations_missing_tools(app, meraki)
+    register_sm_missing_tools(app, meraki)
     
     # Additional modules for 100% coverage
     register_organizations_additional_tools(app, meraki)
