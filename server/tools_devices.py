@@ -257,6 +257,31 @@ The device is now rebooting. Monitor its status to confirm it comes back online.
         except Exception as e:
             return f"Failed to get status for device {serial}: {str(e)}"
     
+    def get_device_type_from_model(model: str) -> str:
+        """Helper function to determine device type from model string."""
+        if not model:
+            return "Unknown Device"
+        
+        model_upper = model.upper()
+        
+        # Check device type by model prefix
+        if model_upper.startswith('MX'):
+            return "Security Appliance (Firewall)"
+        elif model_upper.startswith('MS'):
+            return "Switch"
+        elif model_upper.startswith('MR'):
+            return "Wireless Access Point"
+        elif model_upper.startswith('MV'):
+            return "Camera"
+        elif model_upper.startswith('MG'):
+            return "Cellular Gateway"
+        elif model_upper.startswith('MT'):
+            return "Sensor"
+        elif model_upper.startswith('Z'):
+            return "Teleworker Gateway"
+        else:
+            return "Network Device"
+    
     @app.tool(
         name="get_network_devices_statuses",
         description="📊 Get comprehensive status for all devices in a network"
@@ -318,7 +343,23 @@ The device is now rebooting. Monitor its status to confirm it comes back online.
             
             # Build comprehensive report
             result = f"# 📊 Network Device Statuses\n\n"
-            result += f"**Total Devices**: {len(devices)}\n\n"
+            result += f"**Total Devices**: {len(devices)}\n"
+            
+            # Count device types
+            device_types = {}
+            for device in devices:
+                model = device.get('model', 'Unknown')
+                device_type = get_device_type_from_model(model)
+                if device_type not in device_types:
+                    device_types[device_type] = 0
+                device_types[device_type] += 1
+            
+            # Display device type breakdown
+            if device_types:
+                result += f"\n**Device Breakdown**:\n"
+                for dev_type, count in sorted(device_types.items()):
+                    result += f"- {dev_type}: {count}\n"
+            result += "\n"
             
             # Categorize devices
             online_devices = []
@@ -358,8 +399,12 @@ The device is now rebooting. Monitor its status to confirm it comes back online.
                     status = entry['status_info']
                     loss_data = entry['loss_info']
                     
+                    model = device.get('model', 'Unknown')
+                    device_type = get_device_type_from_model(model)
+                    
                     result += f"### {device.get('name', 'Unnamed')}\n"
-                    result += f"- Model: {device.get('model')}\n"
+                    result += f"- Type: {device_type}\n"
+                    result += f"- Model: {model}\n"
                     result += f"- Serial: `{device.get('serial')}`\n"
                     if status.get('lastReportedAt'):
                         result += f"- Last Seen: {status['lastReportedAt']}\n"
@@ -398,8 +443,12 @@ The device is now rebooting. Monitor its status to confirm it comes back online.
                     status = entry['status_info']
                     loss_data = entry['loss_info']
                     
+                    model = device.get('model', 'Unknown')
+                    device_type = get_device_type_from_model(model)
+                    
                     result += f"### {device.get('name', 'Unnamed')}\n"
-                    result += f"- Model: {device.get('model')}\n"
+                    result += f"- Type: {device_type}\n"
+                    result += f"- Model: {model}\n"
                     result += f"- Serial: `{device.get('serial')}`\n"
                     if status.get('lastReportedAt'):
                         result += f"- Last Seen: {status['lastReportedAt']}\n"
@@ -424,8 +473,12 @@ The device is now rebooting. Monitor its status to confirm it comes back online.
                     device = entry['device']
                     loss_data = entry['loss_info']
                     
+                    model = device.get('model', 'Unknown')
+                    device_type = get_device_type_from_model(model)
+                    
                     result += f"### {device.get('name', 'Unnamed')}\n"
-                    result += f"- Model: {device.get('model')}\n"
+                    result += f"- Type: {device_type}\n"
+                    result += f"- Model: {model}\n"
                     result += f"- Serial: `{device.get('serial')}`\n"
                     result += f"- **Note**: Device may be passing traffic normally\n"
                     
@@ -447,8 +500,12 @@ The device is now rebooting. Monitor its status to confirm it comes back online.
                 result += f"*Status information not available*\n\n"
                 for entry in unknown_devices:
                     device = entry['device']
+                    model = device.get('model', 'Unknown')
+                    device_type = get_device_type_from_model(model)
+                    
                     result += f"### {device.get('name', 'Unnamed')}\n"
-                    result += f"- Model: {device.get('model')}\n"
+                    result += f"- Type: {device_type}\n"
+                    result += f"- Model: {model}\n"
                     result += f"- Serial: `{device.get('serial')}`\n"
                     result += "\n"
             

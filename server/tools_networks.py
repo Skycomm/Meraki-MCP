@@ -434,37 +434,128 @@ def register_network_tool_handlers():
     def get_network_events(network_id: str, **kwargs):
         """Get events for the network."""
         try:
-            events = meraki_client.dashboard.networks.getNetworkEvents(network_id, **kwargs)
-            
-            if not events or not events.get('events'):
-                return f"No events found for network {network_id}."
-            
-            result = f"# 📅 Network Events\n\n"
-            
-            event_list = events.get('events', [])
-            result += f"**Total Events**: {len(event_list)}\n\n"
-            
-            # Group by type
-            by_type = {}
-            for event in event_list:
-                event_type = event.get('type', 'Unknown')
-                if event_type not in by_type:
-                    by_type[event_type] = []
-                by_type[event_type].append(event)
-            
-            for event_type, events in sorted(by_type.items()):
-                result += f"## {event_type} ({len(events)} events)\n\n"
+            # If no productType specified, try multiple product types
+            if 'productType' not in kwargs:
+                # Try each product type to gather all events
+                product_types = ['appliance', 'wireless', 'switch', 'camera', 'cellularGateway']
+                all_events = []
+                successful_types = []
                 
-                for event in events[:5]:  # Show first 5 of each type
-                    result += f"- **{event.get('occurredAt')}**\n"
-                    result += f"  - Description: {event.get('description', 'No description')}\n"
+                for product_type in product_types:
+                    try:
+                        kwargs_copy = kwargs.copy()
+                        kwargs_copy['productType'] = product_type
+                        # Add default perPage if not specified
+                        if 'perPage' not in kwargs_copy:
+                            kwargs_copy['perPage'] = 100
+                        
+                        response = meraki_client.dashboard.networks.getNetworkEvents(network_id, **kwargs_copy)
+                        
+                        if response and response.get('events'):
+                            events = response.get('events', [])
+                            all_events.extend(events)
+                            successful_types.append(product_type)
+                    except:
+                        # Some product types may not be available for this network
+                        continue
+                
+                if not all_events:
+                    # If no events found with any product type, try without productType
+                    try:
+                        if 'perPage' not in kwargs:
+                            kwargs['perPage'] = 100
+                        response = meraki_client.dashboard.networks.getNetworkEvents(network_id, **kwargs)
+                        if response and response.get('events'):
+                            all_events = response.get('events', [])
+                    except:
+                        pass
+                
+                if not all_events:
+                    result = f"# 📅 Network Events\n\n"
+                    result += f"No recent events found for network.\n\n"
+                    result += f"**Searched product types**: {', '.join(product_types)}\n"
+                    result += f"\n💡 **Tip**: Events may be filtered by time. Try specifying:\n"
+                    result += f"- A specific productType (appliance, wireless, switch)\n"
+                    result += f"- A specific device with deviceSerial parameter\n"
+                    result += f"- Different time periods\n"
+                    return result
+                
+                # Process combined events
+                result = f"# 📅 Network Events\n\n"
+                result += f"**Total Events Found**: {len(all_events)}\n"
+                if successful_types:
+                    result += f"**Product Types with Events**: {', '.join(successful_types)}\n\n"
+                
+                # Sort events by time (most recent first)
+                all_events.sort(key=lambda x: x.get('occurredAt', ''), reverse=True)
+                
+                # Group by type
+                by_type = {}
+                for event in all_events:
+                    event_type = event.get('type', 'Unknown')
+                    if event_type not in by_type:
+                        by_type[event_type] = []
+                    by_type[event_type].append(event)
+                
+                for event_type, events in sorted(by_type.items()):
+                    result += f"## {event_type} ({len(events)} events)\n\n"
                     
-                    if event.get('deviceName'):
-                        result += f"  - Device: {event['deviceName']}\n"
+                    for event in events[:5]:  # Show first 5 of each type
+                        result += f"- **{event.get('occurredAt')}**\n"
+                        result += f"  - Description: {event.get('description', 'No description')}\n"
+                        
+                        if event.get('deviceName'):
+                            result += f"  - Device: {event['deviceName']}\n"
+                        if event.get('productType'):
+                            result += f"  - Type: {event['productType']}\n"
+                        
+                        result += "\n"
                     
-                    result += "\n"
+                    if len(events) > 5:
+                        result += f"  ... and {len(events) - 5} more {event_type} events\n\n"
+                
+                return result
             
-            return result
+            else:
+                # Use specified productType
+                if 'perPage' not in kwargs:
+                    kwargs['perPage'] = 100
+                    
+                events = meraki_client.dashboard.networks.getNetworkEvents(network_id, **kwargs)
+                
+                if not events or not events.get('events'):
+                    return f"No events found for network {network_id} with productType: {kwargs.get('productType')}."
+                
+                result = f"# 📅 Network Events\n\n"
+                
+                event_list = events.get('events', [])
+                result += f"**Total Events**: {len(event_list)}\n"
+                result += f"**Product Type**: {kwargs.get('productType')}\n\n"
+                
+                # Group by type
+                by_type = {}
+                for event in event_list:
+                    event_type = event.get('type', 'Unknown')
+                    if event_type not in by_type:
+                        by_type[event_type] = []
+                    by_type[event_type].append(event)
+                
+                for event_type, events in sorted(by_type.items()):
+                    result += f"## {event_type} ({len(events)} events)\n\n"
+                    
+                    for event in events[:5]:  # Show first 5 of each type
+                        result += f"- **{event.get('occurredAt')}**\n"
+                        result += f"  - Description: {event.get('description', 'No description')}\n"
+                        
+                        if event.get('deviceName'):
+                            result += f"  - Device: {event['deviceName']}\n"
+                        
+                        result += "\n"
+                    
+                    if len(events) > 5:
+                        result += f"  ... and {len(events) - 5} more {event_type} events\n\n"
+                
+                return result
             
         except Exception as e:
             return f"Error retrieving events: {str(e)}"
