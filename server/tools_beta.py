@@ -25,65 +25,66 @@ def register_beta_tools(mcp_app, meraki):
 def register_beta_tool_handlers():
     """Register all beta/early access tool handlers using ONLY REAL API methods."""
     
-    @app.tool(
-        name="get_organization_early_access_features",
-        description="🧪 List available early access features for organization"
-    )
-    def get_organization_early_access_features(org_id: str):
-        """
-        List all available early access features for an organization.
-        
-        Args:
-            org_id: Organization ID
-            
-        Returns:
-            List of available early access features
-        """
-        try:
-            features = meraki_client.get_organization_early_access_features(org_id)
-            
-            if not features:
-                return f"No early access features available for organization {org_id}."
-                
-            result = f"# 🧪 Early Access Features - Organization {org_id}\n\n"
-            result += f"**Total Features**: {len(features)}\n\n"
-            
-            for feature in features:
-                feature_id = feature.get('id', 'Unknown')
-                name = feature.get('name', 'Unnamed')
-                description = feature.get('description', 'No description')
-                status = feature.get('status', 'unknown')
-                
-                # Status icon
-                status_icon = "✅" if status == 'available' else "🔒" if status == 'restricted' else "⏳"
-                
-                result += f"## {status_icon} {name}\n"
-                result += f"- **ID**: {feature_id}\n"
-                result += f"- **Status**: {status}\n"
-                result += f"- **Description**: {description}\n"
-                
-                # Documentation link
-                doc_link = feature.get('documentationLink')
-                if doc_link:
-                    result += f"- **Documentation**: {doc_link}\n"
-                
-                # Privacy link
-                privacy_link = feature.get('privacyLink')
-                if privacy_link:
-                    result += f"- **Privacy Policy**: {privacy_link}\n"
-                
-                # Supported products
-                products = feature.get('supportedProducts', [])
-                if products:
-                    result += f"- **Supported Products**: {', '.join(products)}\n"
-                
-                result += "\n"
-                
-            return result
-            
-        except Exception as e:
-            return f"Error retrieving early access features: {str(e)}"
-    
+    # DUPLICATE - Already in tools_early_access.py
+    #     @app.tool(
+    #         name="get_organization_early_access_features",
+    #         description="🧪 List available early access features for organization"
+    #     )
+    #     def get_organization_early_access_features(org_id: str):
+    #         """
+    #         List all available early access features for an organization.
+    #
+    #         Args:
+    #             org_id: Organization ID
+    #
+    #         Returns:
+    #             List of available early access features
+    #         """
+    #         try:
+    #             features = meraki_client.get_organization_early_access_features(org_id)
+    #
+    #             if not features:
+    #                 return f"No early access features available for organization {org_id}."
+    #
+    #             result = f"# 🧪 Early Access Features - Organization {org_id}\n\n"
+    #             result += f"**Total Features**: {len(features)}\n\n"
+    #
+    #             for feature in features:
+    #                 feature_id = feature.get('id', 'Unknown')
+    #                 name = feature.get('name', 'Unnamed')
+    #                 description = feature.get('description', 'No description')
+    #                 status = feature.get('status', 'unknown')
+    #
+    #                 # Status icon
+    #                 status_icon = "✅" if status == 'available' else "🔒" if status == 'restricted' else "⏳"
+    #
+    #                 result += f"## {status_icon} {name}\n"
+    #                 result += f"- **ID**: {feature_id}\n"
+    #                 result += f"- **Status**: {status}\n"
+    #                 result += f"- **Description**: {description}\n"
+    #
+    #                 # Documentation link
+    #                 doc_link = feature.get('documentationLink')
+    #                 if doc_link:
+    #                     result += f"- **Documentation**: {doc_link}\n"
+    #
+    #                 # Privacy link
+    #                 privacy_link = feature.get('privacyLink')
+    #                 if privacy_link:
+    #                     result += f"- **Privacy Policy**: {privacy_link}\n"
+    #
+    #                 # Supported products
+    #                 products = feature.get('supportedProducts', [])
+    #                 if products:
+    #                     result += f"- **Supported Products**: {', '.join(products)}\n"
+    #
+    #                 result += "\n"
+    #
+    #             return result
+    #
+    #         except Exception as e:
+    #             return f"Error retrieving early access features: {str(e)}"
+    #
     @app.tool(
         name="get_organization_early_access_opt_ins",
         description="🧪 List early access features opted into by organization"

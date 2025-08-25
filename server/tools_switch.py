@@ -1759,87 +1759,89 @@ def register_switch_tool_handlers():
     
     # ========== DHCP Server Policy ==========
     
-    @app.tool(
-        name="get_network_switch_dhcp_server_policy",
-        description="🌐 Get DHCP server policy"
-    )
-    def get_network_switch_dhcp_server_policy(network_id: str):
-        """Get DHCP server policy settings for a network."""
-        try:
-            policy = meraki_client.dashboard.switch.getNetworkSwitchDhcpServerPolicy(network_id)
-            
-            result = f"# 🌐 DHCP Server Policy for Network {network_id}\n\n"
-            
-            # Alerts
-            if policy.get('alerts'):
-                alerts = policy['alerts']
-                result += "## Alert Settings\n"
-                result += f"- **Email**: {alerts.get('email', {}).get('enabled', False)}\n"
-                
-            # Default policy
-            if policy.get('defaultPolicy'):
-                result += f"\n**Default Policy**: {policy['defaultPolicy']}\n"
-                
-            # Allowed servers
-            if policy.get('allowedServers'):
-                result += f"\n## Allowed DHCP Servers\n"
-                for server in policy['allowedServers']:
-                    result += f"- {server}\n"
-                    
-            # Blocked servers
-            if policy.get('blockedServers'):
-                result += f"\n## Blocked DHCP Servers\n"
-                for server in policy['blockedServers']:
-                    result += f"- {server}\n"
-                    
-            # ARP inspection
-            if policy.get('arpInspection'):
-                arp = policy['arpInspection']
-                result += f"\n## ARP Inspection\n"
-                result += f"- **Enabled**: {'✅' if arp.get('enabled') else '❌'}\n"
-                if arp.get('unsupportedModels'):
-                    result += f"- **Unsupported Models**: {', '.join(arp['unsupportedModels'])}\n"
-                    
-            return result
-            
-        except Exception as e:
-            return f"Error retrieving DHCP server policy: {str(e)}"
-    
-    @app.tool(
-        name="update_network_switch_dhcp_server_policy",
-        description="🌐 Update DHCP server policy"
-    )
-    def update_network_switch_dhcp_server_policy(
-        network_id: str,
-        default_policy: Optional[str] = None,
-        allowed_servers: Optional[List[str]] = None,
-        blocked_servers: Optional[List[str]] = None,
-        arp_inspection_enabled: Optional[bool] = None
-    ):
-        """Update DHCP server policy settings."""
-        try:
-            kwargs = {}
-            if default_policy is not None:
-                kwargs['defaultPolicy'] = default_policy
-            if allowed_servers is not None:
-                kwargs['allowedServers'] = allowed_servers
-            if blocked_servers is not None:
-                kwargs['blockedServers'] = blocked_servers
-            if arp_inspection_enabled is not None:
-                kwargs['arpInspection'] = {'enabled': arp_inspection_enabled}
-                
-            policy = meraki_client.dashboard.switch.updateNetworkSwitchDhcpServerPolicy(
-                network_id,
-                **kwargs
-            )
-            
-            return f"✅ DHCP server policy updated successfully!"
-            
-        except Exception as e:
-            return f"Error updating DHCP server policy: {str(e)}"
-    
-    # ========== DSCP to CoS Mappings ==========
-    
+    # DUPLICATE - Already in tools_switch_dhcp_policy.py
+    #     @app.tool(
+    #         name="get_network_switch_dhcp_server_policy",
+    #         description="🌐 Get DHCP server policy"
+    #     )
+    #     def get_network_switch_dhcp_server_policy(network_id: str):
+    #         """Get DHCP server policy settings for a network."""
+    #         try:
+    #             policy = meraki_client.dashboard.switch.getNetworkSwitchDhcpServerPolicy(network_id)
+    #
+    #             result = f"# 🌐 DHCP Server Policy for Network {network_id}\n\n"
+    #
+    #             # Alerts
+    #             if policy.get('alerts'):
+    #                 alerts = policy['alerts']
+    #                 result += "## Alert Settings\n"
+    #                 result += f"- **Email**: {alerts.get('email', {}).get('enabled', False)}\n"
+    #
+    #             # Default policy
+    #             if policy.get('defaultPolicy'):
+    #                 result += f"\n**Default Policy**: {policy['defaultPolicy']}\n"
+    #
+    #             # Allowed servers
+    #             if policy.get('allowedServers'):
+    #                 result += f"\n## Allowed DHCP Servers\n"
+    #                 for server in policy['allowedServers']:
+    #                     result += f"- {server}\n"
+    #
+    #             # Blocked servers
+    #             if policy.get('blockedServers'):
+    #                 result += f"\n## Blocked DHCP Servers\n"
+    #                 for server in policy['blockedServers']:
+    #                     result += f"- {server}\n"
+    #
+    #             # ARP inspection
+    #             if policy.get('arpInspection'):
+    #                 arp = policy['arpInspection']
+    #                 result += f"\n## ARP Inspection\n"
+    #                 result += f"- **Enabled**: {'✅' if arp.get('enabled') else '❌'}\n"
+    #                 if arp.get('unsupportedModels'):
+    #                     result += f"- **Unsupported Models**: {', '.join(arp['unsupportedModels'])}\n"
+    #
+    #             return result
+    #
+    #         except Exception as e:
+    #             return f"Error retrieving DHCP server policy: {str(e)}"
+    #
+    # DUPLICATE - Already in tools_switch_dhcp_policy.py
+    #     @app.tool(
+    #         name="update_network_switch_dhcp_server_policy",
+    #         description="🌐 Update DHCP server policy"
+    #     )
+    #     def update_network_switch_dhcp_server_policy(
+    #         network_id: str,
+    #         default_policy: Optional[str] = None,
+    #         allowed_servers: Optional[List[str]] = None,
+    #         blocked_servers: Optional[List[str]] = None,
+    #         arp_inspection_enabled: Optional[bool] = None
+    #     ):
+    #         """Update DHCP server policy settings."""
+    #         try:
+    #             kwargs = {}
+    #             if default_policy is not None:
+    #                 kwargs['defaultPolicy'] = default_policy
+    #             if allowed_servers is not None:
+    #                 kwargs['allowedServers'] = allowed_servers
+    #             if blocked_servers is not None:
+    #                 kwargs['blockedServers'] = blocked_servers
+    #             if arp_inspection_enabled is not None:
+    #                 kwargs['arpInspection'] = {'enabled': arp_inspection_enabled}
+    #
+    #             policy = meraki_client.dashboard.switch.updateNetworkSwitchDhcpServerPolicy(
+    #                 network_id,
+    #                 **kwargs
+    #             )
+    #
+    #             return f"✅ DHCP server policy updated successfully!"
+    #
+    #         except Exception as e:
+    #             return f"Error updating DHCP server policy: {str(e)}"
+    #
+    #     # ========== DSCP to CoS Mappings ==========
+    #
     @app.tool(
         name="get_network_switch_dscp_to_cos_mappings",
         description="🎯 Get DSCP to CoS mappings"

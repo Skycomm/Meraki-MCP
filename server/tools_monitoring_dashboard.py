@@ -990,7 +990,7 @@ def register_monitoring_dashboard_tools(app: FastMCP, client: MerakiClient):
     meraki = client
     
     # Register all tools
-    app.tool()(get_network_health_summary)
+    app.tool(name="get_network_health_monitoring_summary", description="🏥 Get enhanced network health monitoring summary")(get_network_health_summary)
     app.tool()(get_uplink_bandwidth_summary)
     app.tool()(get_critical_alerts)
     app.tool()(get_device_utilization)

@@ -937,116 +937,121 @@ def register_network_tool_handlers():
             return f"Error retrieving health summary: {str(e)}"
     
     # MQTT Brokers
-    @app.tool(
-        name="get_network_mqtt_brokers",
-        description="📡 Get MQTT brokers"
-    )
-    def get_network_mqtt_brokers(network_id: str):
-        """List MQTT brokers for a network."""
-        try:
-            brokers = meraki_client.dashboard.networks.getNetworkMqttBrokers(network_id)
-            
-            if not brokers:
-                return f"No MQTT brokers found for network {network_id}."
-            
-            result = f"# 📡 MQTT Brokers\n\n"
-            result += f"**Total Brokers**: {len(brokers)}\n\n"
-            
-            for broker in brokers:
-                result += f"## {broker.get('name', 'Unnamed')}\n"
-                result += f"- ID: {broker.get('id')}\n"
-                result += f"- Host: {broker.get('host')}\n"
-                result += f"- Port: {broker.get('port', 1883)}\n"
-                
-                if broker.get('security'):
-                    security = broker['security']
-                    result += f"- Security: {security.get('mode', 'None')}\n"
-                
-                result += "\n"
-            
-            return result
-            
-        except Exception as e:
-            return f"Error retrieving MQTT brokers: {str(e)}"
-    
-    @app.tool(
-        name="create_network_mqtt_broker",
-        description="📡 Create MQTT broker"
-    )
-    def create_network_mqtt_broker(network_id: str, name: str, host: str, port: int, **kwargs):
-        """Create an MQTT broker."""
-        try:
-            result = meraki_client.dashboard.networks.createNetworkMqttBroker(
-                network_id, name, host, port, **kwargs
-            )
-            
-            return f"✅ MQTT broker '{name}' created successfully!\n\nBroker ID: {result.get('id')}"
-            
-        except Exception as e:
-            return f"Error creating MQTT broker: {str(e)}"
-    
-    @app.tool(
-        name="get_network_mqtt_broker",
-        description="📡 Get MQTT broker details"
-    )
-    def get_network_mqtt_broker(network_id: str, mqttBrokerId: str):
-        """Get details of an MQTT broker."""
-        try:
-            broker = meraki_client.dashboard.networks.getNetworkMqttBroker(
-                network_id, mqttBrokerId
-            )
-            
-            result = f"# 📡 MQTT Broker Details\n\n"
-            result += f"**Name**: {broker.get('name')}\n"
-            result += f"**Host**: {broker.get('host')}\n"
-            result += f"**Port**: {broker.get('port')}\n"
-            
-            if broker.get('security'):
-                security = broker['security']
-                result += f"\n**Security**:\n"
-                result += f"- Mode: {security.get('mode', 'None')}\n"
-                
-                if security.get('tls'):
-                    result += f"- TLS: Enabled\n"
-            
-            return result
-            
-        except Exception as e:
-            return f"Error retrieving MQTT broker: {str(e)}"
-    
-    @app.tool(
-        name="update_network_mqtt_broker",
-        description="📡 Update MQTT broker"
-    )
-    def update_network_mqtt_broker(network_id: str, mqttBrokerId: str, **kwargs):
-        """Update an MQTT broker."""
-        try:
-            result = meraki_client.dashboard.networks.updateNetworkMqttBroker(
-                network_id, mqttBrokerId, **kwargs
-            )
-            
-            return f"✅ MQTT broker updated successfully!"
-            
-        except Exception as e:
-            return f"Error updating MQTT broker: {str(e)}"
-    
-    @app.tool(
-        name="delete_network_mqtt_broker",
-        description="📡 Delete MQTT broker"
-    )
-    def delete_network_mqtt_broker(network_id: str, mqttBrokerId: str):
-        """Delete an MQTT broker."""
-        try:
-            meraki_client.dashboard.networks.deleteNetworkMqttBroker(
-                network_id, mqttBrokerId
-            )
-            
-            return f"✅ MQTT broker deleted successfully!"
-            
-        except Exception as e:
-            return f"Error deleting MQTT broker: {str(e)}"
-    
-    # Policies by Client
+    # COMMENTED OUT - Moved to dedicated module (tools_mqtt.py, tools_snmp.py, or tools_syslog.py)
+    #     @app.tool(
+    #         name="get_network_mqtt_brokers",
+    #         description="📡 Get MQTT brokers"
+    #     )
+    #     def get_network_mqtt_brokers(network_id: str):
+    #         """List MQTT brokers for a network."""
+    #         try:
+    #             brokers = meraki_client.dashboard.networks.getNetworkMqttBrokers(network_id)
+    #
+    #             if not brokers:
+    #                 return f"No MQTT brokers found for network {network_id}."
+    #
+    #             result = f"# 📡 MQTT Brokers\n\n"
+    #             result += f"**Total Brokers**: {len(brokers)}\n\n"
+    #
+    #             for broker in brokers:
+    #                 result += f"## {broker.get('name', 'Unnamed')}\n"
+    #                 result += f"- ID: {broker.get('id')}\n"
+    #                 result += f"- Host: {broker.get('host')}\n"
+    #                 result += f"- Port: {broker.get('port', 1883)}\n"
+    #
+    #                 if broker.get('security'):
+    #                     security = broker['security']
+    #                     result += f"- Security: {security.get('mode', 'None')}\n"
+    #
+    #                 result += "\n"
+    #
+    #             return result
+    #
+    #         except Exception as e:
+    #             return f"Error retrieving MQTT brokers: {str(e)}"
+    #
+    # COMMENTED OUT - Moved to dedicated module (tools_mqtt.py, tools_snmp.py, or tools_syslog.py)
+    #     @app.tool(
+    #         name="create_network_mqtt_broker",
+    #         description="📡 Create MQTT broker"
+    #     )
+    #     def create_network_mqtt_broker(network_id: str, name: str, host: str, port: int, **kwargs):
+    #         """Create an MQTT broker."""
+    #         try:
+    #             result = meraki_client.dashboard.networks.createNetworkMqttBroker(
+    #                 network_id, name, host, port, **kwargs
+    #             )
+    #
+    #             return f"✅ MQTT broker '{name}' created successfully!\n\nBroker ID: {result.get('id')}"
+    #
+    #         except Exception as e:
+    #             return f"Error creating MQTT broker: {str(e)}"
+    #
+    #     # COMMENTED OUT - Moved to dedicated module (tools_mqtt.py, tools_snmp.py, or tools_syslog.py)
+    #     #     @app.tool(
+    #     #         name="get_network_mqtt_broker",
+    #     #         description="📡 Get MQTT broker details"
+    #     #     )
+    #     #     def get_network_mqtt_broker(network_id: str, mqttBrokerId: str):
+    #     #         """Get details of an MQTT broker."""
+    #     #         try:
+    #     #             broker = meraki_client.dashboard.networks.getNetworkMqttBroker(
+    #     #                 network_id, mqttBrokerId
+    #     #             )
+    #     #
+    #     #             result = f"# 📡 MQTT Broker Details\n\n"
+    #     #             result += f"**Name**: {broker.get('name')}\n"
+    #     #             result += f"**Host**: {broker.get('host')}\n"
+    #     #             result += f"**Port**: {broker.get('port')}\n"
+    #     #
+    #     #             if broker.get('security'):
+    #     #                 security = broker['security']
+    #     #                 result += f"\n**Security**:\n"
+    #     #                 result += f"- Mode: {security.get('mode', 'None')}\n"
+    #     #
+    #     #                 if security.get('tls'):
+    #     #                     result += f"- TLS: Enabled\n"
+    #     #
+    #     #             return result
+    #     #
+    #     #         except Exception as e:
+    #     #             return f"Error retrieving MQTT broker: {str(e)}"
+    #     #
+    # COMMENTED OUT - Moved to dedicated module (tools_mqtt.py, tools_snmp.py, or tools_syslog.py)
+    #     @app.tool(
+    #         name="update_network_mqtt_broker",
+    #         description="📡 Update MQTT broker"
+    #     )
+    #     def update_network_mqtt_broker(network_id: str, mqttBrokerId: str, **kwargs):
+    #         """Update an MQTT broker."""
+    #         try:
+    #             result = meraki_client.dashboard.networks.updateNetworkMqttBroker(
+    #                 network_id, mqttBrokerId, **kwargs
+    #             )
+    #
+    #             return f"✅ MQTT broker updated successfully!"
+    #
+    #         except Exception as e:
+    #             return f"Error updating MQTT broker: {str(e)}"
+    #
+    # COMMENTED OUT - Moved to dedicated module (tools_mqtt.py, tools_snmp.py, or tools_syslog.py)
+    #     @app.tool(
+    #         name="delete_network_mqtt_broker",
+    #         description="📡 Delete MQTT broker"
+    #     )
+    #     def delete_network_mqtt_broker(network_id: str, mqttBrokerId: str):
+    #         """Delete an MQTT broker."""
+    #         try:
+    #             meraki_client.dashboard.networks.deleteNetworkMqttBroker(
+    #                 network_id, mqttBrokerId
+    #             )
+    #
+    #             return f"✅ MQTT broker deleted successfully!"
+    #
+    #         except Exception as e:
+    #             return f"Error deleting MQTT broker: {str(e)}"
+    #
+    #     # Policies by Client
     @app.tool(
         name="get_network_policies_by_client",
         description="📋 Get policies by client"
@@ -1138,98 +1143,102 @@ def register_network_tool_handlers():
             return f"Error updating network settings: {str(e)}"
     
     # SNMP
-    @app.tool(
-        name="get_network_snmp",
-        description="📊 Get SNMP settings"
-    )
-    def get_network_snmp(network_id: str):
-        """Get SNMP settings for a network."""
-        try:
-            snmp = meraki_client.dashboard.networks.getNetworkSnmp(network_id)
-            
-            result = f"# 📊 SNMP Settings\n\n"
-            result += f"**Access**: {snmp.get('access', 'None')}\n"
-            
-            if snmp.get('communityString'):
-                result += f"**Community String**: {'Set' if snmp['communityString'] else 'Not set'}\n"
-            
-            users = snmp.get('users', [])
-            if users:
-                result += f"\n**SNMP v3 Users**: {len(users)}\n"
-                for user in users:
-                    result += f"- {user.get('username')} ({user.get('authLevel', 'Unknown')})\n"
-            
-            return result
-            
-        except Exception as e:
-            return f"Error retrieving SNMP settings: {str(e)}"
-    
-    @app.tool(
-        name="update_network_snmp",
-        description="📊 Update SNMP settings"
-    )
-    def update_network_snmp(network_id: str, **kwargs):
-        """Update SNMP settings for a network."""
-        try:
-            result = meraki_client.dashboard.networks.updateNetworkSnmp(
-                network_id, **kwargs
-            )
-            
-            return f"✅ SNMP settings updated successfully!"
-            
-        except Exception as e:
-            return f"Error updating SNMP settings: {str(e)}"
-    
-    # Syslog Servers
-    @app.tool(
-        name="get_network_syslog_servers",
-        description="📝 Get syslog servers"
-    )
-    def get_network_syslog_servers(network_id: str):
-        """List syslog servers for a network."""
-        try:
-            servers = meraki_client.dashboard.networks.getNetworkSyslogServers(network_id)
-            
-            result = f"# 📝 Syslog Servers\n\n"
-            
-            server_list = servers.get('servers', [])
-            if not server_list:
-                return result + "No syslog servers configured."
-            
-            result += f"**Total Servers**: {len(server_list)}\n\n"
-            
-            for server in server_list:
-                result += f"- **{server.get('host')}**\n"
-                result += f"  - Port: {server.get('port', 514)}\n"
-                
-                roles = server.get('roles', [])
-                if roles:
-                    result += f"  - Roles: {', '.join(roles)}\n"
-                
-                result += "\n"
-            
-            return result
-            
-        except Exception as e:
-            return f"Error retrieving syslog servers: {str(e)}"
-    
-    @app.tool(
-        name="update_network_syslog_servers",
-        description="📝 Update syslog servers"
-    )
-    def update_network_syslog_servers(network_id: str, servers: list):
-        """Update syslog servers for a network."""
-        try:
-            result = meraki_client.dashboard.networks.updateNetworkSyslogServers(
-                network_id, servers
-            )
-            
-            return f"✅ Syslog servers updated successfully!"
-            
-        except Exception as e:
-            return f"Error updating syslog servers: {str(e)}"
-    
-    # Traffic Shaping
+    # COMMENTED OUT - Moved to dedicated module (tools_mqtt.py, tools_snmp.py, or tools_syslog.py)
+    #     @app.tool(
+    #         name="get_network_snmp",
+    #         description="📊 Get SNMP settings"
+    #     )
+    #     def get_network_snmp(network_id: str):
+    #         """Get SNMP settings for a network."""
+    #         try:
+    #             snmp = meraki_client.dashboard.networks.getNetworkSnmp(network_id)
+    #
+    #             result = f"# 📊 SNMP Settings\n\n"
+    #             result += f"**Access**: {snmp.get('access', 'None')}\n"
+    #
+    #             if snmp.get('communityString'):
+    #                 result += f"**Community String**: {'Set' if snmp['communityString'] else 'Not set'}\n"
+    #
+    #             users = snmp.get('users', [])
+    #             if users:
+    #                 result += f"\n**SNMP v3 Users**: {len(users)}\n"
+    #                 for user in users:
+    #                     result += f"- {user.get('username')} ({user.get('authLevel', 'Unknown')})\n"
+    #
+    #             return result
+    #
+    #         except Exception as e:
+    #             return f"Error retrieving SNMP settings: {str(e)}"
+    #
+    # COMMENTED OUT - Moved to dedicated module (tools_mqtt.py, tools_snmp.py, or tools_syslog.py)
+    #     @app.tool(
+    #         name="update_network_snmp",
+    #         description="📊 Update SNMP settings"
+    #     )
+    #     def update_network_snmp(network_id: str, **kwargs):
+    #         """Update SNMP settings for a network."""
+    #         try:
+    #             result = meraki_client.dashboard.networks.updateNetworkSnmp(
+    #                 network_id, **kwargs
+    #             )
+    #
+    #             return f"✅ SNMP settings updated successfully!"
+    #
+    #         except Exception as e:
+    #             return f"Error updating SNMP settings: {str(e)}"
+    #
+    #     # Syslog Servers
+    # COMMENTED OUT - Moved to dedicated module (tools_mqtt.py, tools_snmp.py, or tools_syslog.py)
+    #     @app.tool(
+    #         name="get_network_syslog_servers",
+    #         description="📝 Get syslog servers"
+    #     )
+    #     def get_network_syslog_servers(network_id: str):
+    #         """List syslog servers for a network."""
+    #         try:
+    #             servers = meraki_client.dashboard.networks.getNetworkSyslogServers(network_id)
+    #
+    #             result = f"# 📝 Syslog Servers\n\n"
+    #
+    #             server_list = servers.get('servers', [])
+    #             if not server_list:
+    #                 return result + "No syslog servers configured."
+    #
+    #             result += f"**Total Servers**: {len(server_list)}\n\n"
+    #
+    #             for server in server_list:
+    #                 result += f"- **{server.get('host')}**\n"
+    #                 result += f"  - Port: {server.get('port', 514)}\n"
+    #
+    #                 roles = server.get('roles', [])
+    #                 if roles:
+    #                     result += f"  - Roles: {', '.join(roles)}\n"
+    #
+    #                 result += "\n"
+    #
+    #             return result
+    #
+    #         except Exception as e:
+    #             return f"Error retrieving syslog servers: {str(e)}"
+    #
+    # COMMENTED OUT - Moved to dedicated module (tools_mqtt.py, tools_snmp.py, or tools_syslog.py)
+    #     @app.tool(
+    #         name="update_network_syslog_servers",
+    #         description="📝 Update syslog servers"
+    #     )
+    #     def update_network_syslog_servers(network_id: str, servers: list):
+    #         """Update syslog servers for a network."""
+    #         try:
+    #             result = meraki_client.dashboard.networks.updateNetworkSyslogServers(
+    #                 network_id, servers
+    #             )
+    #
+    #             return f"✅ Syslog servers updated successfully!"
+    #
+    #         except Exception as e:
+    #             return f"Error updating syslog servers: {str(e)}"
+    #
+    #     # Traffic Shaping
     @app.tool(
         name="get_network_traffic_shaping_application_categories",
         description="🚦 Get application categories"

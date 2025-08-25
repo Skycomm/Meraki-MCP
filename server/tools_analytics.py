@@ -154,103 +154,104 @@ def register_analytics_tool_handlers():
             error_details = traceback.format_exc()
             return f"Error retrieving uplink loss/latency data:\n{str(e)}\n\nDetails:\n{error_details}"
 
-    @app.tool(
-        name="get_organization_appliance_uplink_statuses",
-        description="🔗 Get REAL uplink status for all appliances in organization"
-    )
-    def get_organization_appliance_uplink_statuses(org_id: str):
-        """
-        Get REAL uplink status for all appliances in organization.
-        
-        Args:
-            org_id: Organization ID
-            
-        Returns:
-            Formatted appliance uplink status data
-        """
-        try:
-            uplink_statuses = meraki_client.get_organization_appliance_uplink_statuses(org_id)
-            
-            if not uplink_statuses:
-                return f"No appliance uplink status data found for organization {org_id}."
-                
-            result = f"# 🔗 APPLIANCE UPLINK STATUS - Organization {org_id}\n\n"
-            
-            # Group by network
-            networks = {}
-            for status in uplink_statuses:
-                network_id = status.get('networkId', 'Unknown')
-                network_name = status.get('networkName', network_id)
-                if network_name not in networks:
-                    networks[network_name] = []
-                networks[network_name].append(status)
-            
-            for network_name, statuses in networks.items():
-                result += f"## 🌐 {network_name}\n"
-                
-                for status in statuses:
-                    serial = status.get('serial', 'Unknown')
-                    model = status.get('model', 'Unknown')
-                    result += f"### 📱 {model} ({serial})\n"
-                    
-                    uplinks = status.get('uplinks', [])
-                    if not uplinks:
-                        result += "- **Status**: No uplink data available\n"
-                        continue
-                        
-                    for uplink in uplinks:
-                        interface = uplink.get('interface', 'Unknown')
-                        uplink_status = uplink.get('status', 'Unknown')
-                        
-                        # Status indicators
-                        if uplink_status.lower() == 'active':
-                            status_icon = "✅"
-                        elif uplink_status.lower() == 'ready':
-                            status_icon = "🟡"
-                        elif uplink_status.lower() in ['failed', 'down']:
-                            status_icon = "❌"
-                        else:
-                            status_icon = "⚠️"
-                            
-                        result += f"#### 🔗 {interface}: {uplink_status} {status_icon}\n"
-                        
-                        if uplink.get('ip'):
-                            result += f"- **IP**: {uplink['ip']}\n"
-                        if uplink.get('gateway'):
-                            result += f"- **Gateway**: {uplink['gateway']}\n"
-                        if uplink.get('publicIp'):
-                            result += f"- **Public IP**: {uplink['publicIp']}\n"
-                        if uplink.get('dns'):
-                            result += f"- **DNS**: {uplink['dns']}\n"
-                        if uplink.get('usingStaticIp'):
-                            result += f"- **Static IP**: {uplink['usingStaticIp']}\n"
-                        
-                        result += "\n"
-                        
-            return result
-            
-        except Exception as e:
-            error_msg = str(e)
-            
-            if "404" in error_msg:
-                return f"""❌ Error: Organization not found or API not accessible.
-                
-Organization ID: {org_id}
-
-Possible causes:
-- Invalid organization ID
-- No API access to this organization
-- Organization doesn't have appliances
-- API endpoint not available for your license"""
-            elif "403" in error_msg:
-                return f"""❌ Error: Permission denied.
-
-Possible causes:
-- API key doesn't have permission for this organization
-- Feature not available for your license tier"""
-            else:
-                return f"❌ Error retrieving appliance uplink statuses: {error_msg}"
-
+    # DUPLICATE - Already in tools_appliance.py
+    #     @app.tool(
+    #         name="get_organization_appliance_uplink_statuses",
+    #         description="🔗 Get REAL uplink status for all appliances in organization"
+    #     )
+    #     def get_organization_appliance_uplink_statuses(org_id: str):
+    #         """
+    #         Get REAL uplink status for all appliances in organization.
+    #
+    #         Args:
+    #             org_id: Organization ID
+    #
+    #         Returns:
+    #             Formatted appliance uplink status data
+    #         """
+    #         try:
+    #             uplink_statuses = meraki_client.get_organization_appliance_uplink_statuses(org_id)
+    #
+    #             if not uplink_statuses:
+    #                 return f"No appliance uplink status data found for organization {org_id}."
+    #
+    #             result = f"# 🔗 APPLIANCE UPLINK STATUS - Organization {org_id}\n\n"
+    #
+    #             # Group by network
+    #             networks = {}
+    #             for status in uplink_statuses:
+    #                 network_id = status.get('networkId', 'Unknown')
+    #                 network_name = status.get('networkName', network_id)
+    #                 if network_name not in networks:
+    #                     networks[network_name] = []
+    #                 networks[network_name].append(status)
+    #
+    #             for network_name, statuses in networks.items():
+    #                 result += f"## 🌐 {network_name}\n"
+    #
+    #                 for status in statuses:
+    #                     serial = status.get('serial', 'Unknown')
+    #                     model = status.get('model', 'Unknown')
+    #                     result += f"### 📱 {model} ({serial})\n"
+    #
+    #                     uplinks = status.get('uplinks', [])
+    #                     if not uplinks:
+    #                         result += "- **Status**: No uplink data available\n"
+    #                         continue
+    #
+    #                     for uplink in uplinks:
+    #                         interface = uplink.get('interface', 'Unknown')
+    #                         uplink_status = uplink.get('status', 'Unknown')
+    #
+    #                         # Status indicators
+    #                         if uplink_status.lower() == 'active':
+    #                             status_icon = "✅"
+    #                         elif uplink_status.lower() == 'ready':
+    #                             status_icon = "🟡"
+    #                         elif uplink_status.lower() in ['failed', 'down']:
+    #                             status_icon = "❌"
+    #                         else:
+    #                             status_icon = "⚠️"
+    #
+    #                         result += f"#### 🔗 {interface}: {uplink_status} {status_icon}\n"
+    #
+    #                         if uplink.get('ip'):
+    #                             result += f"- **IP**: {uplink['ip']}\n"
+    #                         if uplink.get('gateway'):
+    #                             result += f"- **Gateway**: {uplink['gateway']}\n"
+    #                         if uplink.get('publicIp'):
+    #                             result += f"- **Public IP**: {uplink['publicIp']}\n"
+    #                         if uplink.get('dns'):
+    #                             result += f"- **DNS**: {uplink['dns']}\n"
+    #                         if uplink.get('usingStaticIp'):
+    #                             result += f"- **Static IP**: {uplink['usingStaticIp']}\n"
+    #
+    #                         result += "\n"
+    #
+    #             return result
+    #
+    #         except Exception as e:
+    #             error_msg = str(e)
+    #
+    #             if "404" in error_msg:
+    #                 return f"""❌ Error: Organization not found or API not accessible.
+    #
+    # Organization ID: {org_id}
+    #
+    # Possible causes:
+    # - Invalid organization ID
+    # - No API access to this organization
+    # - Organization doesn't have appliances
+    # - API endpoint not available for your license"""
+    #             elif "403" in error_msg:
+    #                 return f"""❌ Error: Permission denied.
+    #
+    # Possible causes:
+    # - API key doesn't have permission for this organization
+    # - Feature not available for your license tier"""
+    #             else:
+    #                 return f"❌ Error retrieving appliance uplink statuses: {error_msg}"
+    #
     @app.tool(
         name="get_network_connection_stats",
         description="📊 Get REAL network connection statistics"
