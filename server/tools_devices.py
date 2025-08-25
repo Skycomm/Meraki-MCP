@@ -256,3 +256,231 @@ The device is now rebooting. Monitor its status to confirm it comes back online.
             
         except Exception as e:
             return f"Failed to get status for device {serial}: {str(e)}"
+    
+    @app.tool(
+        name="get_network_devices_statuses",
+        description="📊 Get comprehensive status for all devices in a network"
+    )
+    def get_network_devices_statuses(network_id: str):
+        """
+        Get comprehensive status information for all devices in a network.
+        Combines device inventory with real-time status from multiple sources.
+        """
+        try:
+            # Get basic device info
+            devices = meraki_client.dashboard.networks.getNetworkDevices(network_id)
+            
+            # Try to get organization ID from the first device
+            org_id = None
+            if devices and len(devices) > 0:
+                try:
+                    # Get network info to find org ID
+                    network = meraki_client.dashboard.networks.getNetwork(network_id)
+                    org_id = network.get('organizationId')
+                except:
+                    pass
+            
+            # Get real-time statuses if we have org ID
+            device_statuses = {}
+            uplink_loss_data = {}
+            if org_id:
+                try:
+                    statuses = meraki_client.dashboard.organizations.getOrganizationDevicesStatuses(
+                        org_id,
+                        networkIds=[network_id],
+                        perPage=1000,
+                        total_pages='all'
+                    )
+                    # Create lookup by serial
+                    for status in statuses:
+                        if isinstance(status, dict):
+                            serial = status.get('serial')
+                            if serial:
+                                device_statuses[serial] = status
+                except:
+                    pass
+                
+                # Get WAN packet loss data for MX/Z devices
+                try:
+                    loss_data = meraki_client.dashboard.organizations.getOrganizationDevicesUplinksLossAndLatency(
+                        org_id,
+                        networkIds=[network_id],
+                        timespan=300  # Last 5 minutes
+                    )
+                    # Create lookup by serial
+                    for device_data in loss_data:
+                        if isinstance(device_data, dict):
+                            serial = device_data.get('serial')
+                            if serial:
+                                uplink_loss_data[serial] = device_data
+                except:
+                    pass
+            
+            # Build comprehensive report
+            result = f"# 📊 Network Device Statuses\n\n"
+            result += f"**Total Devices**: {len(devices)}\n\n"
+            
+            # Categorize devices
+            online_devices = []
+            offline_devices = []
+            dormant_devices = []
+            unknown_devices = []
+            
+            for device in devices:
+                serial = device.get('serial')
+                status_info = device_statuses.get(serial, {})
+                loss_info = uplink_loss_data.get(serial, {})
+                
+                # Determine status from multiple sources
+                cloud_status = status_info.get('status', device.get('status'))
+                
+                device_entry = {
+                    'device': device,
+                    'cloud_status': cloud_status,
+                    'status_info': status_info,
+                    'loss_info': loss_info
+                }
+                
+                if cloud_status == 'online':
+                    online_devices.append(device_entry)
+                elif cloud_status == 'offline':
+                    offline_devices.append(device_entry)
+                elif cloud_status == 'dormant':
+                    dormant_devices.append(device_entry)
+                else:
+                    unknown_devices.append(device_entry)
+            
+            # Display online devices
+            if online_devices:
+                result += f"## 🟢 Online Devices ({len(online_devices)})\n\n"
+                for entry in online_devices:
+                    device = entry['device']
+                    status = entry['status_info']
+                    loss_data = entry['loss_info']
+                    
+                    result += f"### {device.get('name', 'Unnamed')}\n"
+                    result += f"- Model: {device.get('model')}\n"
+                    result += f"- Serial: `{device.get('serial')}`\n"
+                    if status.get('lastReportedAt'):
+                        result += f"- Last Seen: {status['lastReportedAt']}\n"
+                    if status.get('publicIp'):
+                        result += f"- Public IP: {status['publicIp']}\n"
+                    
+                    # Add WAN packet loss information if available
+                    if loss_data and loss_data.get('uplinks'):
+                        result += f"- **WAN Performance (last 5 min):**\n"
+                        for uplink in loss_data['uplinks']:
+                            if isinstance(uplink, dict):
+                                interface = uplink.get('interface', 'WAN')
+                                loss_percent = uplink.get('lossPercent')
+                                latency_ms = uplink.get('latencyMs')
+                                
+                                if loss_percent is not None:
+                                    if loss_percent > 5:
+                                        emoji = "🔴"
+                                    elif loss_percent > 1:
+                                        emoji = "🟡"
+                                    else:
+                                        emoji = "🟢"
+                                    result += f"  - {interface}: {emoji} {loss_percent:.1f}% packet loss"
+                                    
+                                    if latency_ms is not None:
+                                        result += f", {latency_ms:.1f}ms latency"
+                                    result += "\n"
+                    
+                    result += "\n"
+            
+            # Display offline devices
+            if offline_devices:
+                result += f"## 🔴 Offline Devices ({len(offline_devices)})\n\n"
+                for entry in offline_devices:
+                    device = entry['device']
+                    status = entry['status_info']
+                    loss_data = entry['loss_info']
+                    
+                    result += f"### {device.get('name', 'Unnamed')}\n"
+                    result += f"- Model: {device.get('model')}\n"
+                    result += f"- Serial: `{device.get('serial')}`\n"
+                    if status.get('lastReportedAt'):
+                        result += f"- Last Seen: {status['lastReportedAt']}\n"
+                    
+                    # Show last known WAN status if available
+                    if loss_data and loss_data.get('uplinks'):
+                        result += f"- **Last Known WAN Status:**\n"
+                        for uplink in loss_data['uplinks']:
+                            if isinstance(uplink, dict):
+                                interface = uplink.get('interface', 'WAN')
+                                loss_percent = uplink.get('lossPercent')
+                                if loss_percent is not None:
+                                    result += f"  - {interface}: {loss_percent:.1f}% packet loss (before going offline)\n"
+                    
+                    result += "\n"
+            
+            # Display dormant devices
+            if dormant_devices:
+                result += f"## 😴 Dormant Devices ({len(dormant_devices)})\n"
+                result += f"*These devices haven't reported to Meraki cloud but may still be operational*\n\n"
+                for entry in dormant_devices:
+                    device = entry['device']
+                    loss_data = entry['loss_info']
+                    
+                    result += f"### {device.get('name', 'Unnamed')}\n"
+                    result += f"- Model: {device.get('model')}\n"
+                    result += f"- Serial: `{device.get('serial')}`\n"
+                    result += f"- **Note**: Device may be passing traffic normally\n"
+                    
+                    # Check if we have recent loss data despite dormant status
+                    if loss_data and loss_data.get('uplinks'):
+                        result += f"- **WAN Status (if operational):**\n"
+                        for uplink in loss_data['uplinks']:
+                            if isinstance(uplink, dict):
+                                interface = uplink.get('interface', 'WAN')
+                                loss_percent = uplink.get('lossPercent')
+                                if loss_percent is not None:
+                                    result += f"  - {interface}: {loss_percent:.1f}% packet loss\n"
+                    
+                    result += "\n"
+            
+            # Display unknown status devices
+            if unknown_devices:
+                result += f"## ⚪ Unknown Status ({len(unknown_devices)})\n"
+                result += f"*Status information not available*\n\n"
+                for entry in unknown_devices:
+                    device = entry['device']
+                    result += f"### {device.get('name', 'Unnamed')}\n"
+                    result += f"- Model: {device.get('model')}\n"
+                    result += f"- Serial: `{device.get('serial')}`\n"
+                    result += "\n"
+            
+            # Summary
+            result += f"## Summary\n\n"
+            if len(online_devices) == len(devices):
+                result += f"✅ All devices are online and reporting\n"
+            elif len(online_devices) > 0:
+                result += f"⚠️ {len(online_devices)}/{len(devices)} devices online\n"
+                if dormant_devices:
+                    result += f"📝 {len(dormant_devices)} devices not reporting to cloud (may be operational)\n"
+                if offline_devices:
+                    result += f"❌ {len(offline_devices)} devices offline\n"
+            else:
+                result += f"⚠️ No devices reporting as online\n"
+                if dormant_devices:
+                    result += f"📝 Devices may still be operational but not connected to Meraki cloud\n"
+            
+            # Add WAN health summary if we have packet loss data
+            mx_devices_with_loss = []
+            for entry in online_devices + offline_devices + dormant_devices:
+                if entry['loss_info'] and entry['loss_info'].get('uplinks'):
+                    for uplink in entry['loss_info']['uplinks']:
+                        if isinstance(uplink, dict) and uplink.get('lossPercent', 0) > 1:
+                            mx_devices_with_loss.append(entry)
+                            break
+            
+            if mx_devices_with_loss:
+                result += f"\n### 📡 WAN Health Issues Detected\n"
+                result += f"⚠️ {len(mx_devices_with_loss)} device(s) experiencing packet loss on WAN links\n"
+            
+            return result
+            
+        except Exception as e:
+            return f"Failed to get device statuses: {str(e)}"

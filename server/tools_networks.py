@@ -172,7 +172,12 @@ def register_network_tool_handlers():
                     result += f"### {device.get('name', 'Unnamed')}\n"
                     result += f"- Serial: `{device.get('serial')}`\n"
                     result += f"- MAC: `{device.get('mac')}`\n"
-                    result += f"- Status: {device.get('status', 'Unknown')}\n"
+                    # Status may not be available from this API
+                    status = device.get('status')
+                    if status:
+                        result += f"- Status: {status}\n"
+                    else:
+                        result += f"- Status: Not reported (check device statuses API)\n"
                     
                     if device.get('address'):
                         result += f"- Address: {device['address']}\n"
@@ -221,6 +226,12 @@ def register_network_tool_handlers():
     def get_network_clients(network_id: str, **kwargs):
         """List clients in a network."""
         try:
+            # Ensure maximum pagination - Meraki API max is 1000 per page
+            if 'perPage' not in kwargs:
+                kwargs['perPage'] = 1000  # Maximum allowed by Meraki API
+            if 'total_pages' not in kwargs:
+                kwargs['total_pages'] = 'all'  # Get all pages
+            
             clients = meraki_client.dashboard.networks.getNetworkClients(network_id, **kwargs)
             
             if not clients:
@@ -903,33 +914,56 @@ def register_network_tool_handlers():
             # Get various health metrics
             devices = meraki_client.dashboard.networks.getNetworkDevices(network_id)
             
-            # Count devices by status
+            # Count devices by status - handle missing status gracefully
             online = sum(1 for d in devices if d.get('status') == 'online')
             alerting = sum(1 for d in devices if d.get('status') == 'alerting')
             offline = sum(1 for d in devices if d.get('status') == 'offline')
+            # Devices without status field (e.g., APs not reporting to cloud but still working)
+            no_status = sum(1 for d in devices if not d.get('status'))
             
             result = f"# 🏥 Network Health Summary\n\n"
             result += f"**Total Infrastructure Devices**: {len(devices)}\n"
             result += f"- 🟢 Online: {online}\n"
             result += f"- 🟡 Alerting: {alerting}\n"
-            result += f"- 🔴 Offline: {offline}\n\n"
+            result += f"- 🔴 Offline: {offline}\n"
+            if no_status > 0:
+                result += f"- ⚪ Status Not Reported: {no_status} (may be operating normally)\n"
+            result += "\n"
             
-            # Get client count
+            # Get client count - use overview API for accurate count
             try:
-                clients = meraki_client.dashboard.networks.getNetworkClients(network_id, perPage=1)
-                result += f"**Connected Client Devices**: {len(clients)} active\n"
+                # Try to get client overview first (more efficient)
+                overview = meraki_client.dashboard.networks.getNetworkClientsOverview(network_id)
+                client_count = overview.get('counts', {}).get('total', 0)
+                result += f"**Connected Client Devices**: {client_count} active\n"
             except:
-                pass
+                # Fallback to getting actual client list with pagination
+                try:
+                    clients = meraki_client.dashboard.networks.getNetworkClients(
+                        network_id, 
+                        perPage=1000,  # Maximum pagination
+                        total_pages='all'  # Get all pages for accurate count
+                    )
+                    result += f"**Connected Client Devices**: {len(clients)} active\n"
+                except:
+                    pass
             
-            # Overall health score
-            if len(devices) > 0:
-                health_percentage = (online / len(devices)) * 100
+            # Overall health score - base on devices with known status
+            devices_with_status = online + alerting + offline
+            if devices_with_status > 0:
+                health_percentage = (online / devices_with_status) * 100
                 if health_percentage >= 95:
                     result += f"\n**Overall Health**: 🟢 Excellent ({health_percentage:.1f}%)"
                 elif health_percentage >= 80:
                     result += f"\n**Overall Health**: 🟡 Good ({health_percentage:.1f}%)"
                 else:
                     result += f"\n**Overall Health**: 🔴 Poor ({health_percentage:.1f}%)"
+                
+                if no_status > 0:
+                    result += f"\n*Note: {no_status} device(s) not reporting status to cloud but may be operational*"
+            elif no_status > 0:
+                result += f"\n**Overall Health**: ⚪ Unknown - {no_status} devices not reporting cloud status"
+                result += f"\n*Devices may be operational but not connected to Meraki cloud*"
             
             return result
             

@@ -68,7 +68,7 @@ def register_appliance_missing_handlers():
             return f"Error calling getOrganizationApplianceVpnThirdPartyVPNPeers: {str(e)}"
 
     @app.tool(
-        name="update_network_appliance_firewall_inbound_cellular_firewall_rules",
+        name="update_network_app_firewall_inbound_cellular_firewall_rules",
         description="✏️ Update update network appliance firewall inbound cellular firewall rules"
     )
     def update_network_appliance_firewall_inbound_cellular_firewall_rules(**kwargs):

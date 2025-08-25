@@ -23,19 +23,64 @@ def format_list_response(data: list, resource_name: str) -> str:
     result = f"# {resource_name}\n\n"
     result += f"**Total**: {len(data)}\n\n"
     
-    for idx, item in enumerate(data[:10], 1):
-        if isinstance(item, dict):
-            name = item.get('name', item.get('id', f'Item {idx}'))
-            result += f"## {name}\n"
-            for key, value in item.items():
-                if value is not None and key not in ['name']:
-                    result += f"- **{key}**: {value}\n"
+    # Special handling for device statuses to show all devices
+    if "Devices Statuses" in resource_name and len(data) > 10:
+        # Group by status for better readability
+        by_status = {}
+        for item in data:
+            if isinstance(item, dict):
+                status = item.get('status', 'unknown')
+                if status not in by_status:
+                    by_status[status] = []
+                by_status[status].append(item)
+        
+        for status, items in sorted(by_status.items()):
+            if status == 'online':
+                emoji = '🟢'
+            elif status == 'alerting':
+                emoji = '🟡'
+            elif status == 'offline':
+                emoji = '🔴'
+            elif status == 'dormant':
+                emoji = '😴'
+                result += f"## {emoji} {status.title()} ({len(items)} devices)\n"
+                result += f"*Dormant = Not reporting to cloud but may be operational*\n\n"
+            else:
+                emoji = '⚪'
+                result += f"## {emoji} {status.title()} ({len(items)} devices)\n\n"
+            
+            if status != 'dormant':
+                result += f"## {emoji} {status.title()} ({len(items)} devices)\n\n"
+            
+            # Show first 5 of each status
+            for item in items[:5]:
+                name = item.get('name', item.get('serial', 'Unknown'))
+                model = item.get('model', '')
+                result += f"- **{name}**"
+                if model:
+                    result += f" ({model})"
+                if item.get('lastReportedAt'):
+                    result += f" - Last seen: {item['lastReportedAt']}"
+                result += "\n"
+            
+            if len(items) > 5:
+                result += f"  ... and {len(items) - 5} more {status} devices\n"
             result += "\n"
-        else:
-            result += f"- {item}\n"
-    
-    if len(data) > 10:
-        result += f"\n... and {len(data) - 10} more items"
+    else:
+        # Default formatting for other responses
+        for idx, item in enumerate(data[:10], 1):
+            if isinstance(item, dict):
+                name = item.get('name', item.get('id', f'Item {idx}'))
+                result += f"## {name}\n"
+                for key, value in item.items():
+                    if value is not None and key not in ['name']:
+                        result += f"- **{key}**: {value}\n"
+                result += "\n"
+            else:
+                result += f"- {item}\n"
+        
+        if len(data) > 10:
+            result += f"\n... and {len(data) - 10} more items"
     
     return result
 
@@ -283,7 +328,7 @@ def register_organizations_additional_handlers():
             return f"Error: {str(e)}"
 
     @app.tool(
-        name="create_organization_inventory_onboarding_cloud_monitoring_export_event",
+        name="create_org_inventory_onboarding_cloud_monitoring_export_event",
         description="➕ Create organization inventory onboarding cloud monitoring export event"
     )
     def create_organization_inventory_onboarding_cloud_monitoring_export_event(organization_id: str, **kwargs):
@@ -325,7 +370,7 @@ def register_organizations_additional_handlers():
             return f"Error: {str(e)}"
 
     @app.tool(
-        name="create_organization_inventory_onboarding_cloud_monitoring_prepare",
+        name="create_org_inventory_onboarding_cloud_monitoring_prepare",
         description="➕ Create organization inventory onboarding cloud monitoring prepare"
     )
     def create_organization_inventory_onboarding_cloud_monitoring_prepare(organization_id: str, **kwargs):
@@ -745,7 +790,7 @@ def register_organizations_additional_handlers():
             return f"Error: {str(e)}"
 
     @app.tool(
-        name="generate_organization_devices_packet_capture_capture_download_url",
+        name="generate_org_devices_packet_capture_capture_download_url",
         description="⚡ Execute organization devices packet capture capture download url"
     )
     def generate_organization_devices_packet_capture_capture_download_url(organization_id: str):
@@ -871,7 +916,7 @@ def register_organizations_additional_handlers():
             return f"Error: {str(e)}"
 
     @app.tool(
-        name="get_organization_api_requests_overview_response_codes_by_interval",
+        name="get_org_api_requests_overview_response_codes_by_interval",
         description="📊 Get organization api requests overview response codes by interval"
     )
     def get_organization_api_requests_overview_response_codes_by_interval(organization_id: str):
@@ -1168,11 +1213,18 @@ def register_organizations_additional_handlers():
         name="get_organization_devices",
         description="📊 Get organization devices"
     )
-    def get_organization_devices(organization_id: str):
+    def get_organization_devices(organization_id: str, **kwargs):
         """Get organization devices."""
         try:
+            # Ensure maximum pagination for large organizations
+            if 'perPage' not in kwargs:
+                kwargs['perPage'] = 1000  # Maximum allowed by Meraki API
+            if 'total_pages' not in kwargs:
+                kwargs['total_pages'] = 'all'  # Get all pages
+            
             result = meraki_client.dashboard.organizations.getOrganizationDevices(
-                organization_id
+                organization_id,
+                **kwargs
             )
             
             if isinstance(result, dict):
@@ -1357,11 +1409,18 @@ def register_organizations_additional_handlers():
         name="get_organization_devices_statuses",
         description="📊 Get organization devices statuses"
     )
-    def get_organization_devices_statuses(organization_id: str):
+    def get_organization_devices_statuses(organization_id: str, **kwargs):
         """Get organization devices statuses."""
         try:
+            # Ensure maximum pagination for large organizations
+            if 'perPage' not in kwargs:
+                kwargs['perPage'] = 1000  # Maximum allowed by Meraki API
+            if 'total_pages' not in kwargs:
+                kwargs['total_pages'] = 'all'  # Get all pages
+            
             result = meraki_client.dashboard.organizations.getOrganizationDevicesStatuses(
-                organization_id
+                organization_id,
+                **kwargs
             )
             
             if isinstance(result, dict):
