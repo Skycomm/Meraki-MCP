@@ -1621,10 +1621,19 @@ def register_appliance_tool_handlers():
         name="get_device_appliance_performance",
         description="📊 Get appliance performance metrics"
     )
-    def get_device_appliance_performance(serial: str):
-        """Get performance metrics for a specific appliance device."""
+    def get_device_appliance_performance(serial: str, **kwargs):
+        """Get performance metrics for a specific appliance device.
+        
+        Args:
+            serial: Device serial number
+            **kwargs: Additional parameters like timespan (default: 1800 seconds)
+        """
         try:
-            performance = meraki_client.dashboard.appliance.getDeviceAppliancePerformance(serial)
+            # Add default timespan if not specified (minimum is 1800 seconds)
+            if 'timespan' not in kwargs and 't0' not in kwargs:
+                kwargs['timespan'] = 1800  # Default to 30 minutes (minimum allowed)
+            
+            performance = meraki_client.dashboard.appliance.getDeviceAppliancePerformance(serial, **kwargs)
             
             result = f"# 📊 Performance Metrics for Device {serial}\n\n"
             

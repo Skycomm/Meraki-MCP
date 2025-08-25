@@ -328,11 +328,21 @@ def register_wireless_additional_handlers():
         name="get_network_wireless_client_connection_stats",
         description="📊 Get network wireless client connection stats"
     )
-    def get_network_wireless_client_connection_stats(network_id: str):
-        """Get network wireless client connection stats."""
+    def get_network_wireless_client_connection_stats(network_id: str, client_id: str, **kwargs):
+        """Get network wireless client connection stats.
+        
+        Args:
+            network_id: Network ID
+            client_id: Client ID (MAC address)
+            **kwargs: Additional parameters like timespan, band, ssid, vlan, apTag
+        """
         try:
+            # Add default timespan if not specified
+            if 'timespan' not in kwargs and 't0' not in kwargs:
+                kwargs['timespan'] = 86400  # Default to 1 day
+            
             result = meraki_client.dashboard.wireless.getNetworkWirelessClientConnectionStats(
-                network_id
+                network_id, client_id, **kwargs
             )
             
             if isinstance(result, dict):
@@ -370,11 +380,21 @@ def register_wireless_additional_handlers():
         name="get_network_wireless_client_latency_history",
         description="📊 Get network wireless client latency history"
     )
-    def get_network_wireless_client_latency_history(network_id: str):
-        """Get network wireless client latency history."""
+    def get_network_wireless_client_latency_history(network_id: str, client_id: str, **kwargs):
+        """Get network wireless client latency history.
+        
+        Args:
+            network_id: Network ID
+            client_id: Client ID (MAC address or IP)
+            **kwargs: Additional parameters like timespan, t0, t1, resolution
+        """
         try:
+            # Add default timespan if not specified
+            if 'timespan' not in kwargs and 't0' not in kwargs:
+                kwargs['timespan'] = 86400  # Default to 1 day
+            
             result = meraki_client.dashboard.wireless.getNetworkWirelessClientLatencyHistory(
-                network_id
+                network_id, client_id, **kwargs
             )
             
             if isinstance(result, dict):
@@ -391,11 +411,21 @@ def register_wireless_additional_handlers():
         name="get_network_wireless_client_latency_stats",
         description="📊 Get network wireless client latency stats"
     )
-    def get_network_wireless_client_latency_stats(network_id: str):
-        """Get network wireless client latency stats."""
+    def get_network_wireless_client_latency_stats(network_id: str, client_id: str, **kwargs):
+        """Get network wireless client latency stats.
+        
+        Args:
+            network_id: Network ID
+            client_id: Client ID (MAC address or IP)
+            **kwargs: Additional parameters like timespan, band, ssid, vlan, apTag
+        """
         try:
+            # Add default timespan if not specified
+            if 'timespan' not in kwargs and 't0' not in kwargs:
+                kwargs['timespan'] = 86400  # Default to 1 day
+            
             result = meraki_client.dashboard.wireless.getNetworkWirelessClientLatencyStats(
-                network_id
+                network_id, client_id, **kwargs
             )
             
             if isinstance(result, dict):

@@ -433,11 +433,21 @@ def register_devices_additional_handlers():
         name="get_device_loss_and_latency_history",
         description="📊 Get device loss and latency history"
     )
-    def get_device_loss_and_latency_history(serial: str):
-        """Get device loss and latency history."""
+    def get_device_loss_and_latency_history(serial: str, ip: str = "8.8.8.8", **kwargs):
+        """Get device loss and latency history.
+        
+        Args:
+            serial: Device serial number
+            ip: Destination IP to test (default: 8.8.8.8)
+            **kwargs: Additional parameters like timespan, uplink, resolution
+        """
         try:
+            # Add default timespan if not specified
+            if 'timespan' not in kwargs and 't0' not in kwargs:
+                kwargs['timespan'] = 86400  # Default to 1 day
+            
             result = meraki_client.dashboard.devices.getDeviceLossAndLatencyHistory(
-                serial
+                serial, ip, **kwargs
             )
             
             if isinstance(result, dict):
