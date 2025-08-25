@@ -1500,11 +1500,20 @@ def register_organizations_additional_handlers():
         name="get_organization_devices_uplinks_loss_and_latency",
         description="📊 Get organization devices uplinks loss and latency"
     )
-    def get_organization_devices_uplinks_loss_and_latency(organization_id: str):
-        """Get organization devices uplinks loss and latency."""
+    def get_organization_devices_uplinks_loss_and_latency(organization_id: str, **kwargs):
+        """Get organization devices uplinks loss and latency.
+        
+        Args:
+            organization_id: Organization ID
+            **kwargs: Additional parameters like timespan (max 300s), uplink, ip, networkIds, serials
+        """
         try:
+            # Add default timespan if not specified (max is 300 seconds/5 minutes)
+            if 'timespan' not in kwargs and 't0' not in kwargs:
+                kwargs['timespan'] = 300  # Default to 5 minutes (maximum allowed)
+            
             result = meraki_client.dashboard.organizations.getOrganizationDevicesUplinksLossAndLatency(
-                organization_id
+                organization_id, **kwargs
             )
             
             if isinstance(result, dict):

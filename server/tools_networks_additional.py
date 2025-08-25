@@ -384,15 +384,21 @@ def register_networks_additional_handlers():
         name="get_network_clients_usage_histories",
         description="📊 Get network clients usage histories"
     )
-    def get_network_clients_usage_histories(network_id: str, **kwargs):
-        """Get network clients usage histories."""
+    def get_network_clients_usage_histories(network_id: str, clients: str, **kwargs):
+        """Get network clients usage histories.
+        
+        Args:
+            network_id: Network ID
+            clients: A list of client keys, MACs or IPs separated by comma
+            **kwargs: Additional parameters like timespan, ssidNumber, perPage
+        """
         try:
             # Add default timespan if not specified
             if 'timespan' not in kwargs and 't0' not in kwargs:
                 kwargs['timespan'] = 86400  # Default to 1 day
             
             result = meraki_client.dashboard.networks.getNetworkClientsUsageHistories(
-                network_id, **kwargs
+                network_id, clients, **kwargs
             )
             
             if isinstance(result, dict):
