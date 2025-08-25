@@ -540,11 +540,15 @@ def register_networks_additional_handlers():
         name="get_network_traffic",
         description="📊 Get network traffic"
     )
-    def get_network_traffic(network_id: str):
+    def get_network_traffic(network_id: str, **kwargs):
         """Get network traffic."""
         try:
+            # Add default timespan if not specified
+            if 'timespan' not in kwargs and 't0' not in kwargs:
+                kwargs['timespan'] = 86400  # Default to 1 day
+            
             result = meraki_client.dashboard.networks.getNetworkTraffic(
-                network_id
+                network_id, **kwargs
             )
             
             if isinstance(result, dict):

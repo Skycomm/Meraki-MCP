@@ -309,6 +309,17 @@ def register_wireless_tool_handlers():
     def get_network_wireless_connection_stats(network_id: str, **kwargs):
         """Get aggregated wireless connection statistics."""
         try:
+            # Default to timespan if no time parameters specified
+            if 'timespan' not in kwargs and 't0' not in kwargs:
+                kwargs['timespan'] = 86400  # Default to 1 day
+            
+            # If both t0 and t1 are specified together, remove t1 and use timespan
+            if 't0' in kwargs and 't1' in kwargs:
+                # Calculate timespan from t0 and t1 if possible, otherwise use default
+                kwargs.pop('t0', None)
+                kwargs.pop('t1', None)
+                kwargs['timespan'] = 86400  # Default to 1 day
+            
             stats = meraki_client.dashboard.wireless.getNetworkWirelessConnectionStats(
                 network_id, **kwargs
             )
@@ -351,6 +362,16 @@ def register_wireless_tool_handlers():
     def get_network_wireless_failed_connections(network_id: str, **kwargs):
         """Get details about failed wireless connection attempts."""
         try:
+            # Default to timespan if no time parameters specified
+            if 'timespan' not in kwargs and 't0' not in kwargs:
+                kwargs['timespan'] = 86400  # Default to 1 day
+            
+            # If both t0 and t1 are specified together, remove them and use timespan
+            if 't0' in kwargs and 't1' in kwargs:
+                kwargs.pop('t0', None)
+                kwargs.pop('t1', None)
+                kwargs['timespan'] = 86400  # Default to 1 day
+            
             failures = meraki_client.dashboard.wireless.getNetworkWirelessFailedConnections(
                 network_id, **kwargs
             )
@@ -668,6 +689,14 @@ def register_wireless_tool_handlers():
     def get_network_wireless_channel_utilization_history(network_id: str, **kwargs):
         """Get historical channel utilization data."""
         try:
+            # Set default timespan if no time parameters specified
+            if 'timespan' not in kwargs and 't0' not in kwargs:
+                kwargs['timespan'] = 604800  # Default to 7 days
+            
+            # Set default resolution if not specified
+            if 'resolution' not in kwargs:
+                kwargs['resolution'] = 86400  # Default to 1 day resolution
+            
             history = meraki_client.dashboard.wireless.getNetworkWirelessChannelUtilizationHistory(
                 network_id, **kwargs
             )
