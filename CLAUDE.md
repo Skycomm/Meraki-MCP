@@ -9,9 +9,10 @@
 This is the STDIO implementation of the Cisco Meraki MCP Server, providing natural language access to 400+ Meraki Dashboard API functions through Claude Desktop.
 
 **Key Facts:**
+- 859 tools with 100% Meraki API v1.61.0 coverage
 - 51 tool modules covering all Meraki product lines (MX, MS, MR, MV, MG, SM)
 - Designed for local Claude Desktop integration (not network/SSE transport)
-- Complete API v1.61.0 implementation
+- Enhanced for seamless Claude Desktop usage (auto-pagination, smart defaults)
 - Production-ready with extensive safety features BECAUSE OF PAST INCIDENTS
 
 ## 🔴 CRITICAL SAFETY RULES - READ FIRST!
@@ -61,9 +62,12 @@ Start with the monitoring dashboard:
 get_network_health_summary(network_id)
 ```
 This shows:
-- Infrastructure devices (switches, APs, firewalls) - NOT client count
+- Infrastructure devices with accurate status (online, offline, dormant)
 - Connected client devices (computers, phones, tablets) - actual users
 - Overall health score
+- Device type breakdown (Firewall, Switch, AP, Camera, etc.)
+
+**Note**: "Dormant" devices are not reporting to cloud but may still be operational and passing traffic.
 
 ### Finding Things
 1. **Find an organization**: `list_organizations()`
@@ -287,6 +291,13 @@ As of the latest update, this MCP server has achieved **100% coverage** of the M
 - **Missing API modules** (7): High-priority APIs that were missing
 - **Additional modules** (14): Auto-generated for 100% coverage
 - **Utility modules** (2): Custom tools and API comparison
+
+### Recent Enhancements (Latest):
+- **get_network_events**: Auto-tries all product types when none specified
+- **Device Type Identification**: Correctly identifies MX, MS, MR, MV, MG devices
+- **Network Health Summary**: Shows accurate device statuses (was showing 0 online)
+- **WAN Packet Loss**: Comprehensive status tool shows packet loss on uplinks
+- **Maximum Pagination**: All tools use perPage=1000 for complete results
 
 ### Known Issues:
 - Some duplicate tool warnings on startup (harmless, from MQTT/SNMP/Syslog overlaps)

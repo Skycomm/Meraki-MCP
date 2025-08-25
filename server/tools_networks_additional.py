@@ -496,11 +496,13 @@ def register_networks_additional_handlers():
         name="get_network_network_health_channel_utilization",
         description="📊 Get network network health channel utilization"
     )
-    def get_network_network_health_channel_utilization(network_id: str):
+    def get_network_network_health_channel_utilization(network_id: str, **kwargs):
         """Get network network health channel utilization."""
         try:
-            result = meraki_client.dashboard.networks.getNetworkNetworkHealthChannelUtilization(
-                network_id
+            # This API endpoint doesn't exist in Meraki SDK
+            # Using the correct wireless channel utilization API instead
+            result = meraki_client.dashboard.wireless.getNetworkWirelessChannelUtilizationHistory(
+                network_id, **kwargs
             )
             
             if isinstance(result, dict):
