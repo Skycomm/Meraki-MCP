@@ -445,9 +445,9 @@ def register_network_tool_handlers():
                     try:
                         kwargs_copy = kwargs.copy()
                         kwargs_copy['productType'] = product_type
-                        # Add default perPage if not specified
+                        # Add default perPage if not specified - use maximum for efficiency
                         if 'perPage' not in kwargs_copy:
-                            kwargs_copy['perPage'] = 100
+                            kwargs_copy['perPage'] = 1000  # Maximum allowed for best performance
                         
                         response = meraki_client.dashboard.networks.getNetworkEvents(network_id, **kwargs_copy)
                         
@@ -519,7 +519,7 @@ def register_network_tool_handlers():
             else:
                 # Use specified productType
                 if 'perPage' not in kwargs:
-                    kwargs['perPage'] = 100
+                    kwargs['perPage'] = 1000  # Maximum for efficiency
                     
                 events = meraki_client.dashboard.networks.getNetworkEvents(network_id, **kwargs)
                 

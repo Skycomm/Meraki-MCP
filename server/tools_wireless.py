@@ -513,6 +513,10 @@ def register_wireless_tool_handlers():
     def get_network_wireless_latency_stats(network_id: str, **kwargs):
         """Get aggregated wireless latency statistics."""
         try:
+            # Add default timespan if not specified
+            if 'timespan' not in kwargs and 't0' not in kwargs:
+                kwargs['timespan'] = 86400  # Default to 1 day
+            
             stats = meraki_client.dashboard.wireless.getNetworkWirelessLatencyStats(
                 network_id, **kwargs
             )
@@ -566,6 +570,10 @@ def register_wireless_tool_handlers():
     def get_network_wireless_latency_history(network_id: str, **kwargs):
         """Get historical wireless latency data."""
         try:
+            # Add default timespan if not specified
+            if 'timespan' not in kwargs and 't0' not in kwargs:
+                kwargs['timespan'] = 604800  # Default to 7 days
+            
             history = meraki_client.dashboard.wireless.getNetworkWirelessLatencyHistory(
                 network_id, **kwargs
             )
@@ -664,6 +672,10 @@ def register_wireless_tool_handlers():
     def get_network_wireless_devices_latency_stats(network_id: str, **kwargs):
         """Get latency statistics for wireless devices."""
         try:
+            # Add default timespan if not specified
+            if 'timespan' not in kwargs and 't0' not in kwargs:
+                kwargs['timespan'] = 86400  # Default to 1 day
+            
             stats = meraki_client.dashboard.wireless.getNetworkWirelessDevicesLatencyStats(
                 network_id, **kwargs
             )
@@ -752,6 +764,10 @@ def register_wireless_tool_handlers():
     def get_network_wireless_signal_quality_history(network_id: str, **kwargs):
         """Get historical signal quality data."""
         try:
+            # Add default timespan if not specified
+            if 'timespan' not in kwargs and 't0' not in kwargs:
+                kwargs['timespan'] = 604800  # Default to 7 days
+            
             history = meraki_client.dashboard.wireless.getNetworkWirelessSignalQualityHistory(
                 network_id, **kwargs
             )
