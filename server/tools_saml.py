@@ -440,6 +440,135 @@ def update_organization_saml_role(
         return format_error("update SAML role", e)
 
 
+def get_organization_saml_role(
+    org_id: str,
+    saml_role_id: str
+) -> str:
+    """
+    Get a specific SAML role by ID.
+    
+    Args:
+        org_id: Organization ID
+        saml_role_id: SAML role ID
+    
+    Returns:
+        SAML role details
+    """
+    try:
+        with safe_api_call("get SAML role"):
+            role = meraki.dashboard.organizations.getOrganizationSamlRole(
+                org_id,
+                saml_role_id
+            )
+            
+            output = ["🎭 SAML Role Details", "=" * 50, ""]
+            output.append(f"Role ID: {role.get('id', 'Unknown')}")
+            output.append(f"Role Name: {role.get('role', 'Unknown')}")
+            output.append(f"Organization Access: {role.get('orgAccess', 'none')}")
+            output.append("")
+            
+            # Network access details
+            networks = role.get('networks', [])
+            if networks:
+                output.append(f"📡 Network Access ({len(networks)} networks):")
+                
+                # Group by access level
+                access_groups = {}
+                for net in networks:
+                    access = net.get('access', 'none')
+                    if access not in access_groups:
+                        access_groups[access] = []
+                    access_groups[access].append(net.get('id', 'Unknown'))
+                
+                for access, net_ids in sorted(access_groups.items()):
+                    output.append(f"  {access}: {len(net_ids)} networks")
+                    for net_id in net_ids[:3]:
+                        output.append(f"    • {net_id}")
+                    if len(net_ids) > 3:
+                        output.append(f"    ... and {len(net_ids) - 3} more")
+            else:
+                output.append("📡 Network Access: None configured")
+            
+            output.append("")
+            
+            # Tag access details
+            tags = role.get('tags', [])
+            if tags:
+                output.append(f"🏷️ Tag Access ({len(tags)} tags):")
+                for tag in tags[:5]:
+                    tag_name = tag.get('tag', 'Unknown')
+                    access = tag.get('access', 'none')
+                    output.append(f"  • {tag_name}: {access}")
+                if len(tags) > 5:
+                    output.append(f"  ... and {len(tags) - 5} more")
+            else:
+                output.append("🏷️ Tag Access: None configured")
+            
+            output.append("")
+            output.append("💡 To modify this role, use update_organization_saml_role()")
+            
+            return "\n".join(output)
+            
+    except Exception as e:
+        return format_error("get SAML role", e)
+
+
+def delete_organization_saml_role(
+    org_id: str,
+    saml_role_id: str
+) -> str:
+    """
+    Delete a SAML role mapping.
+    
+    Args:
+        org_id: Organization ID
+        saml_role_id: SAML role ID to delete
+    
+    Returns:
+        Deletion confirmation
+    """
+    try:
+        # Get role details first for confirmation
+        try:
+            role = meraki.dashboard.organizations.getOrganizationSamlRole(
+                org_id,
+                saml_role_id
+            )
+            role_name = role.get('role', 'Unknown')
+        except:
+            role_name = saml_role_id
+        
+        # Confirmation prompt
+        confirmation = input(f"⚠️ Are you sure you want to delete SAML role '{role_name}'? Type 'DELETE' to confirm: ")
+        if confirmation != "DELETE":
+            return "❌ Deletion cancelled"
+        
+        with safe_api_call("delete SAML role"):
+            meraki.dashboard.organizations.deleteOrganizationSamlRole(
+                org_id,
+                saml_role_id
+            )
+            
+            output = ["🗑️ SAML Role Deleted", "=" * 50, ""]
+            output.append(f"✅ Successfully deleted SAML role: {role_name}")
+            output.append(f"   Role ID: {saml_role_id}")
+            output.append("")
+            output.append("⚠️ Impact:")
+            output.append("• Users with this role will lose access")
+            output.append("• Active sessions may continue temporarily")
+            output.append("• Consider creating replacement role first")
+            output.append("")
+            output.append("💡 Next Steps:")
+            output.append("• Review remaining SAML roles")
+            output.append("• Update IdP group mappings")
+            output.append("• Notify affected users")
+            
+            return "\n".join(output)
+            
+    except Exception as e:
+        return format_error("delete SAML role", e)
+
+
 def saml_configuration_guide() -> str:
     """
     📚 SAML configuration guide.
@@ -679,7 +808,9 @@ def register_saml_tools(app: FastMCP, meraki_client: MerakiClient):
         (update_organization_saml, "Update SAML settings"),
         (get_organization_saml_roles, "List SAML role mappings"),
         (create_organization_saml_role, "Create SAML role"),
+        (get_organization_saml_role, "Get specific SAML role"),
         (update_organization_saml_role, "Update SAML role"),
+        (delete_organization_saml_role, "Delete SAML role"),
         (saml_configuration_guide, "SAML setup guide"),
         (saml_help, "Get help with SAML tools"),
     ]

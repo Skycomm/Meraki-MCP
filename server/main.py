@@ -22,6 +22,7 @@ app = FastMCP(SERVER_NAME)
 from server.resources import register_resources
 from server.tools_organizations import register_organization_tools
 from server.tools_networks import register_network_tools
+from server.tools_pii import register_pii_tools
 from server.tools_devices import register_device_tools
 from server.tools_wireless import register_wireless_tools
 from server.tools_switch import register_switch_tools
@@ -71,6 +72,36 @@ from server.tools_sm_v2 import register_enhanced_sm_tools
 from server.tools_oauth import register_oauth_tools
 from server.tools_api_analytics import register_api_analytics_tools
 from server.tools_config_templates import register_config_template_tools
+from server.tools_group_policies import register_group_policies_tools
+from server.tools_floor_plans import register_floor_plans_tools
+from server.tools_meraki_auth_users import register_meraki_auth_users_tools
+from server.tools_traffic_analysis import register_traffic_analysis_tools
+from server.tools_netflow import register_netflow_tools
+from server.tools_pii import register_pii_tools
+from server.tools_bluetooth_clients import register_bluetooth_clients_tools
+from server.tools_custom import register_custom_tools
+from server.tools_api_comparison import register_api_comparison_tools
+from server.tools_org_admins import register_org_admins_tools
+from server.tools_login_security import register_login_security_tools
+from server.tools_early_access import register_early_access_tools
+from server.tools_switch_dhcp_policy import register_switch_dhcp_policy_tools
+from server.tools_alternate_management import register_alternate_management_tools
+
+# Additional modules for 100% coverage
+from server.tools_organizations_additional import register_organizations_additional_tools
+from server.tools_networks_additional import register_networks_additional_tools
+from server.tools_devices_additional import register_devices_additional_tools
+from server.tools_wireless_additional import register_wireless_additional_tools
+from server.tools_switch_additional import register_switch_additional_tools
+from server.tools_appliance_additional import register_appliance_additional_tools
+from server.tools_sm_additional import register_sm_additional_tools
+from server.tools_camera_additional import register_camera_additional_tools
+from server.tools_sensor_additional import register_sensor_additional_tools
+from server.tools_cellularGateway_additional import register_cellularGateway_additional_tools
+from server.tools_insight_additional import register_insight_additional_tools
+from server.tools_licensing_additional import register_licensing_additional_tools
+from server.tools_administered_additional import register_administered_additional_tools
+from server.tools_batch_additional import register_batch_additional_tools
 
 # Register resources and tools
 register_resources(app, meraki)
@@ -125,6 +156,37 @@ register_enhanced_sm_tools(app, meraki)
 register_oauth_tools(app, meraki)
 register_api_analytics_tools(app, meraki)
 register_config_template_tools(app, meraki)
+register_group_policies_tools(app, meraki)
+register_floor_plans_tools(app, meraki)
+register_meraki_auth_users_tools(app, meraki)
+register_traffic_analysis_tools(app, meraki)
+register_netflow_tools(app, meraki)
+register_bluetooth_clients_tools(app, meraki)
+register_pii_tools(app, meraki)
+register_custom_tools(app, meraki)
+register_api_comparison_tools(app, meraki)
+register_org_admins_tools(app, meraki)
+register_login_security_tools(app, meraki)
+register_early_access_tools(app, meraki)
+register_switch_dhcp_policy_tools(app, meraki)
+register_alternate_management_tools(app, meraki)
+
+# Register additional tools for 100% coverage
+register_organizations_additional_tools(app, meraki)
+register_networks_additional_tools(app, meraki)
+register_devices_additional_tools(app, meraki)
+register_wireless_additional_tools(app, meraki)
+register_switch_additional_tools(app, meraki)
+register_appliance_additional_tools(app, meraki)
+register_sm_additional_tools(app, meraki)
+register_camera_additional_tools(app, meraki)
+register_sensor_additional_tools(app, meraki)
+register_cellularGateway_additional_tools(app, meraki)
+register_insight_additional_tools(app, meraki)
+register_licensing_additional_tools(app, meraki)
+register_administered_additional_tools(app, meraki)
+register_batch_additional_tools(app, meraki)
+
 
 # When run directly, start the server
 if __name__ == "__main__":
