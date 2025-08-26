@@ -433,9 +433,14 @@ def register_organizations_additional_handlers():
 
     @app.tool(
         name="create_organization_network",
-        description="➕ Create network in org - REQUIRES: name, productTypes | Example: name='testing', productTypes=['appliance','switch','wireless']"
+        description="➕ Create network in organization - REQUIRES: name, productTypes"
     )
-    def create_organization_network(organization_id: str, **kwargs):
+    def create_organization_network(
+        organization_id: str, 
+        name: str = None,
+        productTypes: list = None,
+        **kwargs
+    ):
         """Create a new network in an organization.
         
         REQUIRED Parameters:
@@ -460,11 +465,7 @@ def register_organizations_additional_handlers():
             )
         """
         try:
-            # Extract and validate required parameters
-            name = kwargs.get('name')
-            productTypes = kwargs.get('productTypes')
-            
-            # Provide clear error messages if required params are missing
+            # Validate required parameters
             if not name:
                 return """❌ ERROR: Missing required parameter 'name'
 
