@@ -1212,24 +1212,34 @@ def register_appliance_additional_handlers():
 
     @app.tool(
         name="update_network_appliance_vlans_settings",
-        description="✏️ Update network appliance vlans settings"
+        description="✏️ Enable or disable VLANs on network appliance"
     )
-    def update_network_appliance_vlans_settings(network_id: str, **kwargs):
-        """Update network appliance vlans settings."""
+    def update_network_appliance_vlans_settings(network_id: str, vlansEnabled: bool = None):
+        """Enable or disable VLANs for the network appliance.
+        
+        Args:
+            network_id: Network ID
+            vlansEnabled: True to enable VLANs, False to disable (required)
+        """
         try:
+            if vlansEnabled is None:
+                return "❌ Error: vlansEnabled parameter is required (True to enable, False to disable)"
+            
             result = meraki_client.dashboard.appliance.updateNetworkApplianceVlansSettings(
-                network_id, **kwargs
+                network_id, 
+                vlansEnabled=vlansEnabled
             )
             
             if isinstance(result, dict):
-                return format_dict_response(result, "Network Appliance Vlans Settings")
+                status = "enabled" if result.get('vlansEnabled') else "disabled"
+                return f"✅ VLANs {status} successfully on network {network_id}"
             elif isinstance(result, list):
                 return format_list_response(result, "Network Appliance Vlans Settings")
             else:
-                return f"✅ Update network appliance vlans settings completed successfully!"
+                return f"✅ VLAN settings updated successfully!"
                 
         except Exception as e:
-            return f"Error: {str(e)}"
+            return f"Error updating VLAN settings: {str(e)}"
 
     @app.tool(
         name="update_organization_appliance_dns_local_profile",

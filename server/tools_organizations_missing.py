@@ -159,12 +159,25 @@ def register_organizations_missing_handlers():
 
     @app.tool(
         name="create_organization_adaptive_policy_acl",
-        description="➕ Create create organization adaptive policy acl"
+        description="➕ Create adaptive policy ACL - REQUIRES: name, rules"
     )
-    def create_organization_adaptive_policy_acl(**kwargs):
+    def create_organization_adaptive_policy_acl(
+        organization_id: str,
+        name: str,
+        rules: list,
+        **kwargs
+    ):
         """Execute createOrganizationAdaptivePolicyAcl API call."""
         try:
-            result = meraki_client.dashboard.organizations.createOrganizationAdaptivePolicyAcl(**kwargs)
+            params = {
+                'name': name,
+                'rules': rules
+            }
+            params.update(kwargs)
+            result = meraki_client.dashboard.organizations.createOrganizationAdaptivePolicyAcl(
+                organization_id,
+                **params
+            )
             
             if result is None:
                 return "✅ Operation completed successfully!"
@@ -180,12 +193,27 @@ def register_organizations_missing_handlers():
 
     @app.tool(
         name="create_organization_adaptive_policy_group",
-        description="➕ Create create organization adaptive policy group"
+        description="➕ Create adaptive policy group - REQUIRES: name, sgt (3-65519)"
     )
-    def create_organization_adaptive_policy_group(**kwargs):
+    def create_organization_adaptive_policy_group(
+        organization_id: str,
+        name: str,
+        sgt: int,
+        **kwargs
+    ):
         """Execute createOrganizationAdaptivePolicyGroup API call."""
         try:
-            result = meraki_client.dashboard.organizations.createOrganizationAdaptivePolicyGroup(**kwargs)
+            if sgt < 3 or sgt > 65519:
+                return "❌ Error: sgt must be between 3 and 65519"
+            params = {
+                'name': name,
+                'sgt': sgt
+            }
+            params.update(kwargs)
+            result = meraki_client.dashboard.organizations.createOrganizationAdaptivePolicyGroup(
+                organization_id,
+                **params
+            )
             
             if result is None:
                 return "✅ Operation completed successfully!"
@@ -201,12 +229,25 @@ def register_organizations_missing_handlers():
 
     @app.tool(
         name="create_organization_adaptive_policy_policy",
-        description="➕ Create create organization adaptive policy policy"
+        description="➕ Create adaptive policy - REQUIRES: sourceGroup, destinationGroup"
     )
-    def create_organization_adaptive_policy_policy(**kwargs):
+    def create_organization_adaptive_policy_policy(
+        organization_id: str,
+        sourceGroup: dict,
+        destinationGroup: dict,
+        **kwargs
+    ):
         """Execute createOrganizationAdaptivePolicyPolicy API call."""
         try:
-            result = meraki_client.dashboard.organizations.createOrganizationAdaptivePolicyPolicy(**kwargs)
+            params = {
+                'sourceGroup': sourceGroup,
+                'destinationGroup': destinationGroup
+            }
+            params.update(kwargs)
+            result = meraki_client.dashboard.organizations.createOrganizationAdaptivePolicyPolicy(
+                organization_id,
+                **params
+            )
             
             if result is None:
                 return "✅ Operation completed successfully!"
@@ -243,12 +284,35 @@ def register_organizations_missing_handlers():
 
     @app.tool(
         name="create_organization_policy_object",
-        description="➕ Create create organization policy object"
+        description="➕ Create policy object - REQUIRES: name, category, type (+ cidr/fqdn/ip&mask)"
     )
-    def create_organization_policy_object(**kwargs):
-        """Execute createOrganizationPolicyObject API call."""
+    def create_organization_policy_object(
+        organization_id: str,
+        name: str,
+        category: str,
+        type: str,
+        **kwargs
+    ):
+        """Execute createOrganizationPolicyObject API call.
+        
+        Args:
+            organization_id: Organization ID
+            name: Name of the policy object
+            category: Category ('adaptivePolicy' or 'network')
+            type: Type ('adaptivePolicyIpv4Cidr', 'cidr', 'fqdn', or 'ipAndMask')
+            **kwargs: Additional params like cidr, fqdn, ip, mask based on type
+        """
         try:
-            result = meraki_client.dashboard.organizations.createOrganizationPolicyObject(**kwargs)
+            params = {
+                'name': name,
+                'category': category,
+                'type': type
+            }
+            params.update(kwargs)
+            result = meraki_client.dashboard.organizations.createOrganizationPolicyObject(
+                organization_id,
+                **params
+            )
             
             if result is None:
                 return "✅ Operation completed successfully!"
@@ -264,12 +328,32 @@ def register_organizations_missing_handlers():
 
     @app.tool(
         name="create_organization_policy_objects_group",
-        description="➕ Create create organization policy objects group"
+        description="➕ Create policy objects group - REQUIRES: name, category"
     )
-    def create_organization_policy_objects_group(**kwargs):
-        """Execute createOrganizationPolicyObjectsGroup API call."""
+    def create_organization_policy_objects_group(
+        organization_id: str,
+        name: str,
+        category: str,
+        **kwargs
+    ):
+        """Execute createOrganizationPolicyObjectsGroup API call.
+        
+        Args:
+            organization_id: Organization ID
+            name: Name of the policy objects group
+            category: Category (NetworkObjectGroup/GeoLocationGroup/PortObjectGroup/ApplicationGroup)
+            **kwargs: Additional params like objectIds, networkIds
+        """
         try:
-            result = meraki_client.dashboard.organizations.createOrganizationPolicyObjectsGroup(**kwargs)
+            params = {
+                'name': name,
+                'category': category
+            }
+            params.update(kwargs)
+            result = meraki_client.dashboard.organizations.createOrganizationPolicyObjectsGroup(
+                organization_id,
+                **params
+            )
             
             if result is None:
                 return "✅ Operation completed successfully!"
