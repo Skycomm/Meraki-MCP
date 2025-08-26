@@ -27,66 +27,132 @@ def register_organizations_missing_handlers():
 
     @app.tool(
         name="claim_into_organization_inventory",
-        description="⚡ Execute claim into organization inventory"
+        description="📥 Claim devices/licenses into organization inventory"
     )
-    def claim_into_organization_inventory(**kwargs):
-        """Execute claimIntoOrganizationInventory API call."""
+    def claim_into_organization_inventory(
+        organization_id: str,
+        orders: list = None,
+        serials: list = None,
+        licenses: list = None
+    ):
+        """Claim devices, licenses, and/or orders into organization inventory.
+        
+        Args:
+            organization_id: Organization ID
+            orders: List of order numbers to claim (optional)
+            serials: List of device serial numbers to claim (optional)
+            licenses: List of license objects to claim (optional)
+                Each license: {"key": "...", "mode": "addDevices" or "renew"}
+        
+        Note: Same as claim_into_organization but may have different behavior.
+        """
         try:
-            result = meraki_client.dashboard.organizations.claimIntoOrganizationInventory(**kwargs)
+            params = {}
+            if orders:
+                params['orders'] = orders
+            if serials:
+                params['serials'] = [s.upper() for s in serials]
+            if licenses:
+                params['licenses'] = licenses
+            
+            if not params:
+                return "❌ Error: Must provide orders, serials, or licenses"
+            
+            result = meraki_client.dashboard.organizations.claimIntoOrganizationInventory(
+                organization_id, **params
+            )
             
             if result is None:
-                return "✅ Operation completed successfully!"
+                return "✅ Successfully claimed into inventory!"
             elif isinstance(result, dict):
-                return f"✅ Result: {result}"
+                return f"✅ Claimed into inventory: {result}"
             elif isinstance(result, list):
-                return f"✅ Found {len(result)} items"
+                return f"✅ Claimed {len(result)} items into inventory"
             else:
                 return f"✅ Result: {result}"
                 
         except Exception as e:
-            return f"Error calling claimIntoOrganizationInventory: {str(e)}"
+            return f"Error claiming into inventory: {str(e)}"
 
     @app.tool(
         name="combine_organization_networks",
-        description="⚡ Execute combine organization networks"
+        description="🔀 Combine multiple networks into one"
     )
-    def combine_organization_networks(**kwargs):
-        """Execute combineOrganizationNetworks API call."""
+    def combine_organization_networks(
+        organization_id: str,
+        name: str,
+        networkIds: list,
+        enrollmentString: str = None
+    ):
+        """Combine multiple networks into a single network.
+        
+        Args:
+            organization_id: Organization ID
+            name: Name of the combined network (required)
+            networkIds: List of network IDs to combine (required)
+            enrollmentString: Unique identifier for enrollment (optional)
+        """
         try:
-            result = meraki_client.dashboard.organizations.combineOrganizationNetworks(**kwargs)
+            params = {
+                'name': name,
+                'networkIds': networkIds
+            }
+            
+            if enrollmentString:
+                params['enrollmentString'] = enrollmentString
+            
+            result = meraki_client.dashboard.organizations.combineOrganizationNetworks(
+                organization_id, **params
+            )
             
             if result is None:
-                return "✅ Operation completed successfully!"
+                return f"✅ Successfully combined {len(networkIds)} networks into '{name}'!"
             elif isinstance(result, dict):
-                return f"✅ Result: {result}"
+                return f"✅ Combined networks into '{name}': {result}"
             elif isinstance(result, list):
-                return f"✅ Found {len(result)} items"
+                return f"✅ Combined result: {result}"
             else:
                 return f"✅ Result: {result}"
                 
         except Exception as e:
-            return f"Error calling combineOrganizationNetworks: {str(e)}"
+            return f"Error combining networks: {str(e)}"
 
     @app.tool(
         name="create_organization",
-        description="➕ Create create organization"
+        description="🏢 Create a new organization (CAUTION!)"
     )
-    def create_organization(**kwargs):
-        """Execute createOrganization API call."""
+    def create_organization(
+        name: str,
+        management: dict = None
+    ):
+        """Create a new Meraki organization.
+        
+        Args:
+            name: Name of the organization (required)
+            management: Management details (optional)
+                Example: {"details": [{"name": "MSP ID", "value": "123456"}]}
+        
+        ⚠️ CAUTION: This creates a new organization, not a network!
+        Use create_organization_network to create a network within an existing org.
+        """
         try:
-            result = meraki_client.dashboard.organizations.createOrganization(**kwargs)
+            params = {'name': name}
+            
+            if management:
+                params['management'] = management
+            
+            result = meraki_client.dashboard.organizations.createOrganization(**params)
             
             if result is None:
-                return "✅ Operation completed successfully!"
+                return f"✅ Organization '{name}' created successfully!"
             elif isinstance(result, dict):
-                return f"✅ Result: {result}"
-            elif isinstance(result, list):
-                return f"✅ Found {len(result)} items"
+                org_id = result.get('id', 'Unknown')
+                return f"✅ Organization '{name}' created successfully!\nOrganization ID: {org_id}\n\n⚠️ WARNING: You created a new organization, not a network!"
             else:
-                return f"✅ Result: {result}"
+                return f"✅ Organization created: {result}"
                 
         except Exception as e:
-            return f"Error calling createOrganization: {str(e)}"
+            return f"Error creating organization: {str(e)}"
 
     @app.tool(
         name="create_organization_adaptive_policy_acl",

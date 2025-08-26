@@ -182,24 +182,65 @@ def register_organizations_additional_handlers():
 
     @app.tool(
         name="claim_into_organization",
-        description="📥 Claim into organization"
+        description="📥 Claim devices/licenses into organization"
     )
-    def claim_into_organization(organization_id: str):
-        """Claim into organization."""
+    def claim_into_organization(
+        organization_id: str,
+        orders: list = None,
+        serials: list = None,
+        licenses: list = None
+    ):
+        """Claim devices, licenses, and/or orders into an organization.
+        
+        Args:
+            organization_id: Organization ID
+            orders: List of order numbers to claim (optional) - e.g., ["4CXXXXXXX"]
+            serials: List of device serial numbers to claim (optional) - e.g., ["Q2QY-6SPD-4REN"]
+            licenses: List of license objects to claim (optional)
+                Each license should have:
+                - key: The license key (required)
+                - mode: "addDevices" or "renew" (optional, default: "addDevices")
+        
+        Note: At least one of orders, serials, or licenses must be provided.
+        Limit: 10 operations within a 5-minute window.
+        """
         try:
+            # Build the request parameters
+            params = {}
+            
+            if orders:
+                params['orders'] = orders
+            if serials:
+                # Convert to uppercase as Meraki expects uppercase serials
+                params['serials'] = [s.upper() for s in serials]
+            if licenses:
+                params['licenses'] = licenses
+            
+            if not params:
+                return "❌ Error: Must provide at least one of: orders, serials, or licenses"
+            
             result = meraki_client.dashboard.organizations.claimIntoOrganization(
-                organization_id
+                organization_id, **params
             )
             
+            # Create summary message
+            summary = "✅ Successfully claimed:\n"
+            if orders:
+                summary += f"- {len(orders)} order(s)\n"
+            if serials:
+                summary += f"- {len(serials)} device(s)\n"
+            if licenses:
+                summary += f"- {len(licenses)} license(s)\n"
+            
             if isinstance(result, dict):
-                return format_dict_response(result, "Into Organization")
+                return summary + "\n" + format_dict_response(result, "Claim Results")
             elif isinstance(result, list):
-                return format_list_response(result, "Into Organization")
+                return summary + "\n" + format_list_response(result, "Claim Results")
             else:
-                return f"✅ Claim into organization completed successfully!"
+                return summary
                 
         except Exception as e:
-            return f"Error: {str(e)}"
+            return f"Error claiming into organization: {str(e)}"
 
     @app.tool(
         name="clone_organization",
@@ -394,22 +435,58 @@ def register_organizations_additional_handlers():
         name="create_organization_network",
         description="➕ Create organization network"
     )
-    def create_organization_network(organization_id: str, **kwargs):
-        """Create organization network."""
+    def create_organization_network(
+        organization_id: str, 
+        name: str, 
+        productTypes: list,
+        timeZone: str = None,
+        tags: list = None,
+        copyFromNetworkId: str = None,
+        notes: str = None
+    ):
+        """Create a new network in an organization.
+        
+        Args:
+            organization_id: Organization ID
+            name: The name of the new network (required)
+            productTypes: List of product types (required) - e.g., ["appliance", "switch", "wireless"]
+                Valid types: appliance, camera, campusGateway, cellularGateway, 
+                secureConnect, sensor, switch, systemsManager, wireless, wirelessController
+            timeZone: The timezone of the network (optional)
+            tags: List of tags to apply to the network (optional)
+            copyFromNetworkId: ID of network to copy configuration from (optional)
+            notes: Additional notes about the network (optional)
+        """
         try:
+            # Build the request with required parameters
+            params = {
+                'name': name,
+                'productTypes': productTypes
+            }
+            
+            # Add optional parameters if provided
+            if timeZone:
+                params['timeZone'] = timeZone
+            if tags:
+                params['tags'] = tags
+            if copyFromNetworkId:
+                params['copyFromNetworkId'] = copyFromNetworkId
+            if notes:
+                params['notes'] = notes
+            
             result = meraki_client.dashboard.organizations.createOrganizationNetwork(
-                organization_id, **kwargs
+                organization_id, **params
             )
             
             if isinstance(result, dict):
-                return format_dict_response(result, "Organization Network")
+                return f"✅ Network '{name}' created successfully!\n\n" + format_dict_response(result, "Organization Network")
             elif isinstance(result, list):
                 return format_list_response(result, "Organization Network")
             else:
-                return f"✅ Create organization network completed successfully!"
+                return f"✅ Network '{name}' created successfully!"
                 
         except Exception as e:
-            return f"Error: {str(e)}"
+            return f"Error creating network: {str(e)}"
 
     @app.tool(
         name="create_organization_saml_idp",

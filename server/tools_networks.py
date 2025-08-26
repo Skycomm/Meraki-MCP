@@ -196,14 +196,38 @@ def register_network_tool_handlers():
         name="claim_network_devices",
         description="📲 Claim devices into a network"
     )
-    def claim_network_devices(network_id: str, serials: list):
-        """Claim devices into a network."""
+    def claim_network_devices(
+        network_id: str, 
+        serials: list,
+        addAtomically: bool = True
+    ):
+        """Claim devices into a network.
+        
+        Args:
+            network_id: Network ID
+            serials: List of device serial numbers to claim (e.g., ["Q2QY-6SPD-4REN"])
+            addAtomically: If true, all devices succeed or none (default: True)
+        
+        Note: Serials will be automatically converted to uppercase.
+        """
         try:
-            meraki_client.dashboard.networks.claimNetworkDevices(network_id, serials)
-            return f"✅ Successfully claimed {len(serials)} device(s) into the network!"
+            # Convert serials to uppercase as Meraki expects
+            upper_serials = [s.upper() for s in serials]
+            
+            # Build params with addAtomically query parameter
+            params = {'serials': upper_serials}
+            
+            # The addAtomically is a query parameter, handled differently
+            result = meraki_client.dashboard.networks.claimNetworkDevices(
+                network_id, 
+                upper_serials,
+                addAtomically=addAtomically
+            )
+            
+            return f"✅ Successfully claimed {len(serials)} device(s) into the network!\nSerials: {', '.join(upper_serials)}"
             
         except Exception as e:
-            return f"Error claiming devices: {str(e)}"
+            return f"Error claiming devices: {str(e)}\nAttempted serials: {', '.join([s.upper() for s in serials])}"
     
     @app.tool(
         name="remove_network_devices",
