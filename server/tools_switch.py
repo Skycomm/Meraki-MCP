@@ -218,13 +218,16 @@ def register_switch_tool_handlers():
     
     @app.tool(
         name="get_device_switch_ports_statuses",
-        description="📊 Get real-time port statuses"
+        description="📊 Get real-time port statuses - Detects loops & speed issues"
     )
     def get_device_switch_ports_statuses(
         serial: str,
         timespan: Optional[int] = 60
     ):
-        """Get real-time status information for all switch ports."""
+        """Get real-time status information for all switch ports.
+        
+        ENHANCED: Detects loops, speed degradation, and suggests cable tests.
+        """
         try:
             statuses = meraki_client.dashboard.switch.getDeviceSwitchPortsStatuses(
                 serial,
@@ -236,6 +239,10 @@ def register_switch_tool_handlers():
                 
             result = f"# 📊 Port Statuses for Switch {serial}\n"
             result += f"*Last {timespan} seconds*\n\n"
+            
+            # Track issues
+            speed_issues = []
+            potential_loops = []
             
             for port_status in statuses:
                 port_id = port_status.get('portId', 'Unknown')
@@ -253,11 +260,27 @@ def register_switch_tool_handlers():
                 else:
                     result += f"- **Status**: ⚫ Disabled\n"
                     
-                # Speed and duplex
+                # Speed and duplex with degradation detection
                 if port_status.get('speed'):
-                    result += f"- **Speed**: {port_status['speed']} Mbps\n"
+                    speed = port_status['speed']
+                    result += f"- **Speed**: {speed} Mbps"
+                    
+                    # Check for speed degradation
+                    if speed == 100 and status == 'Connected':
+                        # Could be gigabit device at 100Mbps
+                        result += " ⚠️ **Possible cable issue**"
+                        speed_issues.append(port_id)
+                    elif speed == 10:
+                        result += " 🔴 **Severely degraded**"
+                        speed_issues.append(port_id)
+                    result += "\n"
+                    
                 if port_status.get('duplex'):
-                    result += f"- **Duplex**: {port_status['duplex']}\n"
+                    duplex = port_status['duplex']
+                    result += f"- **Duplex**: {duplex}"
+                    if duplex == 'half':
+                        result += " ⚠️ **Half duplex detected**"
+                    result += "\n"
                     
                 # Traffic
                 if port_status.get('usageInKb'):
@@ -284,20 +307,43 @@ def register_switch_tool_handlers():
                 if port_status.get('powerUsageInWh') is not None:
                     result += f"- **PoE Power**: {port_status['powerUsageInWh']} Wh\n"
                     
-                # CDP/LLDP info
+                # CDP/LLDP info with loop detection
                 if port_status.get('cdp'):
                     cdp = port_status['cdp']
-                    result += f"- **CDP Neighbor**: {cdp.get('deviceId', 'Unknown')}\n"
+                    device_id = cdp.get('deviceId', 'Unknown')
+                    result += f"- **CDP Neighbor**: {device_id}\n"
                     if cdp.get('portId'):
                         result += f"  - Remote Port: {cdp['portId']}\n"
+                    # Check for loops
+                    if serial in device_id:
+                        potential_loops.append(port_id)
                         
                 if port_status.get('lldp'):
                     lldp = port_status['lldp']
-                    result += f"- **LLDP Neighbor**: {lldp.get('systemName', 'Unknown')}\n"
+                    system_name = lldp.get('systemName', 'Unknown')
+                    result += f"- **LLDP Neighbor**: {system_name}\n"
                     if lldp.get('portId'):
                         result += f"  - Remote Port: {lldp['portId']}\n"
+                    # Check for loops
+                    if serial in system_name:
+                        potential_loops.append(port_id)
                         
                 result += "\n"
+            
+            # Add warnings and recommendations
+            if potential_loops:
+                result += "\n🚨 **CRITICAL: POTENTIAL LOOP DETECTED!**\n"
+                result += f"Ports {', '.join(potential_loops)} appear to be connected to the same switch!\n"
+                result += "**Action**: Disconnect one cable immediately to prevent network issues!\n"
+                
+            if speed_issues:
+                result += "\n⚠️ **Speed Issues Detected**\n"
+                for port in speed_issues:
+                    result += f"- Port {port}: Running below expected speed\n"
+                result += "\n**Recommended Actions**:\n"
+                result += "1. Run cable test: `create_switch_cable_test(serial, port_id)`\n"
+                result += "2. Check for errors: `get_device_switch_ports_statuses_packets(serial)`\n"
+                result += "3. Replace cable if test fails\n"
                 
             return result
             

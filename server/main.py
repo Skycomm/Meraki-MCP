@@ -92,6 +92,7 @@ def register_all_tools():
     from server.tools_licensing_additional import register_licensing_additional_tools
     from server.tools_administered_additional import register_administered_additional_tools
     from server.tools_batch_additional import register_batch_additional_tools
+    from server.tools_switch_analyzer import register_switch_analyzer_tools
 
     # Register resources and official API tools only
     register_resources(app, meraki)
@@ -129,6 +130,7 @@ def register_all_tools():
     register_early_access_tools(app, meraki)
     register_switch_dhcp_policy_tools(app, meraki)
     register_alternate_management_tools(app, meraki)
+    register_switch_analyzer_tools(app, meraki)  # Enhanced switch diagnostics
     
     # Register missing API methods for 100% coverage
     register_administered_missing_tools(app, meraki)

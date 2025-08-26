@@ -410,21 +410,59 @@ def register_devices_additional_handlers():
 
     @app.tool(
         name="get_device_lldp_cdp",
-        description="📊 Get device lldp cdp"
+        description="📊 Get LLDP/CDP neighbors - Shows what's connected to each port"
     )
     def get_device_lldp_cdp(serial: str):
-        """Get device lldp cdp."""
+        """Get LLDP/CDP information showing connected devices.
+        
+        CRITICAL: Check for loops where same device appears on multiple ports!
+        """
         try:
             result = meraki_client.dashboard.devices.getDeviceLldpCdp(
                 serial
             )
             
+            # Check for loops
+            loop_detected = False
+            seen_devices = {}
+            
             if isinstance(result, dict):
-                return format_dict_response(result, "Device Lldp Cdp")
+                ports_data = result.get('ports', {})
+                
+                # Track all connected devices
+                for port_id, port_info in ports_data.items():
+                    if port_info:
+                        for neighbor in port_info:
+                            device_id = neighbor.get('deviceId', '')
+                            source_port = neighbor.get('portId', '')
+                            
+                            # Check if this is the same switch (loop)
+                            if serial in device_id:
+                                loop_detected = True
+                                if not seen_devices.get('LOOP'):
+                                    seen_devices['LOOP'] = []
+                                seen_devices['LOOP'].append(f"Port {port_id}")
+                            else:
+                                # Track other devices
+                                if device_id not in seen_devices:
+                                    seen_devices[device_id] = []
+                                seen_devices[device_id].append(f"Port {port_id}")
+                
+                # Format response with loop warning
+                response = "# 📊 LLDP/CDP Neighbor Information\n\n"
+                
+                if loop_detected:
+                    response += "🚨 **CRITICAL: LOOP DETECTED!**\n"
+                    response += f"Ports {' and '.join(seen_devices.get('LOOP', []))} are connected to each other!\n"
+                    response += "**Action Required**: Disconnect one cable immediately to prevent network issues!\n\n"
+                
+                response += format_dict_response(result, "Device LLDP/CDP")
+                return response
+                
             elif isinstance(result, list):
-                return format_list_response(result, "Device Lldp Cdp")
+                return format_list_response(result, "Device LLDP/CDP")
             else:
-                return f"✅ Get device lldp cdp completed successfully!"
+                return f"✅ Get device LLDP/CDP completed successfully!"
                 
         except Exception as e:
             return f"Error: {str(e)}"
