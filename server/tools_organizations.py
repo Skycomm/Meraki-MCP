@@ -154,12 +154,15 @@ def register_organization_tool_handlers():
             return f"Failed to get alert settings for organization {org_id}: {str(e)}"
     
     @app.tool(
-        name="create_organization",
-        description="Create a new Meraki organization"
+        name="create_new_organization_danger",
+        description="🚨 DANGER: Creates NEW ORGANIZATION (not network!) - For networks use create_organization_network"
     )
-    def create_organization(name: str):
+    def create_new_organization_danger(name: str):
         """
-        Create a new Meraki organization.
+        🚨 DANGER: Create a new Meraki organization (NOT a network!).
+        
+        WARNING: This creates an entirely new organization, not a network!
+        To create a network within an existing org, use create_organization_network instead.
         
         Args:
             name: Name for the new organization
@@ -167,6 +170,16 @@ def register_organization_tool_handlers():
         Returns:
             New organization details
         """
+        confirmation = f"""⚠️ WARNING: About to create a NEW ORGANIZATION named '{name}'
+
+This creates an entirely new organization, NOT a network within an existing org!
+
+If you want to create a network instead, use:
+    create_organization_network(organization_id="...", name="...", productTypes=[...])
+
+Proceeding with organization creation..."""
+        
+        print(confirmation)  # Log warning
         return meraki_client.create_organization(name)
     
     @app.tool(

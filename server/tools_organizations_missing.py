@@ -117,23 +117,25 @@ def register_organizations_missing_handlers():
         except Exception as e:
             return f"Error combining networks: {str(e)}"
 
+    # Commented out - duplicate of tools_organizations.py version
+    # Keeping for reference of full parameter support
+    '''
     @app.tool(
-        name="create_organization",
-        description="🏢 Create a new organization (CAUTION!)"
+        name="create_organization_full",
+        description="🏢 Create organization with management details (rarely used)"
     )
-    def create_organization(
+    def create_organization_full(
         name: str,
         management: dict = None
     ):
-        """Create a new Meraki organization.
+        """Create a new Meraki organization with optional management details.
         
         Args:
             name: Name of the organization (required)
             management: Management details (optional)
                 Example: {"details": [{"name": "MSP ID", "value": "123456"}]}
         
-        ⚠️ CAUTION: This creates a new organization, not a network!
-        Use create_organization_network to create a network within an existing org.
+        Note: Most users should use create_organization_network to add networks to existing orgs.
         """
         try:
             params = {'name': name}
@@ -147,12 +149,13 @@ def register_organizations_missing_handlers():
                 return f"✅ Organization '{name}' created successfully!"
             elif isinstance(result, dict):
                 org_id = result.get('id', 'Unknown')
-                return f"✅ Organization '{name}' created successfully!\nOrganization ID: {org_id}\n\n⚠️ WARNING: You created a new organization, not a network!"
+                return f"✅ Organization '{name}' created successfully!\nOrganization ID: {org_id}"
             else:
                 return f"✅ Organization created: {result}"
                 
         except Exception as e:
             return f"Error creating organization: {str(e)}"
+    '''
 
     @app.tool(
         name="create_organization_adaptive_policy_acl",
