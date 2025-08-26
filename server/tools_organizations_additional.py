@@ -433,31 +433,63 @@ def register_organizations_additional_handlers():
 
     @app.tool(
         name="create_organization_network",
-        description="➕ Create organization network"
+        description="➕ Create network in org - REQUIRES: name, productTypes | Example: name='testing', productTypes=['appliance','switch','wireless']"
     )
-    def create_organization_network(
-        organization_id: str, 
-        name: str, 
-        productTypes: list,
-        timeZone: str = None,
-        tags: list = None,
-        copyFromNetworkId: str = None,
-        notes: str = None
-    ):
+    def create_organization_network(organization_id: str, **kwargs):
         """Create a new network in an organization.
         
-        Args:
+        REQUIRED Parameters:
             organization_id: Organization ID
-            name: The name of the new network (required)
-            productTypes: List of product types (required) - e.g., ["appliance", "switch", "wireless"]
-                Valid types: appliance, camera, campusGateway, cellularGateway, 
-                secureConnect, sensor, switch, systemsManager, wireless, wirelessController
-            timeZone: The timezone of the network (optional)
-            tags: List of tags to apply to the network (optional)
-            copyFromNetworkId: ID of network to copy configuration from (optional)
-            notes: Additional notes about the network (optional)
+            name: The name of the new network (REQUIRED)
+            productTypes: List of product types (REQUIRED) - e.g., ["appliance", "switch", "wireless"]
+        
+        Optional Parameters:
+            timeZone: The timezone of the network
+            tags: List of tags to apply
+            copyFromNetworkId: ID of network to copy configuration from
+            notes: Additional notes about the network
+        
+        Valid productTypes: appliance, camera, campusGateway, cellularGateway, 
+                          secureConnect, sensor, switch, systemsManager, wireless, wirelessController
+        
+        Example usage:
+            create_organization_network(
+                organization_id="12345",
+                name="testing",
+                productTypes=["appliance", "switch", "wireless"]
+            )
         """
         try:
+            # Extract and validate required parameters
+            name = kwargs.get('name')
+            productTypes = kwargs.get('productTypes')
+            
+            # Provide clear error messages if required params are missing
+            if not name:
+                return """❌ ERROR: Missing required parameter 'name'
+
+USAGE: create_organization_network(
+    organization_id="...",
+    name="testing",  # <-- REQUIRED: Network name
+    productTypes=["appliance", "switch", "wireless"]  # <-- REQUIRED: Device types
+)
+
+Please provide the network name."""
+            
+            if not productTypes:
+                return """❌ ERROR: Missing required parameter 'productTypes'
+
+USAGE: create_organization_network(
+    organization_id="...",
+    name="testing",
+    productTypes=["appliance", "switch", "wireless"]  # <-- REQUIRED: Device types
+)
+
+Valid types: appliance, camera, campusGateway, cellularGateway, secureConnect, 
+            sensor, switch, systemsManager, wireless, wirelessController
+
+Please provide the product types list."""
+            
             # Build the request with required parameters
             params = {
                 'name': name,
@@ -465,21 +497,30 @@ def register_organizations_additional_handlers():
             }
             
             # Add optional parameters if provided
-            if timeZone:
-                params['timeZone'] = timeZone
-            if tags:
-                params['tags'] = tags
-            if copyFromNetworkId:
-                params['copyFromNetworkId'] = copyFromNetworkId
-            if notes:
-                params['notes'] = notes
+            if kwargs.get('timeZone'):
+                params['timeZone'] = kwargs['timeZone']
+            if kwargs.get('tags'):
+                params['tags'] = kwargs['tags']
+            if kwargs.get('copyFromNetworkId'):
+                params['copyFromNetworkId'] = kwargs['copyFromNetworkId']
+            if kwargs.get('notes'):
+                params['notes'] = kwargs['notes']
             
             result = meraki_client.dashboard.organizations.createOrganizationNetwork(
                 organization_id, **params
             )
             
             if isinstance(result, dict):
-                return f"✅ Network '{name}' created successfully!\n\n" + format_dict_response(result, "Organization Network")
+                network_id = result.get('id', 'Unknown')
+                return f"""✅ Network '{name}' created successfully!
+
+Network ID: {network_id}
+Name: {name}
+Product Types: {', '.join(productTypes)}
+
+Next steps:
+1. Claim devices: claim_network_devices(network_id="{network_id}", serials=["Q2QY-6SPD-4REN"])
+2. Configure network settings as needed"""
             elif isinstance(result, list):
                 return format_list_response(result, "Organization Network")
             else:
