@@ -437,8 +437,8 @@ def register_organizations_additional_handlers():
     )
     def create_organization_network(
         organization_id: str, 
-        name: str = None,
-        productTypes: list = None,
+        name: str,
+        productTypes: list,
         **kwargs
     ):
         """Create a new network in an organization.
@@ -465,32 +465,6 @@ def register_organizations_additional_handlers():
             )
         """
         try:
-            # Validate required parameters
-            if not name:
-                return """❌ ERROR: Missing required parameter 'name'
-
-USAGE: create_organization_network(
-    organization_id="...",
-    name="testing",  # <-- REQUIRED: Network name
-    productTypes=["appliance", "switch", "wireless"]  # <-- REQUIRED: Device types
-)
-
-Please provide the network name."""
-            
-            if not productTypes:
-                return """❌ ERROR: Missing required parameter 'productTypes'
-
-USAGE: create_organization_network(
-    organization_id="...",
-    name="testing",
-    productTypes=["appliance", "switch", "wireless"]  # <-- REQUIRED: Device types
-)
-
-Valid types: appliance, camera, campusGateway, cellularGateway, secureConnect, 
-            sensor, switch, systemsManager, wireless, wirelessController
-
-Please provide the product types list."""
-            
             # Build the request with required parameters
             params = {
                 'name': name,
