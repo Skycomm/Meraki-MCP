@@ -45,7 +45,13 @@ def register_wireless_tool_handlers():
                 result += f"- Auth Mode: {ssid.get('authMode', 'Unknown')}\n"
                 result += f"- IP Assignment: {ssid.get('ipAssignmentMode', 'Unknown')}\n"
                 
-                if ssid.get('useVlanTagging'):
+                # Display VLAN information properly for Bridge mode
+                if ssid.get('ipAssignmentMode') == 'Bridge mode':
+                    if ssid.get('defaultVlanId'):
+                        result += f"- VLAN: {ssid.get('defaultVlanId')} (Bridge mode)\n"
+                    elif ssid.get('vlanId'):
+                        result += f"- VLAN: {ssid.get('vlanId')}\n"
+                elif ssid.get('useVlanTagging'):
                     result += f"- VLAN ID: {ssid.get('vlanId', 'Not set')}\n"
                 
                 result += "\n"
@@ -75,13 +81,19 @@ def register_wireless_tool_handlers():
             
             result += f"**IP Assignment**: {ssid.get('ipAssignmentMode', 'Unknown')}\n"
             
+            # Display VLAN information properly for Bridge mode
+            if ssid.get('ipAssignmentMode') == 'Bridge mode':
+                if ssid.get('defaultVlanId'):
+                    result += f"**VLAN**: {ssid.get('defaultVlanId')} (Default for all APs)\n"
+                if ssid.get('apTagsAndVlanIds'):
+                    result += f"**Per-AP VLANs**: {len(ssid.get('apTagsAndVlanIds', []))} configured\n"
+            elif ssid.get('useVlanTagging'):
+                result += f"**VLAN Tagging**: Enabled (VLAN {ssid.get('vlanId')})\n"
+            
             # Show LAN isolation status if present
             if 'lanIsolationEnabled' in ssid:
                 isolation_status = '🔒 Enabled' if ssid.get('lanIsolationEnabled') else '🔓 Disabled'
                 result += f"**LAN Isolation**: {isolation_status}\n"
-            
-            if ssid.get('useVlanTagging'):
-                result += f"**VLAN Tagging**: Enabled (VLAN {ssid.get('vlanId')})\n"
             
             if ssid.get('radiusServers'):
                 result += f"**RADIUS Servers**: {len(ssid['radiusServers'])} configured\n"

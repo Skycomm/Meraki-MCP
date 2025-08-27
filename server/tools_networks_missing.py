@@ -29,10 +29,10 @@ def register_networks_missing_handlers():
         name="get_network_alerts_settings",
         description="📊 Get get network alerts settings"
     )
-    def get_network_alerts_settings(**kwargs):
+    def get_network_alerts_settings(network_id: str, **kwargs):
         """Execute getNetworkAlertsSettings API call."""
         try:
-            result = meraki_client.dashboard.networks.getNetworkAlertsSettings(**kwargs)
+            result = meraki_client.dashboard.networks.getNetworkAlertsSettings(networkId=network_id)
             
             if result is None:
                 return "✅ Operation completed successfully!"
@@ -48,12 +48,20 @@ def register_networks_missing_handlers():
 
     @app.tool(
         name="update_network_alerts_settings",
-        description="✏️ Update update network alerts settings"
+        description="✏️ Update network alerts settings"
     )
-    def update_network_alerts_settings(**kwargs):
-        """Execute updateNetworkAlertsSettings API call."""
+    def update_network_alerts_settings(network_id: str, **kwargs):
+        """Execute updateNetworkAlertsSettings API call.
+        
+        Args:
+            network_id: Network ID
+            **kwargs: Optional parameters like defaultDestinations, alerts, muting
+        """
         try:
-            result = meraki_client.dashboard.networks.updateNetworkAlertsSettings(**kwargs)
+            result = meraki_client.dashboard.networks.updateNetworkAlertsSettings(
+                networkId=network_id,
+                **kwargs
+            )
             
             if result is None:
                 return "✅ Operation completed successfully!"

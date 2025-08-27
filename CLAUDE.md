@@ -310,3 +310,112 @@ To verify 100% coverage:
 # This will show any missing endpoints (should be 0)
 python -c "from generate_missing_endpoints import find_missing_endpoints; print(f'Missing: {sum(len(m) for m in find_missing_endpoints().values())}')"
 ```
+
+## Testing & Validation Guide
+
+### Running Direct API Tests (Without MCP)
+When testing API functionality or debugging issues:
+
+```python
+# Direct API testing template
+.venv/bin/python -c "
+from meraki_client import MerakiClient
+
+meraki = MerakiClient()
+network_id = 'L_726205439913500692'  # Replace with your network
+org_id = '686470'  # Replace with your org
+
+# Test API calls directly
+result = meraki.dashboard.networks.getNetwork(network_id)
+print(f'Network: {result.get(\"name\")}')
+"
+```
+
+### Common Test Scenarios
+
+#### 1. Pagination Testing
+Check if APIs are returning maximum data:
+```python
+# Test pagination (should get up to 1000 items)
+events = meraki.dashboard.networks.getNetworkEvents(
+    network_id, 
+    productType='appliance',
+    perPage=1000
+)
+print(f'Events retrieved: {len(events.get(\"events\", []))}')
+# If only 20-100, pagination may not be working
+```
+
+#### 2. VLAN Configuration Testing
+Test SSID VLAN assignments (Bridge mode uses `defaultVlanId`):
+```python
+ssids = meraki.dashboard.wireless.getNetworkWirelessSsids(network_id)
+for ssid in ssids:
+    if ssid.get('enabled'):
+        vlan = ssid.get('defaultVlanId') or ssid.get('vlanId')
+        print(f"SSID {ssid['name']}: VLAN {vlan}")
+```
+
+#### 3. Device Status Testing
+Check if all devices report correct status:
+```python
+statuses = meraki.dashboard.organizations.getOrganizationDevicesStatuses(
+    organizationId=org_id,
+    networkIds=[network_id]
+)
+for device in statuses:
+    print(f"{device.get('name')}: {device.get('status')}")
+```
+
+#### 4. Switch Port VLAN Testing
+Test port VLAN behavior when enabling/disabling:
+```python
+# Update port with explicit VLAN (prevents VLAN 1 reversion)
+result = meraki.dashboard.switch.updateDeviceSwitchPort(
+    serial='Q2HP-GCZQ-7AWT',
+    portId='5',
+    enabled=False,
+    vlan=101  # ALWAYS specify VLAN even when disabling
+)
+```
+
+### Best Practices for Testing
+
+#### Switch Port VLAN Management
+- Always specify VLAN when updating ports, even when disabling
+- Use VLAN 1 (192.168.128.0/24) or another valid VLAN for disabled ports
+- This prevents VLAN mismatch alerts
+
+#### SSID VLAN Verification
+- Bridge mode SSIDs store VLAN in `defaultVlanId` field
+- NAT mode SSIDs don't use VLAN tagging
+- Check both fields when verifying configuration
+
+### Comprehensive Network Audit Script
+Run a full audit to check for common issues:
+```bash
+python -c "
+from meraki_client import MerakiClient
+meraki = MerakiClient()
+
+# Get network
+network_id = 'YOUR_NETWORK_ID'
+
+# 1. Check device statuses
+devices = meraki.dashboard.networks.getNetworkDevices(network_id)
+print(f'Devices: {len(devices)}')
+
+# 2. Check VLAN configuration
+vlans = meraki.dashboard.appliance.getNetworkApplianceVlans(network_id)
+print(f'VLANs configured: {len(vlans)}')
+
+# 3. Check SSIDs
+ssids = meraki.dashboard.wireless.getNetworkWirelessSsids(network_id)
+enabled = sum(1 for s in ssids if s.get('enabled'))
+print(f'SSIDs enabled: {enabled}/15')
+
+# 4. Check clients
+clients = meraki.dashboard.networks.getNetworkClients(network_id, perPage=1000)
+print(f'Active clients: {len(clients)}')
+"
+```
