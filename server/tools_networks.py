@@ -666,6 +666,17 @@ def register_network_tool_handlers():
         Note: toVersion requires 'id' not 'shortName'
         """
         try:
+            import json
+            
+            # Fix if kwargs came as a JSON string from MCP
+            if 'kwargs' in kwargs and isinstance(kwargs['kwargs'], str):
+                try:
+                    # Parse the JSON string to dict
+                    actual_kwargs = json.loads(kwargs['kwargs'])
+                    kwargs = actual_kwargs
+                except:
+                    pass
+            
             # Fix common formatting issues
             if 'upgradeWindow' in kwargs:
                 if 'hourOfDay' in kwargs['upgradeWindow']:
