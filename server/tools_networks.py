@@ -659,11 +659,41 @@ def register_network_tool_handlers():
         """Update firmware upgrade settings for the network.
         
         Parameters:
-        - upgradeWindow: Dict with dayOfWeek and hourOfDay
+        - upgradeWindow: Dict with dayOfWeek and hourOfDay (e.g., "3:00" not "03:00")
         - timezone: String timezone
         - products: Dict with product-specific upgrade settings
+        
+        Note: toVersion requires 'id' not 'shortName'
         """
         try:
+            # Fix common formatting issues
+            if 'upgradeWindow' in kwargs:
+                if 'hourOfDay' in kwargs['upgradeWindow']:
+                    # Fix hour format (03:00 -> 3:00)
+                    hour = kwargs['upgradeWindow']['hourOfDay']
+                    if hour.startswith('0') and len(hour) == 5:
+                        kwargs['upgradeWindow']['hourOfDay'] = hour[1:]
+            
+            # If products have shortName instead of id, try to look them up
+            if 'products' in kwargs:
+                firmware_info = meraki_client.dashboard.networks.getNetworkFirmwareUpgrades(network_id)
+                
+                for product_type, product_config in kwargs['products'].items():
+                    if 'nextUpgrade' in product_config and 'toVersion' in product_config['nextUpgrade']:
+                        to_version = product_config['nextUpgrade']['toVersion']
+                        
+                        # If shortName provided instead of id, look it up
+                        if 'shortName' in to_version and 'id' not in to_version:
+                            short_name = to_version['shortName']
+                            
+                            # Find the version ID
+                            if firmware_info.get('products', {}).get(product_type):
+                                for ver in firmware_info['products'][product_type].get('availableVersions', []):
+                                    if ver.get('shortName') == short_name:
+                                        to_version['id'] = ver.get('id')
+                                        del to_version['shortName']
+                                        break
+            
             result = meraki_client.dashboard.networks.updateNetworkFirmwareUpgrades(
                 networkId=network_id,
                 **kwargs
