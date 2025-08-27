@@ -669,6 +669,19 @@ def register_network_tool_handlers():
             import json
             from datetime import datetime, timedelta
             
+            # Parse JSON strings that MCP sends
+            if isinstance(upgradeWindow, str) and upgradeWindow.startswith('{'):
+                try:
+                    upgradeWindow = json.loads(upgradeWindow)
+                except:
+                    pass
+                    
+            if isinstance(products, str) and products.startswith('{'):
+                try:
+                    products = json.loads(products)
+                except:
+                    pass
+            
             # Build params from explicit args if provided
             params = {}
             if upgradeWindow is not None:
@@ -726,16 +739,30 @@ def register_network_tool_handlers():
                     if 'nextUpgrade' in product_config and 'toVersion' in product_config['nextUpgrade']:
                         to_version = product_config['nextUpgrade']['toVersion']
                         
+                        # Check if 'id' is actually a shortName (not numeric)
+                        if 'id' in to_version:
+                            id_val = str(to_version['id'])
+                            # If it contains letters or dashes, it's probably a shortName
+                            if not id_val.isdigit():
+                                # Treat it as shortName and look up real ID
+                                short_name = id_val
+                                if firmware_info.get('products', {}).get(product_type):
+                                    for ver in firmware_info['products'][product_type].get('availableVersions', []):
+                                        if ver.get('shortName') == short_name or ver.get('firmware') == short_name:
+                                            to_version['id'] = str(ver.get('id'))  # Ensure it's a string
+                                            break
+                        
                         # If shortName provided instead of id, look it up
-                        if 'shortName' in to_version and 'id' not in to_version:
+                        elif 'shortName' in to_version and 'id' not in to_version:
                             short_name = to_version['shortName']
                             
                             # Find the version ID
                             if firmware_info.get('products', {}).get(product_type):
                                 for ver in firmware_info['products'][product_type].get('availableVersions', []):
                                     if ver.get('shortName') == short_name:
-                                        to_version['id'] = ver.get('id')
-                                        del to_version['shortName']
+                                        to_version['id'] = str(ver.get('id'))  # Ensure it's a string
+                                        if 'shortName' in to_version:
+                                            del to_version['shortName']
                                         break
             
             result = meraki_client.dashboard.networks.updateNetworkFirmwareUpgrades(
