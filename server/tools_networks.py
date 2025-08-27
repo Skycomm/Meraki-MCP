@@ -655,41 +655,74 @@ def register_network_tool_handlers():
         name="update_network_firmware_upgrades",
         description="💿 Schedule firmware upgrades"
     )
-    def update_network_firmware_upgrades(network_id: str, **kwargs):
+    def update_network_firmware_upgrades(network_id: str, upgradeWindow=None, timezone=None, products=None, **kwargs):
         """Update firmware upgrade settings for the network.
         
         Parameters:
         - upgradeWindow: Dict with dayOfWeek and hourOfDay (e.g., "3:00" not "03:00")
-        - timezone: String timezone
+        - timezone: String timezone  
         - products: Dict with product-specific upgrade settings
         
         Note: toVersion requires 'id' not 'shortName'
         """
         try:
             import json
+            from datetime import datetime, timedelta
             
-            # Fix if kwargs came as a JSON string from MCP
-            if 'kwargs' in kwargs and isinstance(kwargs['kwargs'], str):
-                try:
-                    # Parse the JSON string to dict
-                    actual_kwargs = json.loads(kwargs['kwargs'])
-                    kwargs = actual_kwargs
-                except:
-                    pass
+            # Build params from explicit args if provided
+            params = {}
+            if upgradeWindow is not None:
+                params['upgradeWindow'] = upgradeWindow
+            if timezone is not None:
+                params['timezone'] = timezone
+            if products is not None:
+                params['products'] = products
+                
+            # If nothing explicitly passed, check kwargs
+            if not params and kwargs:
+                # Fix if kwargs came as a JSON string from MCP
+                if 'kwargs' in kwargs and isinstance(kwargs['kwargs'], str):
+                    try:
+                        # Parse the JSON string to dict
+                        params = json.loads(kwargs['kwargs'])
+                    except:
+                        params = kwargs
+                else:
+                    params = kwargs
             
             # Fix common formatting issues
-            if 'upgradeWindow' in kwargs:
-                if 'hourOfDay' in kwargs['upgradeWindow']:
+            if 'upgradeWindow' in params:
+                if 'hourOfDay' in params['upgradeWindow']:
                     # Fix hour format (03:00 -> 3:00)
-                    hour = kwargs['upgradeWindow']['hourOfDay']
+                    hour = params['upgradeWindow']['hourOfDay']
                     if hour.startswith('0') and len(hour) == 5:
-                        kwargs['upgradeWindow']['hourOfDay'] = hour[1:]
+                        params['upgradeWindow']['hourOfDay'] = hour[1:]
             
             # If products have shortName instead of id, try to look them up
-            if 'products' in kwargs:
+            if 'products' in params:
                 firmware_info = meraki_client.dashboard.networks.getNetworkFirmwareUpgrades(network_id)
                 
-                for product_type, product_config in kwargs['products'].items():
+                # If products missing, auto-schedule candidate versions
+                if not params['products']:
+                    params['products'] = {}
+                    for product, info in firmware_info.get('products', {}).items():
+                        if info and info.get('availableVersions'):
+                            for ver in info['availableVersions']:
+                                if ver.get('releaseType') == 'candidate':
+                                    # Schedule upgrade to candidate
+                                    next_sunday = datetime.now() + timedelta(days=(6 - datetime.now().weekday()) % 7 or 7)
+                                    next_sunday = next_sunday.replace(hour=3, minute=0, second=0, microsecond=0)
+                                    
+                                    params['products'][product] = {
+                                        'nextUpgrade': {
+                                            'time': next_sunday.strftime('%Y-%m-%dT%H:%M:%SZ'),
+                                            'toVersion': {'id': ver.get('id')}
+                                        }
+                                    }
+                                    break
+                
+                # Fix shortName to id conversion
+                for product_type, product_config in params['products'].items():
                     if 'nextUpgrade' in product_config and 'toVersion' in product_config['nextUpgrade']:
                         to_version = product_config['nextUpgrade']['toVersion']
                         
@@ -707,8 +740,18 @@ def register_network_tool_handlers():
             
             result = meraki_client.dashboard.networks.updateNetworkFirmwareUpgrades(
                 networkId=network_id,
-                **kwargs
+                **params
             )
+            
+            # Clear any previous schedules if upgrading both
+            if result and 'products' in result:
+                scheduled = []
+                for product, info in result.get('products', {}).items():
+                    if info.get('nextUpgrade', {}).get('toVersion'):
+                        scheduled.append(f"{product}: {info['nextUpgrade']['toVersion'].get('shortName', 'Unknown')}")
+                
+                if scheduled:
+                    return f"✅ Firmware upgrades scheduled successfully!\n\nScheduled upgrades:\n" + "\n".join(scheduled)
             
             return f"✅ Firmware upgrade settings updated successfully!"
             
