@@ -391,6 +391,23 @@ result = meraki.dashboard.switch.updateDeviceSwitchPort(
 - NAT mode SSIDs don't use VLAN tagging
 - Check both fields when verifying configuration
 
+#### Firmware Upgrades
+For scheduling firmware upgrades, use this format:
+```python
+update_network_firmware_upgrades(
+    network_id=network_id,
+    upgradeWindow={'dayOfWeek': 'sun', 'hourOfDay': '03:00'},
+    products={
+        'wireless': {
+            'nextUpgrade': {
+                'time': '2025-08-31T03:00:00Z',
+                'toVersion': {'shortName': 'wireless-31-1-8'}
+            }
+        }
+    }
+)
+```
+
 ### Comprehensive Network Audit Script
 Run a full audit to check for common issues:
 ```bash

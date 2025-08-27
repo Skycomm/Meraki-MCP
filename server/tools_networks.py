@@ -656,10 +656,17 @@ def register_network_tool_handlers():
         description="💿 Schedule firmware upgrades"
     )
     def update_network_firmware_upgrades(network_id: str, **kwargs):
-        """Update firmware upgrade settings for the network."""
+        """Update firmware upgrade settings for the network.
+        
+        Parameters:
+        - upgradeWindow: Dict with dayOfWeek and hourOfDay
+        - timezone: String timezone
+        - products: Dict with product-specific upgrade settings
+        """
         try:
             result = meraki_client.dashboard.networks.updateNetworkFirmwareUpgrades(
-                network_id, **kwargs
+                networkId=network_id,
+                **kwargs
             )
             
             return f"✅ Firmware upgrade settings updated successfully!"
