@@ -487,7 +487,7 @@ def register_network_tool_handlers():
                     # If no events found with any product type, try without productType
                     try:
                         if 'perPage' not in kwargs:
-                            kwargs['perPage'] = 100
+                            kwargs['perPage'] = 1000  # Maximum allowed for complete results
                         response = meraki_client.dashboard.networks.getNetworkEvents(network_id, **kwargs)
                         if response and response.get('events'):
                             all_events = response.get('events', [])

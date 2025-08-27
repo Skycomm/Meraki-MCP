@@ -622,11 +622,17 @@ def register_appliance_additional_handlers():
         name="get_network_appliance_security_events",
         description="📊 Get network appliance security events"
     )
-    def get_network_appliance_security_events(network_id: str):
+    def get_network_appliance_security_events(network_id: str, **kwargs):
         """Get network appliance security events."""
         try:
+            # Add default parameters for better results
+            if 'perPage' not in kwargs:
+                kwargs['perPage'] = 1000  # Maximum allowed for complete results
+            if 'timespan' not in kwargs and 't0' not in kwargs:
+                kwargs['timespan'] = 2678400  # Default to 31 days (API default)
+            
             result = meraki_client.dashboard.appliance.getNetworkApplianceSecurityEvents(
-                network_id
+                network_id, **kwargs
             )
             
             if isinstance(result, dict):

@@ -75,6 +75,11 @@ def register_wireless_tool_handlers():
             
             result += f"**IP Assignment**: {ssid.get('ipAssignmentMode', 'Unknown')}\n"
             
+            # Show LAN isolation status if present
+            if 'lanIsolationEnabled' in ssid:
+                isolation_status = '🔒 Enabled' if ssid.get('lanIsolationEnabled') else '🔓 Disabled'
+                result += f"**LAN Isolation**: {isolation_status}\n"
+            
             if ssid.get('useVlanTagging'):
                 result += f"**VLAN Tagging**: Enabled (VLAN {ssid.get('vlanId')})\n"
             
@@ -91,7 +96,18 @@ def register_wireless_tool_handlers():
         description="🔧 Update wireless SSID configuration"
     )
     def update_network_wireless_ssid(network_id: str, number: str, **kwargs):
-        """Update configuration for a specific SSID."""
+        """Update configuration for a specific SSID.
+        
+        Important parameters:
+        - lanIsolationEnabled: Enable/disable Layer 2 LAN isolation (Bridge mode only)
+        - enabled: Enable/disable the SSID
+        - name: SSID name
+        - authMode: Authentication mode
+        - encryptionMode: Encryption type
+        - psk: Pre-shared key
+        - ipAssignmentMode: 'NAT mode' or 'Bridge mode'
+        - vlanId: VLAN ID for Bridge mode
+        """
         try:
             result = meraki_client.dashboard.wireless.updateNetworkWirelessSsid(
                 network_id, number, **kwargs
@@ -234,6 +250,10 @@ def register_wireless_tool_handlers():
     def get_network_wireless_clients(network_id: str, **kwargs):
         """List wireless clients connected to the network."""
         try:
+            # Add default perPage for maximum results
+            if 'perPage' not in kwargs:
+                kwargs['perPage'] = 1000  # Maximum allowed for complete results
+            
             clients = meraki_client.dashboard.wireless.getNetworkWirelessClients(network_id, **kwargs)
             
             if not clients:

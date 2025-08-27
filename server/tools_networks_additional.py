@@ -228,7 +228,7 @@ def register_networks_additional_handlers():
         try:
             # Add default perPage for better results
             if 'perPage' not in kwargs:
-                kwargs['perPage'] = 100  # Default per API spec
+                kwargs['perPage'] = 1000  # Maximum allowed for complete results
             
             result = meraki_client.dashboard.networks.getNetworkAlertsHistory(
                 network_id, **kwargs

@@ -1334,11 +1334,15 @@ Next steps:
         name="get_organization_devices_availabilities",
         description="📊 Get organization devices availabilities"
     )
-    def get_organization_devices_availabilities(organization_id: str):
+    def get_organization_devices_availabilities(organization_id: str, **kwargs):
         """Get organization devices availabilities."""
         try:
+            # Add default perPage for maximum results
+            if 'perPage' not in kwargs:
+                kwargs['perPage'] = 1000  # Maximum allowed (also the default)
+            
             result = meraki_client.dashboard.organizations.getOrganizationDevicesAvailabilities(
-                organization_id
+                organization_id, **kwargs
             )
             
             if isinstance(result, dict):
