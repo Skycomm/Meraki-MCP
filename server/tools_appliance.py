@@ -102,19 +102,78 @@ def register_appliance_tool_handlers():
         vlan_id: str,
         name: str,
         subnet: str,
-        appliance_ip: str
+        appliance_ip: str,
+        reserved_ip_ranges: Optional[Any] = None,
+        fixed_ip_assignments: Optional[Any] = None,
+        dhcp_options: Optional[Any] = None,
+        dhcp_relay_server_ips: Optional[List[str]] = None,
+        dhcp_lease_time: Optional[str] = None,
+        dhcp_boot_options_enabled: Optional[bool] = None,
+        dhcp_handling: Optional[str] = None,
+        dns_nameservers: Optional[str] = None
     ):
-        """Create a new VLAN on the network."""
+        """Create a new VLAN on the network with optional DHCP settings."""
+        import json
+        
         try:
+            kwargs = {
+                'id': vlan_id,
+                'name': name,
+                'subnet': subnet,
+                'applianceIp': appliance_ip
+            }
+            
+            # Handle reservedIpRanges - MCP may pass as JSON string
+            if reserved_ip_ranges is not None:
+                if isinstance(reserved_ip_ranges, str):
+                    try:
+                        reserved_ip_ranges = json.loads(reserved_ip_ranges)
+                    except:
+                        pass
+                kwargs['reservedIpRanges'] = reserved_ip_ranges
+                
+            # Handle fixedIpAssignments - MCP may pass as JSON string
+            if fixed_ip_assignments is not None:
+                if isinstance(fixed_ip_assignments, str):
+                    try:
+                        fixed_ip_assignments = json.loads(fixed_ip_assignments)
+                    except:
+                        pass
+                kwargs['fixedIpAssignments'] = fixed_ip_assignments
+                
+            # Handle dhcpOptions - MCP may pass as JSON string
+            if dhcp_options is not None:
+                if isinstance(dhcp_options, str):
+                    try:
+                        dhcp_options = json.loads(dhcp_options)
+                    except:
+                        pass
+                kwargs['dhcpOptions'] = dhcp_options
+                
+            # Handle other DHCP parameters
+            if dhcp_relay_server_ips is not None:
+                kwargs['dhcpRelayServerIps'] = dhcp_relay_server_ips
+            if dhcp_lease_time is not None:
+                kwargs['dhcpLeaseTime'] = dhcp_lease_time
+            if dhcp_boot_options_enabled is not None:
+                kwargs['dhcpBootOptionsEnabled'] = dhcp_boot_options_enabled
+            if dhcp_handling is not None:
+                kwargs['dhcpHandling'] = dhcp_handling
+            if dns_nameservers is not None:
+                kwargs['dnsNameservers'] = dns_nameservers
+            
             vlan = meraki_client.dashboard.appliance.createNetworkApplianceVlan(
                 network_id,
-                id=vlan_id,
-                name=name,
-                subnet=subnet,
-                applianceIp=appliance_ip
+                **kwargs
             )
             
-            return f"✅ VLAN {vlan_id} created successfully!\n\nName: {name}\nSubnet: {subnet}\nAppliance IP: {appliance_ip}"
+            msg = f"✅ VLAN {vlan_id} created successfully!\n\nName: {name}\nSubnet: {subnet}\nAppliance IP: {appliance_ip}"
+            if reserved_ip_ranges:
+                msg += f"\n- Reserved IP ranges: {len(reserved_ip_ranges)} range(s)"
+            if fixed_ip_assignments:
+                msg += f"\n- Fixed IP assignments: {len(fixed_ip_assignments)} assignment(s)"
+                
+            return msg
             
         except Exception as e:
             return f"Error creating VLAN: {str(e)}"
@@ -128,9 +187,19 @@ def register_appliance_tool_handlers():
         vlan_id: str,
         name: Optional[str] = None,
         subnet: Optional[str] = None,
-        appliance_ip: Optional[str] = None
+        appliance_ip: Optional[str] = None,
+        reserved_ip_ranges: Optional[Any] = None,
+        fixed_ip_assignments: Optional[Any] = None,
+        dhcp_options: Optional[Any] = None,
+        dhcp_relay_server_ips: Optional[List[str]] = None,
+        dhcp_lease_time: Optional[str] = None,
+        dhcp_boot_options_enabled: Optional[bool] = None,
+        dhcp_handling: Optional[str] = None,
+        dns_nameservers: Optional[str] = None
     ):
-        """Update an existing VLAN configuration."""
+        """Update an existing VLAN configuration with DHCP settings."""
+        import json
+        
         try:
             kwargs = {}
             if name is not None:
@@ -140,13 +209,61 @@ def register_appliance_tool_handlers():
             if appliance_ip is not None:
                 kwargs['applianceIp'] = appliance_ip
                 
+            # Handle reservedIpRanges - MCP may pass as JSON string
+            if reserved_ip_ranges is not None:
+                if isinstance(reserved_ip_ranges, str):
+                    try:
+                        reserved_ip_ranges = json.loads(reserved_ip_ranges)
+                    except:
+                        pass
+                kwargs['reservedIpRanges'] = reserved_ip_ranges
+                
+            # Handle fixedIpAssignments - MCP may pass as JSON string
+            if fixed_ip_assignments is not None:
+                if isinstance(fixed_ip_assignments, str):
+                    try:
+                        fixed_ip_assignments = json.loads(fixed_ip_assignments)
+                    except:
+                        pass
+                kwargs['fixedIpAssignments'] = fixed_ip_assignments
+                
+            # Handle dhcpOptions - MCP may pass as JSON string
+            if dhcp_options is not None:
+                if isinstance(dhcp_options, str):
+                    try:
+                        dhcp_options = json.loads(dhcp_options)
+                    except:
+                        pass
+                kwargs['dhcpOptions'] = dhcp_options
+                
+            # Handle other DHCP parameters
+            if dhcp_relay_server_ips is not None:
+                kwargs['dhcpRelayServerIps'] = dhcp_relay_server_ips
+            if dhcp_lease_time is not None:
+                kwargs['dhcpLeaseTime'] = dhcp_lease_time
+            if dhcp_boot_options_enabled is not None:
+                kwargs['dhcpBootOptionsEnabled'] = dhcp_boot_options_enabled
+            if dhcp_handling is not None:
+                kwargs['dhcpHandling'] = dhcp_handling
+            if dns_nameservers is not None:
+                kwargs['dnsNameservers'] = dns_nameservers
+                
             vlan = meraki_client.dashboard.appliance.updateNetworkApplianceVlan(
                 network_id,
                 vlan_id,
                 **kwargs
             )
             
-            return f"✅ VLAN {vlan_id} updated successfully!"
+            # Build success message with details of what was updated
+            msg = f"✅ VLAN {vlan_id} updated successfully!"
+            if reserved_ip_ranges:
+                msg += f"\n- Reserved IP ranges configured: {len(reserved_ip_ranges)} range(s)"
+            if fixed_ip_assignments:
+                msg += f"\n- Fixed IP assignments configured: {len(fixed_ip_assignments)} assignment(s)"
+            if dhcp_options:
+                msg += f"\n- DHCP options configured: {len(dhcp_options)} option(s)"
+                
+            return msg
             
         except Exception as e:
             return f"Error updating VLAN: {str(e)}"
