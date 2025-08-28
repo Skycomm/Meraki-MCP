@@ -33,9 +33,9 @@ def register_organizations_missing_handlers():
     )
     def claim_into_organization_inventory(
         organization_id: str,
-        orders: list = None,
-        serials: list = None,
-        licenses: list = None
+        orders: Any = None,
+        serials: Any = None,
+        licenses: Any = None
     ):
         """Claim devices, licenses, and/or orders into organization inventory.
         
@@ -48,13 +48,46 @@ def register_organizations_missing_handlers():
         
         Note: Same as claim_into_organization but may have different behavior.
         """
+        import json
+        
         try:
             params = {}
+            
+            # Handle orders - MCP may pass as JSON string
             if orders:
+                if isinstance(orders, str):
+                    if orders.startswith('['):
+                        try:
+                            orders = json.loads(orders)
+                        except:
+                            orders = [o.strip() for o in orders.split(',')]
+                    else:
+                        orders = [o.strip() for o in orders.split(',')]
+                elif not isinstance(orders, list):
+                    orders = [orders]
                 params['orders'] = orders
+                
+            # Handle serials - MCP may pass as JSON string
             if serials:
+                if isinstance(serials, str):
+                    if serials.startswith('['):
+                        try:
+                            serials = json.loads(serials)
+                        except:
+                            serials = [s.strip().upper() for s in serials.split(',')]
+                    else:
+                        serials = [s.strip().upper() for s in serials.split(',')]
+                elif not isinstance(serials, list):
+                    serials = [serials]
                 params['serials'] = [s.upper() for s in serials]
+                
+            # Handle licenses - MCP may pass as JSON string
             if licenses:
+                if isinstance(licenses, str):
+                    try:
+                        licenses = json.loads(licenses)
+                    except:
+                        pass
                 params['licenses'] = licenses
             
             if not params:
@@ -64,17 +97,75 @@ def register_organizations_missing_handlers():
                 organization_id, **params
             )
             
-            if result is None:
-                return "✅ Successfully claimed into inventory!"
-            elif isinstance(result, dict):
-                return f"✅ Claimed into inventory: {result}"
-            elif isinstance(result, list):
-                return f"✅ Claimed {len(result)} items into inventory"
-            else:
-                return f"✅ Result: {result}"
+            # Provide detailed success message
+            msg = "✅ Successfully claimed into inventory!"
+            if serials and params.get('serials'):
+                msg += f"\n- Devices: {', '.join(params['serials'])}"
+            if orders and params.get('orders'):
+                msg += f"\n- Orders: {', '.join(params['orders'])}"
+            if result and isinstance(result, dict):
+                msg += f"\n- Details: {result}"
+                
+            return msg
                 
         except Exception as e:
-            return f"Error claiming into inventory: {str(e)}"
+            error_str = str(e)
+            
+            # Parse and improve error messages
+            if 'Device' in error_str and 'not found' in error_str:
+                # Extract device serial from error
+                import re
+                match = re.search(r'Device ([A-Z0-9-]+) not found', error_str)
+                if match:
+                    serial = match.group(1)
+                    return f"""❌ Cannot claim device {serial}
+                    
+Possible reasons:
+1. Device is already claimed in another organization
+   - Check: The website may show "already in use" error
+   - Solution: Release from current org first
+   
+2. Invalid serial number
+   - Verify serial is correct (format: XXXX-XXXX-XXXX)
+   - Check device label for correct serial
+   
+3. Device not activated
+   - Device may need to be registered with Meraki first
+   - Contact Meraki support if device is new
+
+Original error: {error_str}"""
+                    
+            elif 'already in use' in error_str.lower() or 'already claimed' in error_str.lower():
+                return f"""❌ Device(s) already claimed in another organization
+                
+To claim these devices:
+1. Find current organization using device search
+2. Release devices from that organization
+3. Then claim into this organization
+
+Original error: {error_str}"""
+                
+            elif 'Invalid' in error_str:
+                return f"""❌ Invalid input format
+                
+Check:
+- Serial format: XXXX-XXXX-XXXX (with dashes)
+- Order numbers are correct
+- License keys are valid
+
+Original error: {error_str}"""
+                
+            else:
+                # Generic error with helpful context
+                return f"""❌ Failed to claim into inventory
+                
+Error: {error_str}
+
+Troubleshooting:
+- Verify devices are not already in another org
+- Check serial numbers are correct
+- Ensure you have permission to claim devices
+- Try using order number instead of serials"""
 
     @app.tool(
         name="combine_organization_networks",

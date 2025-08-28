@@ -2,6 +2,8 @@
 Organization-related tools for the Cisco Meraki MCP Server - Modern implementation.
 """
 
+from typing import Optional
+
 # Global variables to store app and meraki client
 app = None
 meraki_client = None
@@ -157,7 +159,7 @@ def register_organization_tool_handlers():
         name="create_new_organization_danger",
         description="🚨 DANGER: Creates NEW ORGANIZATION (not network!) - For networks use create_organization_network"
     )
-    def create_new_organization_danger(name: str):
+    def create_new_organization_danger(name: str, management: Optional[dict] = None):
         """
         🚨 DANGER: Create a new Meraki organization (NOT a network!).
         
@@ -166,6 +168,7 @@ def register_organization_tool_handlers():
         
         Args:
             name: Name for the new organization
+            management: Optional management configuration
             
         Returns:
             New organization details
@@ -180,7 +183,32 @@ If you want to create a network instead, use:
 Proceeding with organization creation..."""
         
         print(confirmation)  # Log warning
-        return meraki_client.create_organization(name)
+        
+        try:
+            # Use the correct API method
+            kwargs = {}
+            if management is not None:
+                kwargs['management'] = management
+                
+            result = meraki_client.dashboard.organizations.createOrganization(
+                name=name,
+                **kwargs
+            )
+            
+            return f"""✅ Organization created successfully!
+            
+Organization Details:
+- Name: {result.get('name')}
+- ID: {result.get('id')}
+- URL: {result.get('url')}
+
+Next steps:
+1. Claim devices to this organization
+2. Create networks within this organization
+3. Configure security settings"""
+            
+        except Exception as e:
+            return f"Failed to create organization: {str(e)}"
     
     @app.tool(
         name="update_organization",
