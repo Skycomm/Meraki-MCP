@@ -2,6 +2,8 @@
 Wireless management tools for the Cisco Meraki MCP Server - COMPLETE v1.61 IMPLEMENTATION.
 """
 
+from typing import Any
+
 # Global variables to store app and meraki client
 app = None
 meraki_client = None

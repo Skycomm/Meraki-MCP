@@ -155,6 +155,7 @@ def register_licensing_tool_handlers():
     def get_organization_licenses(org_id: str):
         """
         List all licenses for an organization.
+        Works with both PDL (Per-Device Licensing) and Co-termination licensing models.
         
         Args:
             org_id: Organization ID
@@ -163,12 +164,50 @@ def register_licensing_tool_handlers():
             List of licenses with details
         """
         try:
-            licenses = meraki_client.get_organization_licenses(org_id)
+            licenses = None
+            licensing_model = "unknown"
+            
+            # Try PDL first
+            try:
+                licenses = meraki_client.get_organization_licenses(org_id)
+                licensing_model = "per-device"
+            except Exception as pdl_error:
+                if 'does not support per-device licensing' in str(pdl_error):
+                    # This is a co-term organization, try co-term API
+                    try:
+                        coterm_licenses = meraki_client.dashboard.licensing.getOrganizationLicensingCotermLicenses(org_id)
+                        licensing_model = "co-termination"
+                        
+                        # Transform co-term licenses to similar format for display
+                        licenses = []
+                        for lic in coterm_licenses:
+                            # Each co-term license can have multiple editions
+                            for edition in lic.get('editions', []):
+                                transformed = {
+                                    'licenseKey': lic.get('key', 'Unknown'),
+                                    'deviceType': edition.get('productType', 'Unknown'),
+                                    'edition': edition.get('edition', 'Standard'),
+                                    'state': 'active' if not lic.get('invalidated') else 'invalidated',
+                                    'orderNumber': lic.get('orderNumber', 'N/A'),
+                                    'expirationDate': lic.get('expirationDate'),
+                                    'durationInDays': lic.get('duration'),
+                                    'claimedAt': lic.get('claimedAt'),
+                                    'startedAt': lic.get('startedAt'),
+                                    'counts': lic.get('counts', [])
+                                }
+                                licenses.append(transformed)
+                    except Exception as coterm_error:
+                        # If both fail, return the original error
+                        return f"Error retrieving licenses: Organization may not have any licenses or API access issue.\nPDL error: {str(pdl_error)[:100]}\nCo-term error: {str(coterm_error)[:100]}"
+                else:
+                    # Some other error with PDL API
+                    raise pdl_error
             
             if not licenses:
                 return f"No licenses found for organization {org_id}."
                 
             result = f"# 📄 Organization Licenses - Org {org_id}\n\n"
+            result += f"**Licensing Model**: {licensing_model.title()}\n"
             result += f"**Total Licenses**: {len(licenses)}\n\n"
             
             # Group by device type
@@ -181,25 +220,44 @@ def register_licensing_tool_handlers():
             
             # Display by device type
             for device_type, type_licenses in device_types.items():
-                result += f"## {device_type} Licenses ({len(type_licenses)})\n"
+                result += f"## {device_type.upper()} Licenses ({len(type_licenses)})\n"
                 
-                # Count active vs expired
-                active = sum(1 for lic in type_licenses if lic.get('state') == 'active')
-                expired = sum(1 for lic in type_licenses if lic.get('state') == 'expired')
-                unused = sum(1 for lic in type_licenses if lic.get('state') == 'unused')
-                
-                result += f"- **Active**: {active}\n"
-                result += f"- **Expired**: {expired}\n"
-                result += f"- **Unused**: {unused}\n\n"
+                if licensing_model == "per-device":
+                    # Count active vs expired for PDL
+                    active = sum(1 for lic in type_licenses if lic.get('state') == 'active')
+                    expired = sum(1 for lic in type_licenses if lic.get('state') == 'expired')
+                    unused = sum(1 for lic in type_licenses if lic.get('state') == 'unused')
+                    
+                    result += f"- **Active**: {active}\n"
+                    result += f"- **Expired**: {expired}\n"
+                    result += f"- **Unused**: {unused}\n\n"
+                else:
+                    # For co-term, show edition info
+                    editions = {}
+                    for lic in type_licenses:
+                        edition = lic.get('edition', 'Standard')
+                        editions[edition] = editions.get(edition, 0) + 1
+                    for edition, count in editions.items():
+                        result += f"- **{edition}**: {count}\n"
+                    result += "\n"
                 
                 # Show details for first few
                 for license in type_licenses[:5]:
                     lic_key = license.get('licenseKey', 'Unknown')
+                    if len(lic_key) > 20:
+                        lic_key_display = lic_key[-8:]
+                    else:
+                        lic_key_display = lic_key
+                        
                     state = license.get('state', 'unknown')
-                    state_icon = "✅" if state == 'active' else "⏰" if state == 'expired' else "📦"
+                    state_icon = "✅" if state == 'active' else "⏰" if state == 'expired' else "❌" if state == 'invalidated' else "📦"
                     
-                    result += f"### {state_icon} License {lic_key[-8:]}\n"
+                    result += f"### {state_icon} License ...{lic_key_display}\n"
                     result += f"- **State**: {state}\n"
+                    
+                    if license.get('edition'):
+                        result += f"- **Edition**: {license.get('edition')}\n"
+                    
                     result += f"- **Order Number**: {license.get('orderNumber', 'N/A')}\n"
                     
                     # Expiration info
@@ -207,7 +265,7 @@ def register_licensing_tool_handlers():
                     if expiration:
                         result += f"- **Expires**: {expiration}\n"
                     
-                    # Device assignment
+                    # Device assignment (PDL only)
                     device_serial = license.get('deviceSerial')
                     if device_serial:
                         result += f"- **Assigned to**: {device_serial}\n"
@@ -216,6 +274,16 @@ def register_licensing_tool_handlers():
                     duration = license.get('durationInDays')
                     if duration:
                         result += f"- **Duration**: {duration} days\n"
+                    
+                    # Co-term specific info
+                    if license.get('claimedAt'):
+                        result += f"- **Claimed**: {license.get('claimedAt')[:10]}\n"
+                    
+                    # Device counts (co-term)
+                    if license.get('counts'):
+                        counts_str = ", ".join([f"{c.get('model')}: {c.get('count')}" for c in license.get('counts', [])])
+                        if counts_str:
+                            result += f"- **Device Counts**: {counts_str}\n"
                     
                     result += "\n"
                 
