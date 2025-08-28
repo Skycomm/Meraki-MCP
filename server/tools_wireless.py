@@ -1136,9 +1136,18 @@ Solution: When using VLAN tagging, ensure:
         name="update_network_wireless_ssid_firewall_l3_firewall_rules",
         description="🔥 Update Layer 3 firewall rules for SSID"
     )
-    def update_network_wireless_ssid_firewall_l3_firewall_rules(network_id: str, number: str, rules: list):
+    def update_network_wireless_ssid_firewall_l3_firewall_rules(network_id: str, number: str, rules: Any):
         """Update Layer 3 firewall rules for a specific SSID."""
         try:
+            import json
+            
+            # Handle rules parameter - MCP may pass as JSON string
+            if isinstance(rules, str):
+                try:
+                    rules = json.loads(rules)
+                except:
+                    pass
+                    
             result = meraki_client.dashboard.wireless.updateNetworkWirelessSsidFirewallL3FirewallRules(
                 network_id, number, rules=rules
             )
@@ -1183,9 +1192,18 @@ Solution: When using VLAN tagging, ensure:
         name="update_network_wireless_ssid_firewall_l7_firewall_rules",
         description="🔥 Update Layer 7 firewall rules for SSID"
     )
-    def update_network_wireless_ssid_firewall_l7_firewall_rules(network_id: str, number: str, rules: list):
+    def update_network_wireless_ssid_firewall_l7_firewall_rules(network_id: str, number: str, rules: Any):
         """Update Layer 7 application firewall rules for a specific SSID."""
         try:
+            import json
+            
+            # Handle rules parameter - MCP may pass as JSON string
+            if isinstance(rules, str):
+                try:
+                    rules = json.loads(rules)
+                except:
+                    pass
+                    
             result = meraki_client.dashboard.wireless.updateNetworkWirelessSsidFirewallL7FirewallRules(
                 network_id, number, rules=rules
             )

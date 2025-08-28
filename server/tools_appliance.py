@@ -475,10 +475,19 @@ def register_appliance_tool_handlers():
     )
     def update_network_appliance_firewall_l3_rules(
         network_id: str, 
-        rules: List[Dict[str, Any]]
+        rules: Any
     ):
         """Update L3 firewall rules for a network (replaces all rules)."""
         try:
+            import json
+            
+            # Handle rules parameter - MCP may pass as JSON string
+            if isinstance(rules, str):
+                try:
+                    rules = json.loads(rules)
+                except:
+                    pass
+                    
             result = meraki_client.dashboard.appliance.updateNetworkApplianceFirewallL3FirewallRules(
                 network_id,
                 rules=rules
@@ -527,10 +536,19 @@ def register_appliance_tool_handlers():
     )
     def update_network_appliance_firewall_l7_rules(
         network_id: str,
-        rules: List[Dict[str, Any]]
+        rules: Any
     ):
         """Update L7 firewall rules for a network."""
         try:
+            import json
+            
+            # Handle rules parameter - MCP may pass as JSON string
+            if isinstance(rules, str):
+                try:
+                    rules = json.loads(rules)
+                except:
+                    pass
+                    
             result = meraki_client.dashboard.appliance.updateNetworkApplianceFirewallL7FirewallRules(
                 network_id,
                 rules=rules
@@ -578,10 +596,19 @@ def register_appliance_tool_handlers():
     )
     def update_network_appliance_firewall_port_forwarding_rules(
         network_id: str,
-        rules: List[Dict[str, Any]]
+        rules: Any
     ):
         """Update port forwarding rules for a network."""
         try:
+            import json
+            
+            # Handle rules parameter - MCP may pass as JSON string
+            if isinstance(rules, str):
+                try:
+                    rules = json.loads(rules)
+                except:
+                    pass
+                    
             result = meraki_client.dashboard.appliance.updateNetworkApplianceFirewallPortForwardingRules(
                 network_id,
                 rules=rules
@@ -632,10 +659,19 @@ def register_appliance_tool_handlers():
     )
     def update_network_appliance_firewall_one_to_one_nat_rules(
         network_id: str,
-        rules: List[Dict[str, Any]]
+        rules: Any
     ):
         """Update 1:1 NAT rules for a network."""
         try:
+            import json
+            
+            # Handle rules parameter - MCP may pass as JSON string
+            if isinstance(rules, str):
+                try:
+                    rules = json.loads(rules)
+                except:
+                    pass
+                    
             result = meraki_client.dashboard.appliance.updateNetworkApplianceFirewallOneToOneNatRules(
                 network_id,
                 rules=rules
@@ -701,7 +737,11 @@ def register_appliance_tool_handlers():
             if blocked_categories:
                 result += "## Blocked Categories\n"
                 for category in blocked_categories:
-                    result += f"- {category}\n"
+                    # Handle both dict and string formats
+                    if isinstance(category, dict):
+                        result += f"- {category.get('name', category.get('id', 'Unknown'))}\n"
+                    else:
+                        result += f"- {category}\n"
                 result += "\n"
                 
             # Blocked URL patterns
@@ -731,18 +771,48 @@ def register_appliance_tool_handlers():
     )
     def update_network_appliance_content_filtering(
         network_id: str,
-        blocked_categories: Optional[List[str]] = None,
-        blocked_patterns: Optional[List[str]] = None,
-        allowed_patterns: Optional[List[str]] = None
+        blocked_categories: Optional[Any] = None,
+        blocked_patterns: Optional[Any] = None,
+        allowed_patterns: Optional[Any] = None
     ):
-        """Update content filtering settings for a network."""
+        """Update content filtering settings for a network.
+        
+        Note: blocked_categories should be category IDs like 'meraki:contentFiltering/category/C22'
+        or the shorthand like 'C22'. The API returns objects with 'id' and 'name' fields.
+        """
         try:
+            import json
+            
             kwargs = {}
+            
+            # Handle blocked_categories - MCP may pass as JSON string
             if blocked_categories is not None:
+                if isinstance(blocked_categories, str):
+                    try:
+                        blocked_categories = json.loads(blocked_categories)
+                    except:
+                        pass
+                # If passed as list of dicts with 'id' field, extract the IDs
+                if isinstance(blocked_categories, list) and blocked_categories:
+                    if isinstance(blocked_categories[0], dict):
+                        blocked_categories = [cat.get('id', cat) for cat in blocked_categories]
                 kwargs['blockedUrlCategories'] = blocked_categories
+                
+            # Handle patterns - MCP may pass as JSON strings
             if blocked_patterns is not None:
+                if isinstance(blocked_patterns, str):
+                    try:
+                        blocked_patterns = json.loads(blocked_patterns)
+                    except:
+                        pass
                 kwargs['blockedUrlPatterns'] = blocked_patterns
+                
             if allowed_patterns is not None:
+                if isinstance(allowed_patterns, str):
+                    try:
+                        allowed_patterns = json.loads(allowed_patterns)
+                    except:
+                        pass
                 kwargs['allowedUrlPatterns'] = allowed_patterns
                 
             result = meraki_client.dashboard.appliance.updateNetworkApplianceContentFiltering(
@@ -1141,11 +1211,20 @@ def register_appliance_tool_handlers():
     )
     def update_network_appliance_traffic_shaping_rules(
         network_id: str,
-        rules: List[Dict[str, Any]],
+        rules: Any,
         default_rules_enabled: Optional[bool] = None
     ):
         """Update traffic shaping rules for a network."""
         try:
+            import json
+            
+            # Handle rules parameter - MCP may pass as JSON string
+            if isinstance(rules, str):
+                try:
+                    rules = json.loads(rules)
+                except:
+                    pass
+                    
             kwargs = {'rules': rules}
             if default_rules_enabled is not None:
                 kwargs['defaultRulesEnabled'] = default_rules_enabled
