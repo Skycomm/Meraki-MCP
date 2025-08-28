@@ -3,6 +3,8 @@ Missing organizations API implementations for 100% coverage.
 Auto-generated to reach complete API parity.
 """
 
+from typing import Any
+
 # Global variables to store app and meraki client
 app = None
 meraki_client = None
@@ -789,19 +791,46 @@ def register_organizations_missing_handlers():
 
     @app.tool(
         name="release_from_organization_inventory",
-        description="⚡ Execute release from organization inventory"
+        description="⚡ Release devices from organization inventory - REQUIRES: organization_id, serials (list)"
     )
-    def release_from_organization_inventory(**kwargs):
-        """Execute releaseFromOrganizationInventory API call."""
+    def release_from_organization_inventory(
+        organization_id: str,
+        serials: Any,
+        **kwargs
+    ):
+        """Execute releaseFromOrganizationInventory API call to unclaim devices."""
+        import json
+        
         try:
-            result = meraki_client.dashboard.organizations.releaseFromOrganizationInventory(**kwargs)
+            # Handle serials parameter - MCP may pass as JSON string
+            if isinstance(serials, str):
+                # Check if it's a JSON string
+                if serials.startswith('['):
+                    try:
+                        serials = json.loads(serials)
+                    except:
+                        # If not JSON, assume comma-separated
+                        serials = [s.strip() for s in serials.split(',')]
+                else:
+                    # Single serial or comma-separated
+                    serials = [s.strip() for s in serials.split(',')]
+            elif not isinstance(serials, list):
+                # Convert single serial to list
+                serials = [serials]
+            
+            result = meraki_client.dashboard.organizations.releaseFromOrganizationInventory(
+                organizationId=organization_id,
+                serials=serials,
+                **kwargs
+            )
             
             if result is None:
-                return "✅ Operation completed successfully!"
+                return f"✅ Successfully released {len(serials)} device(s) from organization inventory"
             elif isinstance(result, dict):
+                released = result.get('serials', [])
+                if released:
+                    return f"✅ Successfully released devices: {', '.join(released)}"
                 return f"✅ Result: {result}"
-            elif isinstance(result, list):
-                return f"✅ Found {len(result)} items"
             else:
                 return f"✅ Result: {result}"
                 
