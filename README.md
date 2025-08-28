@@ -9,6 +9,7 @@ This repository has two main implementations:
 - **`stdio` branch**: Original stdio-based MCP server for Claude Desktop (local use)
 - **`sse` branch**: HTTP/SSE-based server for network access (n8n, remote clients)
 
+- In this branch, an HTTP/SSE server is provided for remote clients with Bearer-token auth. See section "SSE/HTTP Server".
 Choose the appropriate branch based on your use case:
 - Use `stdio` for Claude Desktop integration
 - Use `sse` for n8n MCP Client Tool or remote access
@@ -397,6 +398,27 @@ def list_organizations():
 - **API Key Errors**: Make sure your API key is valid and has the proper permissions
 - **Resource Not Found**: Verify that the organization/network/device exists and is accessible with your API key
 - **Permission Denied**: Check that your API key has the necessary permissions for the operation
+## SSE/HTTP Server (sse branch)
+
+- Endpoints:
+  - GET /health (public)
+  - GET /sse (requires Bearer; event-stream)
+  - POST /mcp (requires Bearer; placeholder 501 initially)
+- Auth:
+  - Provide tokens via env:
+    - AUTH_TOKENS_ADMIN: comma-separated list
+    - AUTH_TOKENS_READONLY: comma-separated list
+  - Read-only by default; admin tokens bypass read-only checks.
+- Run locally:
+  - uv pip install -r requirements.txt
+  - python http_server.py
+- Curl:
+  - curl http://localhost:8000/health
+  - curl -N -H "Authorization: Bearer YOUR_READONLY_TOKEN" http://localhost:8000/sse
+- Docker:
+  - docker build -t meraki-mcp-sse -f Dockerfile.sse .
+  - docker run -p 8000:8000 -e AUTH_TOKENS_ADMIN=admin123 -e AUTH_TOKENS_READONLY=ro123 meraki-mcp-sse
+
 - **Docker Issues**: Ensure your Docker environment has access to the environment variables
 
 ### Logs

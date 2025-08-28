@@ -1,0 +1,15 @@
+services:
+  meraki-mcp-sse:
+    build:
+      context: .
+      dockerfile: Dockerfile.sse
+    environment:
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=8000
+      - MERAKI_API_KEY=${MERAKI_API_KEY:-}
+      - AUTH_TOKENS_ADMIN=${AUTH_TOKENS_ADMIN:-}
+      - AUTH_TOKENS_READONLY=${AUTH_TOKENS_READONLY:-}
+      - MCP_READ_ONLY_MODE=${MCP_READ_ONLY_MODE:-true}
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
