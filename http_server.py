@@ -60,7 +60,7 @@ async def mcp_endpoint(request: Request, role: str = Depends(get_role)):
     except Exception:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid JSON")
     from adapters.mcp_http import handle_request
-    result = handle_request(payload, role)
+    result = await handle_request(payload, role)
     return JSONResponse(result)
 
 if __name__ == "__main__":
