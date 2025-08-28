@@ -2,6 +2,8 @@
 Wireless-related tools for the Cisco Meraki MCP Server - Modern implementation.
 """
 
+from typing import Any
+
 # Global variables to store app and meraki client
 app = None
 meraki_client = None
