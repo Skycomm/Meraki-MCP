@@ -1,7 +1,6 @@
 from typing import Any, Dict, List
-import re
 from server.main import app
-from utils.helpers import get_read_only_message
+from utils.helpers import get_read_only_message, format_error_message
 
 WRITE_PREFIXES: List[str] = [
     "update_", "delete_", "create_", "remove_", "reboot_", "swap_", "toggle_", "add_", "set_", "enable_", "disable_",
@@ -20,8 +19,11 @@ async def handle_request(payload: Dict[str, Any], role: str) -> Dict[str, Any]:
         return {"ok": True, "action": "ping"}
 
     if action == "list_tools":
-        tools = await app.list_tools()
-        return {"ok": True, "tools": [getattr(t, "name", str(t)) for t in tools]}
+        try:
+            tools = await app.list_tools()
+            return {"ok": True, "tools": [getattr(t, "name", str(t)) for t in tools]}
+        except Exception as e:
+            return {"ok": False, "error": format_error_message(e)}
 
     if action == "call_tool":
         name = payload.get("name")
@@ -34,33 +36,42 @@ async def handle_request(payload: Dict[str, Any], role: str) -> Dict[str, Any]:
                 "readOnly": True,
                 "message": get_read_only_message("modify", "resource", name),
             }
-        result = await app.call_tool(name, args)
-        return {"ok": True, "result": result}
+        try:
+            result = await app.call_tool(name, args)
+            return {"ok": True, "result": result}
+        except Exception as e:
+            return {"ok": False, "error": format_error_message(e)}
 
     if action == "list_resources":
-        resources = await app.list_resources()
-        out = []
-        for r in resources:
-            out.append({
-                "uri": getattr(r, "uri", None),
-                "name": getattr(r, "name", None),
-                "description": getattr(r, "description", None),
-                "mimeType": getattr(r, "mimeType", None),
-            })
-        return {"ok": True, "resources": out}
+        try:
+            resources = await app.list_resources()
+            out = []
+            for r in resources:
+                out.append({
+                    "uri": getattr(r, "uri", None),
+                    "name": getattr(r, "name", None),
+                    "description": getattr(r, "description", None),
+                    "mimeType": getattr(r, "mimeType", None),
+                })
+            return {"ok": True, "resources": out}
+        except Exception as e:
+            return {"ok": False, "error": format_error_message(e)}
 
     if action == "read_resource":
         uri = payload.get("uri")
         if not uri:
             return {"ok": False, "error": "Missing 'uri' for read_resource"}
-        contents = await app.read_resource(uri)
-        out = []
-        for c in contents:
-            out.append({
-                "uri": getattr(c, "uri", None),
-                "mimeType": getattr(c, "mimeType", None),
-                "text": getattr(c, "text", None),
-            })
-        return {"ok": True, "contents": out}
+        try:
+            contents = await app.read_resource(uri)
+            out = []
+            for c in contents:
+                out.append({
+                    "uri": getattr(c, "uri", None),
+                    "mimeType": getattr(c, "mimeType", None),
+                    "text": getattr(c, "text", None),
+                })
+            return {"ok": True, "contents": out}
+        except Exception as e:
+            return {"ok": False, "error": format_error_message(e)}
 
     return {"ok": False, "error": f"Unsupported action '{action}'"}

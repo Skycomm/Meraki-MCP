@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 
 from config import SERVER_NAME, SERVER_VERSION
+from adapters.mcp_http import handle_request
 
 def _split_tokens(env_value: Optional[str]) -> List[str]:
     if not env_value:
@@ -59,7 +60,6 @@ async def mcp_endpoint(request: Request, role: str = Depends(get_role)):
         payload = await request.json()
     except Exception:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid JSON")
-    from adapters.mcp_http import handle_request
     result = await handle_request(payload, role)
     return JSONResponse(result)
 

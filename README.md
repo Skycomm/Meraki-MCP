@@ -1,3 +1,57 @@
+# Meraki-MCP
+
+This branch adds an HTTP/SSE MCP server for remote usage while keeping stdio intact.
+
+## HTTP/SSE server (sse branch)
+- Endpoints:
+  - GET /health — public
+  - GET /sse — text/event-stream keepalive
+  - POST /mcp — JSON actions: list_tools, list_resources, read_resource, call_tool
+- Auth: Bearer tokens with roles
+  - AUTH_TOKENS_ADMIN — comma-separated list
+  - AUTH_TOKENS_READONLY — comma-separated list
+  - If a token is in both, it is treated as admin
+  - /health does not require auth
+- Read-only policy:
+  - Non-admin tokens are read-only; destructive tool calls are blocked centrally
+  - Admin tokens bypass read-only
+
+### Environment
+- MERAKI_API_KEY (or Meraki_API)
+- AUTH_TOKENS_ADMIN
+- AUTH_TOKENS_READONLY
+- MCP_READ_ONLY_MODE=true (recommended default for HTTP)
+- SERVER_HOST=0.0.0.0
+- SERVER_PORT=8000
+
+### Run locally
+- pip install -r requirements.txt
+- python http_server.py
+
+Examples:
+- Health:
+  curl http://localhost:8000/health
+- List tools:
+  curl -s -H "Authorization: Bearer $RO_TOKEN" -H "Content-Type: application/json" -d '{"action":"list_tools"}' http://localhost:8000/mcp
+- Read resource:
+  curl -s -H "Authorization: Bearer $RO_TOKEN" -H "Content-Type: application/json" -d '{"action":"read_resource","uri":"resource://example"}' http://localhost:8000/mcp
+- Call tool (readonly blocked if destructive):
+  curl -s -H "Authorization: Bearer $RO_TOKEN" -H "Content-Type: application/json" -d '{"action":"call_tool","name":"delete_network","args":{"network_id":"..."}}' http://localhost:8000/mcp
+- SSE:
+  curl -N -H "Authorization: Bearer $RO_TOKEN" http://localhost:8000/sse
+
+### Docker
+- Build:
+  docker build -t meraki-mcp-sse -f Dockerfile.sse .
+- Run:
+  docker run -p 8000:8000 \
+    -e MERAKI_API_KEY=$MERAKI_API_KEY \
+    -e AUTH_TOKENS_ADMIN="admin-token" \
+    -e AUTH_TOKENS_READONLY="ro-token" \
+    -e MCP_READ_ONLY_MODE=true \
+    meraki-mcp-sse
+
+Stdio remains available via meraki_server.py.
 # Cisco Meraki MCP Server
 
 An MCP (Model Context Protocol) server that integrates with Cisco Meraki's API, allowing AI assistants to interact with and manage Meraki network infrastructure.
