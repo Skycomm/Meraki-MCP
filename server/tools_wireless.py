@@ -111,24 +111,67 @@ def register_wireless_tool_handlers():
         """Update configuration for a specific SSID.
         
         Important parameters:
-        - lanIsolationEnabled: Enable/disable Layer 2 LAN isolation (Bridge mode only)
         - enabled: Enable/disable the SSID
         - name: SSID name
         - authMode: Authentication mode
         - encryptionMode: Encryption type
         - psk: Pre-shared key
         - ipAssignmentMode: 'NAT mode' or 'Bridge mode'
-        - vlanId: VLAN ID for Bridge mode
+        - defaultVlanId: VLAN ID for Bridge mode (NOT vlanId!)
+        - useVlanTagging: MUST be True for VLAN assignment to work
+        - lanIsolationEnabled: Enable/disable Layer 2 LAN isolation
+        
+        IMPORTANT: For Bridge mode with VLANs:
+        - Set ipAssignmentMode='Bridge mode'
+        - Set useVlanTagging=True (required!)
+        - Set defaultVlanId=<vlan_number>
         """
         try:
+            # Auto-fix common VLAN configuration issues
+            if 'defaultVlanId' in kwargs or 'vlanId' in kwargs:
+                # If user is trying to set VLAN, ensure proper configuration
+                if kwargs.get('ipAssignmentMode') == 'Bridge mode' or 'defaultVlanId' in kwargs:
+                    # Ensure useVlanTagging is True when setting VLANs
+                    if 'defaultVlanId' in kwargs and kwargs.get('useVlanTagging') is not True:
+                        kwargs['useVlanTagging'] = True
+                        print(f"Note: Auto-enabled useVlanTagging=True for VLAN assignment")
+                    
+                    # Fix common mistake: using vlanId instead of defaultVlanId
+                    if 'vlanId' in kwargs and 'defaultVlanId' not in kwargs:
+                        kwargs['defaultVlanId'] = kwargs.pop('vlanId')
+                        print(f"Note: Converted vlanId to defaultVlanId for Bridge mode")
+            
             result = meraki_client.dashboard.wireless.updateNetworkWirelessSsid(
                 network_id, number, **kwargs
             )
             
-            return f"✅ SSID {number} updated successfully!\n\nUpdated settings applied."
+            # Build informative response
+            msg = f"✅ SSID {number} updated successfully!"
+            
+            # Check if VLAN was configured
+            if 'defaultVlanId' in kwargs:
+                msg += f"\n- VLAN {kwargs['defaultVlanId']} assigned"
+                if kwargs.get('useVlanTagging'):
+                    msg += " (tagging enabled)"
+            
+            return msg
             
         except Exception as e:
-            return f"Error updating SSID {number}: {str(e)}"
+            error_msg = str(e)
+            
+            # Provide helpful error messages for common issues
+            if 'default vlan' in error_msg.lower():
+                return f"""❌ VLAN configuration error on SSID {number}
+                
+Error: {error_msg}
+
+Solution: When using VLAN tagging, ensure:
+1. useVlanTagging = True
+2. defaultVlanId = <valid_vlan_number>
+3. The VLAN exists on the network
+4. ipAssignmentMode = 'Bridge mode'"""
+            
+            return f"Error updating SSID {number}: {error_msg}"
     
     # RF Profiles
     @app.tool(
