@@ -10,6 +10,14 @@ def _is_destructive(tool_name: str) -> bool:
     lname = tool_name.lower()
     return any(lname.startswith(p) for p in WRITE_PREFIXES)
 
+def _to_str(val: Any) -> Any:
+    try:
+        if val is None:
+            return None
+        return str(val)
+    except Exception:
+        return None
+
 async def handle_request(payload: Dict[str, Any], role: str) -> Dict[str, Any]:
     action = payload.get("action")
     if not action:
@@ -48,7 +56,7 @@ async def handle_request(payload: Dict[str, Any], role: str) -> Dict[str, Any]:
             out = []
             for r in resources:
                 out.append({
-                    "uri": getattr(r, "uri", None),
+                    "uri": _to_str(getattr(r, "uri", None)),
                     "name": getattr(r, "name", None),
                     "description": getattr(r, "description", None),
                     "mimeType": getattr(r, "mimeType", None),
@@ -66,7 +74,7 @@ async def handle_request(payload: Dict[str, Any], role: str) -> Dict[str, Any]:
             out = []
             for c in contents:
                 out.append({
-                    "uri": getattr(c, "uri", None),
+                    "uri": _to_str(getattr(c, "uri", None)),
                     "mimeType": getattr(c, "mimeType", None),
                     "text": getattr(c, "text", None),
                 })
