@@ -24,6 +24,48 @@ This branch adds an HTTP/SSE MCP server for remote usage while keeping stdio int
 - SERVER_HOST=0.0.0.0
 - SERVER_PORT=8000
 
+### Deployment Guide (SSE)
+
+Prerequisites
+- Python 3.12+ or Docker
+- Env vars: MERAKI_API_KEY (or Meraki_API), AUTH_TOKENS_READONLY, AUTH_TOKENS_ADMIN
+
+Local (without Docker)
+1) Check out this branch:
+   git checkout sse
+2) Install deps:
+   pip install -r requirements.txt
+3) Export env:
+   export MERAKI_API_KEY="..."; # or export Meraki_API="..."
+   export AUTH_TOKENS_READONLY="ro-token1,ro-token2"
+   export AUTH_TOKENS_ADMIN="admin-token1"
+   export MCP_READ_ONLY_MODE=true
+4) Run:
+   python http_server.py
+5) Test:
+   curl http://localhost:8000/health
+   curl -s -H "Authorization: Bearer $RO_TOKEN" -H "Content-Type: application/json" -d '{"action":"list_tools"}' http://localhost:8000/mcp
+   curl -s -H "Authorization: Bearer $RO_TOKEN" -H "Content-Type: application/json" -d '{"action":"list_resources"}' http://localhost:8000/mcp
+   curl -s -H "Authorization: Bearer $RO_TOKEN" -H "Content-Type: application/json" -d '{"action":"read_resource","uri":"organizations://"}' http://localhost:8000/mcp
+   curl -N -H "Authorization: Bearer $RO_TOKEN" http://localhost:8000/sse
+
+Docker
+1) Build image:
+   docker build -t meraki-mcp-sse -f Dockerfile.sse .
+2) Run container:
+   docker run --name meraki-mcp-sse -d -p 8000:8000 \
+     -e MERAKI_API_KEY="$MERAKI_API_KEY" \
+     -e AUTH_TOKENS_READONLY="ro-token1" \
+     -e AUTH_TOKENS_ADMIN="admin-token1" \
+     -e MCP_READ_ONLY_MODE=true \
+     meraki-mcp-sse
+3) Test (same as local) against http://localhost:8000
+
+Notes
+- /health is public
+- /mcp and /sse require Authorization: Bearer &lt;token&gt;
+- Read-only tokens block destructive tools; admin tokens bypass
+
 ### Run locally
 - pip install -r requirements.txt
 - python http_server.py
