@@ -449,11 +449,11 @@ class MerakiClient:
     # Network Events (including port status changes)
     def get_network_events(self, network_id: str, **kwargs):
         """Get network events including port carrier changes - REAL method."""
-        # Ensure we get all events, not just first page
+        # Default to 1000 per page but don't fetch all pages automatically
+        # to avoid timeout issues with networks that have many events
         if 'perPage' not in kwargs:
             kwargs['perPage'] = 1000
-        if 'total_pages' not in kwargs:
-            kwargs['total_pages'] = 'all'
+        # Don't automatically fetch all pages - let caller handle pagination if needed
         return self.dashboard.networks.getNetworkEvents(network_id, **kwargs)
     
     # NAT Rules Methods
