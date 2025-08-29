@@ -25,6 +25,7 @@ from server.tools_analytics import register_analytics_tools
 from server.tools_alerts import register_alert_tools
 from server.tools_appliance import register_appliance_tools
 from server.tools_camera import register_camera_tools
+from server.tools_vpn import register_vpn_tools
 from server.tools_sm import register_sm_tools
 from server.tools_licensing import register_licensing_tools
 from server.tools_policy import register_policy_tools
@@ -44,6 +45,7 @@ register_analytics_tools(app, meraki)
 register_alert_tools(app, meraki)
 register_appliance_tools(app, meraki)
 register_camera_tools(app, meraki)
+register_vpn_tools(app, meraki)
 register_sm_tools(app, meraki)
 register_licensing_tools(app, meraki)
 register_policy_tools(app, meraki)
