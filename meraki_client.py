@@ -667,6 +667,22 @@ class MerakiClient:
         """Get device ping test results - REAL method."""
         return self.dashboard.devices.getDeviceLiveToolsPing(serial, ping_id)
     
+    def create_device_live_tools_ping_device(self, serial: str):
+        """Create ping test to the device itself - REAL method."""
+        return self.dashboard.devices.createDeviceLiveToolsPingDevice(serial)
+    
+    def get_device_live_tools_ping_device(self, serial: str, id: str):
+        """Get ping device test results - REAL method."""
+        return self.dashboard.devices.getDeviceLiveToolsPingDevice(serial, id)
+    
+    def create_device_live_tools_trace_route(self, serial: str, **kwargs):
+        """Create traceroute test - REAL method."""
+        return self.dashboard.devices.createDeviceLiveToolsTraceRoute(serial, **kwargs)
+    
+    def get_device_live_tools_trace_route(self, serial: str, id: str):
+        """Get traceroute test results - REAL method."""
+        return self.dashboard.devices.getDeviceLiveToolsTraceRoute(serial, id)
+    
     def create_device_live_tools_throughput_test(self, serial: str, **kwargs):
         """Create device throughput test - REAL method."""
         return self.dashboard.devices.createDeviceLiveToolsThroughputTest(serial, **kwargs)
@@ -686,6 +702,18 @@ class MerakiClient:
     def create_device_live_tools_wake_on_lan(self, serial: str, **kwargs):
         """Send Wake-on-LAN - REAL method."""
         return self.dashboard.devices.createDeviceLiveToolsWakeOnLan(serial, **kwargs)
+    
+    def get_device_live_tools_wake_on_lan(self, serial: str, id: str):
+        """Get Wake-on-LAN job results - REAL method."""
+        return self.dashboard.devices.getDeviceLiveToolsWakeOnLan(serial, id)
+    
+    def create_device_live_tools_arp_table(self, serial: str):
+        """Create ARP table request - REAL method."""
+        return self.dashboard.devices.createDeviceLiveToolsArpTable(serial)
+    
+    def get_device_live_tools_arp_table(self, serial: str, id: str):
+        """Get ARP table results - REAL method."""
+        return self.dashboard.devices.getDeviceLiveToolsArpTable(serial, id)
     
     def create_device_live_tools_mac_table(self, serial: str):
         """Create MAC table request - REAL method."""
