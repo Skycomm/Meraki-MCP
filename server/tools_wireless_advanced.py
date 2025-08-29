@@ -77,19 +77,34 @@ def register_connection_stats_tools():
             response = f"# 📊 Wireless Connection Statistics\n\n"
             
             if isinstance(result, dict):
-                # Connection success rate
-                success_rate = result.get('connectionStats', {}).get('success', 0)
-                auth_rate = result.get('connectionStats', {}).get('auth', 0)
-                assoc_rate = result.get('connectionStats', {}).get('assoc', 0)
-                dhcp_rate = result.get('connectionStats', {}).get('dhcp', 0)
-                dns_rate = result.get('connectionStats', {}).get('dns', 0)
+                # Get raw counts from API response
+                success_count = result.get('success', 0)
+                auth_fails = result.get('auth', 0)
+                assoc_fails = result.get('assoc', 0)
+                dhcp_fails = result.get('dhcp', 0)
+                dns_fails = result.get('dns', 0)
                 
-                response += f"## Overall Success Rate: {success_rate}%\n\n"
-                response += f"### Connection Phases:\n"
-                response += f"- **Authentication**: {auth_rate}%\n"
-                response += f"- **Association**: {assoc_rate}%\n"
-                response += f"- **DHCP**: {dhcp_rate}%\n"
-                response += f"- **DNS**: {dns_rate}%\n"
+                # Calculate total attempts
+                total_attempts = success_count + auth_fails + assoc_fails + dhcp_fails + dns_fails
+                
+                # Calculate success rate percentage
+                if total_attempts > 0:
+                    success_rate = (success_count / total_attempts) * 100
+                else:
+                    success_rate = 0
+                
+                response += f"## Connection Statistics\n\n"
+                response += f"### Overall Performance:\n"
+                response += f"- **Total Attempts**: {total_attempts}\n"
+                response += f"- **Successful**: {success_count}\n"
+                response += f"- **Success Rate**: {success_rate:.1f}%\n\n"
+                
+                response += f"### Failed Connections Breakdown:\n"
+                response += f"- **Authentication Failures**: {auth_fails}\n"
+                response += f"- **Association Failures**: {assoc_fails}\n"
+                response += f"- **DHCP Failures**: {dhcp_fails}\n"
+                response += f"- **DNS Failures**: {dns_fails}\n"
+                response += f"- **Total Failures**: {auth_fails + assoc_fails + dhcp_fails + dns_fails}\n"
             
             return response
         except Exception as e:
@@ -1133,12 +1148,8 @@ def register_history_tools():
         ssid: Optional[int] = None,
         ap_tag: Optional[str] = None
     ):
-        """Get historical wireless usage data. Requires either device_serial OR client_id."""
+        """Get historical wireless usage data. Optional filters for device or client."""
         try:
-            # Must specify either device or client
-            if not device_serial and not client_id:
-                return "❌ Error: Must specify either device_serial or client_id parameter"
-            
             kwargs = {'timespan': timespan}
             if device_serial: kwargs['deviceSerial'] = device_serial
             if client_id: kwargs['clientId'] = client_id
