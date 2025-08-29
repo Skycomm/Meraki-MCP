@@ -1797,7 +1797,7 @@ def register_appliance_tool_handlers():
     
     @app.tool(
         name="create_network_appliance_vlan",
-        description="🏷️ Create a new VLAN on the MX appliance"
+        description="🏷️ Create a NEW VLAN that doesn't exist yet (use update_network_appliance_vlan to modify existing VLANs)"
     )
     def create_network_appliance_vlan(
         network_id: str,
@@ -1823,6 +1823,33 @@ def register_appliance_tool_handlers():
             # Validate VLAN ID
             if not 1 <= vlan_id <= 4094:
                 return f"❌ Invalid VLAN ID {vlan_id}. Must be between 1 and 4094."
+            
+            # Check if VLAN already exists
+            try:
+                existing_vlans = meraki_client.dashboard.appliance.getNetworkApplianceVlans(network_id)
+                for vlan in existing_vlans:
+                    if int(vlan.get('id', 0)) == vlan_id:
+                        return f"""⚠️ VLAN {vlan_id} already exists!
+
+**Existing VLAN Details:**
+- Name: {vlan.get('name')}
+- Subnet: {vlan.get('subnet')}
+- MX IP: {vlan.get('applianceIp')}
+
+**To modify this VLAN, use:** `update_network_appliance_vlan` instead
+**To update DHCP ranges:** Include `reserved_ip_ranges` parameter
+
+Example to exclude IPs from DHCP:
+```
+update_network_appliance_vlan(
+    network_id="{network_id}",
+    vlan_id={vlan_id},
+    reserved_ip_ranges='[{{"start": "X.X.X.1", "end": "X.X.X.99", "comment": "Reserved"}}]'
+)
+```"""
+            except:
+                # If we can't check, proceed with creation
+                pass
             
             kwargs = {
                 'id': str(vlan_id),
@@ -1866,7 +1893,7 @@ def register_appliance_tool_handlers():
     
     @app.tool(
         name="update_network_appliance_vlan",
-        description="🏷️ Update VLAN configuration on the MX appliance"
+        description="🏷️ Update/modify an EXISTING VLAN (including DHCP ranges, reserved IPs, etc). Use this for any changes to existing VLANs"
     )
     def update_network_appliance_vlan(
         network_id: str,
@@ -1882,6 +1909,7 @@ def register_appliance_tool_handlers():
     ):
         """
         Update VLAN configuration on the MX appliance.
+        USE THIS to modify any existing VLAN including setting up DHCP exclusions.
         
         Args:
             network_id: Network ID
