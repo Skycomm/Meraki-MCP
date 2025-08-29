@@ -1,6 +1,17 @@
 """
 Advanced Wireless Tools for the Cisco Meraki MCP Server.
 Implements all missing wireless endpoints to achieve 100% API coverage.
+
+IMPORTANT PAGINATION LIMITS:
+Different Meraki API endpoints have different pagination limits. 
+Always check the specific endpoint documentation before changing these values.
+
+Known pagination limits:
+- Most endpoints: 3-1000 (default: 100 or 1000)
+- getNetworkWirelessMeshStatuses: 3-500 (default: 50) 
+- getOrganizationWirelessSsidsStatusesByDevice: 3-500 (default: 100)
+
+When in doubt, use 500 as a safe maximum for any "statuses" endpoints.
 """
 
 from typing import Optional, List, Dict, Any
@@ -815,7 +826,7 @@ def register_radio_mesh_tools():
     )
     def get_network_wireless_mesh_statuses(
         network_id: str,
-        per_page: Optional[int] = 1000
+        per_page: Optional[int] = 500  # API limit: must be between 3 and 500
     ):
         """Get mesh status for all APs in network."""
         try:

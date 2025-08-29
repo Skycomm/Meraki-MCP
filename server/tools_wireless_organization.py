@@ -559,7 +559,7 @@ def register_organization_overview_tools():
         network_ids: Optional[str] = None,
         serials: Optional[str] = None,
         bssids: Optional[str] = None,
-        per_page: Optional[int] = 1000
+        per_page: Optional[int] = 500  # API limit: must be between 3 and 500
     ):
         """Get organization SSID statuses by device."""
         try:
