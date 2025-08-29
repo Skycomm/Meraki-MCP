@@ -539,22 +539,20 @@ def register_wireless_tool_handlers():
             
             for entry in utilization:
                 timestamp = entry.get('startTs', 'Unknown')
-                result += f"## {timestamp}\n"
+                end_time = entry.get('endTs', 'Unknown')
+                result += f"## {timestamp} to {end_time}\n"
                 
-                # WiFi utilization
-                wifi = entry.get('wifi', {})
-                if wifi:
-                    result += f"- **WiFi Utilization**: {wifi.get('utilization', 0)}%\n"
+                # WiFi utilization (802.11)
+                wifi_util = entry.get('utilization80211', 0)
+                result += f"- **WiFi Utilization**: {wifi_util:.2f}%\n"
                     
-                # Non-WiFi utilization  
-                non_wifi = entry.get('nonWifi', {})
-                if non_wifi:
-                    result += f"- **Non-WiFi Interference**: {non_wifi.get('utilization', 0)}%\n"
+                # Non-WiFi utilization (interference)
+                non_wifi_util = entry.get('utilizationNon80211', 0)
+                result += f"- **Non-WiFi Interference**: {non_wifi_util:.2f}%\n"
                     
                 # Total utilization
-                total = entry.get('total', {})
-                if total:
-                    result += f"- **Total Utilization**: {total.get('utilization', 0)}%\n"
+                total_util = entry.get('utilizationTotal', 0)
+                result += f"- **Total Utilization**: {total_util:.2f}%\n"
                     
                 result += "\n"
                 

@@ -522,21 +522,15 @@ class MerakiClient:
     
     def get_network_wireless_channel_utilization(self, network_id: str, timespan: int = 3600, device_serial: str = None, ssid_number: int = None, client_mac: str = None):
         """Get channel utilization history - REAL method."""
-        # This API requires deviceSerial or clientId parameter
+        # Build kwargs - all parameters are optional
         kwargs = {'timespan': timespan}
         
         if device_serial:
             kwargs['deviceSerial'] = device_serial
-        elif client_mac:
+        if client_mac:
             kwargs['clientId'] = client_mac
-        elif ssid_number is not None:
-            # SSID alone won't work - need device or client
+        if ssid_number is not None:
             kwargs['ssid'] = ssid_number
-            # Return empty result since API requires device/client
-            return []
-        else:
-            # API requires device or client - can't get aggregate data
-            return []
             
         return self.dashboard.wireless.getNetworkWirelessChannelUtilizationHistory(network_id, **kwargs)
     
