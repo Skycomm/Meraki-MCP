@@ -107,7 +107,7 @@ def register_helper_tool_handlers():
                 events = meraki_client.get_network_appliance_security_events(
                     network_id, 
                     timespan=86400,  # Last 24 hours
-                    perPage=10
+                    perPage=1000
                 )
                 if events:
                     audit_results.append(f"## 🚨 Recent Security Events: {len(events)} in last 24h")
@@ -261,7 +261,7 @@ def register_helper_tool_handlers():
                     network_id,
                     event_types='port_carrier_change,went_down,came_up',
                     timespan=86400,  # Last 24 hours
-                    perPage=10
+                    perPage=1000
                 )
                 
                 if events:
@@ -380,7 +380,7 @@ def register_helper_tool_handlers():
                     events = meraki_client.get_network_appliance_security_events(
                         network_id, 
                         timespan=86400,
-                        perPage=100
+                        perPage=100000
                     )
                     total_threats += len(events)
                 except:

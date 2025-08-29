@@ -1375,7 +1375,7 @@ def register_appliance_tool_handlers():
     def get_network_appliance_security_events(
         network_id: str,
         timespan: int = 86400,
-        per_page: int = 100
+        per_page: int = 1000
     ):
         """
         Get security events for a network.
