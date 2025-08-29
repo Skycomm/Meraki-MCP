@@ -128,7 +128,12 @@ class MerakiClient:
     def get_network_wireless_clients(self, network_id: str, timespan: int = 86400):
         """Get wireless clients - REAL method."""
         # Use the general network clients endpoint and filter for wireless
-        return self.dashboard.networks.getNetworkClients(network_id, timespan=timespan)
+        return self.dashboard.networks.getNetworkClients(
+            network_id, 
+            timespan=timespan,
+            perPage=1000,  # Get up to 1000 clients to avoid pagination issues
+            total_pages='all'  # Ensure we get all pages
+        )
     
     def get_network_wireless_usage(self, network_id: str, timespan: int = 86400, device_serial: str = None, ssid_number: int = None, client_mac: str = None):
         """Get wireless usage history - REAL method."""
@@ -631,7 +636,7 @@ class MerakiClient:
     
     def get_organization_devices_migration_status(self, org_id: str):
         """Get organization devices migration status - REAL method."""
-        return self.dashboard.organizations.getOrganizationDevices(org_id)
+        return self.dashboard.organizations.getOrganizationDevices(org_id, perPage=1000, total_pages='all')
     
     def get_organization_api_requests(self, org_id: str, **kwargs):
         """Get organization API usage/requests - REAL method."""
