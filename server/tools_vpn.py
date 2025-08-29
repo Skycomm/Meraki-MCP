@@ -32,7 +32,7 @@ def register_vpn_tool_handlers():
     )
     async def get_organization_appliance_vpn_third_party_vpn_peers(
         organization_id: str
-    ) -> List[Dict[str, Any]]:
+    ):
         """Return the third party VPN peers for an organization."""
         try:
             result = meraki_client.dashboard.appliance.getOrganizationApplianceVpnThirdPartyVPNPeers(
@@ -49,7 +49,7 @@ def register_vpn_tool_handlers():
     async def update_organization_appliance_vpn_third_party_vpn_peers(
         organization_id: str,
         peers: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+    ):
         """Update the third party VPN peers for an organization."""
         try:
             result = meraki_client.dashboard.appliance.updateOrganizationApplianceVpnThirdPartyVPNPeers(
@@ -70,7 +70,7 @@ def register_vpn_tool_handlers():
         starting_after: Optional[str] = None,
         ending_before: Optional[str] = None,
         network_ids: Optional[List[str]] = None
-    ) -> List[Dict[str, Any]]:
+    ):
         """Show VPN status for networks in an organization."""
         try:
             kwargs = {}
@@ -96,7 +96,7 @@ def register_vpn_tool_handlers():
     )
     async def get_network_appliance_vpn_bgp(
         network_id: str
-    ) -> Dict[str, Any]:
+    ):
         """Return a Hub BGP Configuration."""
         try:
             result = meraki_client.dashboard.appliance.getNetworkApplianceVpnBgp(network_id)
@@ -114,7 +114,7 @@ def register_vpn_tool_handlers():
         as_number: Optional[int] = None,
         ibgp_hold_timer: Optional[int] = None,
         neighbors: Optional[List[Dict[str, Any]]] = None
-    ) -> Dict[str, Any]:
+    ):
         """Update a Hub BGP Configuration."""
         try:
             kwargs = {'enabled': enabled}
@@ -138,7 +138,7 @@ def register_vpn_tool_handlers():
     )
     async def get_organization_appliance_vpn_vpn_firewall_rules(
         organization_id: str
-    ) -> Dict[str, Any]:
+    ):
         """Return the VPN firewall rules for an organization."""
         try:
             result = meraki_client.dashboard.appliance.getOrganizationApplianceVpnVpnFirewallRules(
@@ -156,7 +156,7 @@ def register_vpn_tool_handlers():
         organization_id: str,
         rules: Optional[List[Dict[str, Any]]] = None,
         syslog_default_rule: Optional[bool] = None
-    ) -> Dict[str, Any]:
+    ):
         """Update the VPN firewall rules of an organization."""
         try:
             kwargs = {}
@@ -178,7 +178,7 @@ def register_vpn_tool_handlers():
     )
     async def get_device_appliance_uplinks_settings(
         serial: str
-    ) -> Dict[str, Any]:
+    ):
         """Return the uplink settings for an MX appliance."""
         try:
             result = meraki_client.dashboard.appliance.getDeviceApplianceUplinksSettings(serial)
@@ -193,7 +193,7 @@ def register_vpn_tool_handlers():
     async def update_device_appliance_uplinks_settings(
         serial: str,
         interfaces: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+    ):
         """Update the uplink settings for an MX appliance."""
         try:
             kwargs = {}
