@@ -21,6 +21,11 @@ from server.tools_networks import register_network_tools
 from server.tools_devices import register_device_tools
 from server.tools_wireless import register_wireless_tools
 from server.tools_wireless_firewall import register_wireless_firewall_tools
+from server.tools_wireless_advanced import register_wireless_advanced_tools
+from server.tools_wireless_ssid_features import register_wireless_complete_tools
+from server.tools_wireless_organization import register_wireless_final_tools
+from server.tools_wireless_client_analytics import register_wireless_100_tools
+from server.tools_wireless_infrastructure import register_wireless_missing_tools
 from server.tools_switch import register_switch_tools
 from server.tools_analytics import register_analytics_tools
 from server.tools_alerts import register_alert_tools
@@ -42,6 +47,11 @@ register_network_tools(app, meraki)
 register_device_tools(app, meraki)
 register_wireless_tools(app, meraki)
 register_wireless_firewall_tools(app, meraki)
+register_wireless_advanced_tools(app, meraki)
+register_wireless_complete_tools(app, meraki)
+register_wireless_final_tools(app, meraki)
+register_wireless_100_tools(app, meraki)
+register_wireless_missing_tools(app, meraki)
 register_switch_tools(app, meraki)
 register_analytics_tools(app, meraki)
 register_alert_tools(app, meraki)
