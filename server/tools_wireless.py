@@ -404,7 +404,8 @@ def register_wireless_tool_handlers():
             
         except Exception as e:
             return f"Error retrieving RF profiles: {str(e)}"
-    
+    # DUPLICATE: Commented out - better implementation in tools_wireless_client_analytics.py
+    '''
     @app.tool(
         name="get_network_wireless_air_marshal",
         description="🛡️ Get Air Marshal security scan results"
@@ -461,6 +462,7 @@ def register_wireless_tool_handlers():
             
         except Exception as e:
             return f"Error retrieving Air Marshal data: {str(e)}"
+    '''
     
     @app.tool(
         name="get_network_wireless_bluetooth_clients", 

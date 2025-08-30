@@ -65,6 +65,8 @@ def register_identity_psk_crud_tools():
         except Exception as e:
             return f"❌ Error getting identity PSK: {str(e)}"
     
+    # DUPLICATE: Commented out - also defined in tools_wireless_advanced.py
+    '''
     @app.tool(
         name="create_network_wireless_ssid_identity_psk",
         description="📡🔑 Create a new identity PSK"
@@ -99,7 +101,10 @@ def register_identity_psk_crud_tools():
             
         except Exception as e:
             return f"❌ Error creating identity PSK: {str(e)}"
+    '''
     
+    # DUPLICATE: Commented out - also defined in tools_wireless_advanced.py
+    '''
     @app.tool(
         name="update_network_wireless_ssid_identity_psk",
         description="📡🔑 Update an existing identity PSK"
@@ -137,7 +142,10 @@ def register_identity_psk_crud_tools():
             
         except Exception as e:
             return f"❌ Error updating identity PSK: {str(e)}"
+    '''
     
+    # DUPLICATE: Commented out - also defined in tools_wireless_advanced.py
+    '''
     @app.tool(
         name="delete_network_wireless_ssid_identity_psk",
         description="📡🔑 Delete an identity PSK"
@@ -157,6 +165,7 @@ def register_identity_psk_crud_tools():
             
         except Exception as e:
             return f"❌ Error deleting identity PSK: {str(e)}"
+    '''
 
 # ==================== CLIENT-SPECIFIC STATS ====================
 
@@ -391,7 +400,9 @@ def register_client_specific_stats_tools():
 
 def register_rf_profile_crud_tools():
     """Register RF Profile CRUD operations."""
-    
+    # DUPLICATE: Commented out - these tools are defined in tools_wireless_rf_profiles.py
+    return  # Skip registration to avoid duplicates
+    '''
     @app.tool(
         name="create_network_wireless_rf_profile",
         description="📡📻 Create a new RF profile for network"
@@ -491,6 +502,7 @@ def register_rf_profile_crud_tools():
             
         except Exception as e:
             return f"❌ Error deleting RF profile: {str(e)}"
+    '''
 
 # ==================== RADIO SETTINGS ====================
 
@@ -558,6 +570,7 @@ def register_radio_settings_tools():
             
         except Exception as e:
             return f"❌ Error updating radio settings: {str(e)}"
+    '''
 
 # ==================== UPDATE OPERATIONS ====================
 
@@ -604,6 +617,7 @@ def register_update_operations_tools():
             
         except Exception as e:
             return f"❌ Error updating wireless settings: {str(e)}"
+    '''
 
 # ==================== SPECIALIZED FEATURES ====================
 

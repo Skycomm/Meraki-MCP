@@ -251,8 +251,8 @@ def register_connection_stats_tools():
 
 def register_ssid_advanced_tools():
     """Register SSID advanced configuration tools."""
-    # NOTE: These tools are now in tools_wireless_complete.py to avoid duplicates
-    return  # Skip registration as tools moved to complete file
+    # NOTE: These tools are now in tools_wireless_ssid_features.py to avoid duplicates
+    return  # Skip registration as tools moved to avoid duplicate definitions
     
     @app.tool(
         name="get_network_wireless_ssid_splash_settings",
