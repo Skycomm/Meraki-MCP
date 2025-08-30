@@ -986,64 +986,6 @@ def register_history_tools():
             return f"❌ Error getting devices packet loss: {str(e)}"
     
     @app.tool(
-        name="get_network_wireless_packet_loss_history",
-        description="📡📉 Get packet loss history for a wireless network"
-    )
-    def get_network_wireless_packet_loss_history(
-        network_id: str,
-        t0: Optional[str] = None,
-        t1: Optional[str] = None,
-        timespan: Optional[float] = 86400,
-        resolution: Optional[int] = None,
-        auto_resolution: Optional[bool] = True,
-        client_id: Optional[str] = None,
-        device_serial: Optional[str] = None,
-        ap_tag: Optional[str] = None,
-        band: Optional[str] = None,
-        ssid: Optional[int] = None
-    ):
-        """Get packet loss history for a wireless network."""
-        try:
-            kwargs = {}
-            if t0:
-                kwargs['t0'] = t0
-            if t1:
-                kwargs['t1'] = t1
-            if timespan:
-                kwargs['timespan'] = timespan
-            if resolution:
-                kwargs['resolution'] = resolution
-            if auto_resolution is not None:
-                kwargs['autoResolution'] = auto_resolution
-            if client_id:
-                kwargs['clientId'] = client_id
-            if device_serial:
-                kwargs['deviceSerial'] = device_serial
-            if ap_tag:
-                kwargs['apTag'] = ap_tag
-            if band:
-                kwargs['band'] = band
-            if ssid is not None:
-                kwargs['ssid'] = ssid
-            
-            result = meraki_client.dashboard.wireless.getNetworkWirelessPacketLossHistory(network_id, **kwargs)
-            
-            response = f"# 📉 Packet Loss History\n\n"
-            
-            if isinstance(result, list):
-                response += f"**Data Points**: {len(result)}\n\n"
-                # Show recent data points
-                for entry in result[-5:]:  # Last 5 entries
-                    response += f"- **{entry.get('startTs', 'Unknown')}**\n"
-                    response += f"  - Loss %: {entry.get('lossPercent', 0):.2f}%\n"
-                    response += f"  - Lost: {entry.get('lost', 0)} packets\n"
-                    response += f"  - Total: {entry.get('total', 0)} packets\n"
-            
-            return response
-        except Exception as e:
-            return f"❌ Error getting packet loss history: {str(e)}"
-    
-    @app.tool(
         name="get_network_wireless_client_count_history",
         description="📡📈 Get historical client count over time"
     )
