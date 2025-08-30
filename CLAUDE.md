@@ -53,16 +53,50 @@ python test_100_sdk_coverage.py
    Many wireless analytics tools require specific parameters that aren't obvious from the name:
    - `get_network_wireless_channel_utilization_history`: REQUIRES device_serial OR client_id + band
    - `get_network_wireless_usage_history`: REQUIRES device_serial OR client_id
+   - `get_network_wireless_usage`: REQUIRES device_serial (not just network_id)
+   - `get_network_wireless_signal_quality_history`: REQUIRES device_serial OR client_id
    - `get_network_wireless_location_scanning`: REQUIRES location analytics license
    - `get_network_wireless_devices_packet_loss`: May require specific license/features
    
    When these tools fail, check the error message for parameter requirements
 
-3. **Tool name exceeds 64 characters**
+3. **Tools that may return NULL data**
+   Some analytics tools return time slots with NULL values when data isn't available:
+   - `get_network_wireless_client_count_history`: Returns `clientCount: null` if analytics not enabled
+   - `get_network_wireless_data_rate_history`: Returns `averageKbps: null` if no traffic data
+   - `get_network_wireless_signal_quality_history`: Returns `rssi/snr: null` if device not connected
+   
+   This is NOT an error - it means:
+   - Analytics/data collection not enabled on the network
+   - No activity during the time period
+   - Device/client wasn't connected during that time
+   - Network is newly created and hasn't collected data yet
+
+4. **Non-existent API endpoints**
+   These tools reference endpoints that don't exist in the Meraki SDK:
+   - `get_network_wireless_devices_latencies` - Use `get_network_wireless_latency_stats` instead
+   
+5. **Testing as MCP client**
+   When testing tools, always test as an MCP client would:
+   ```python
+   # Example testing pattern
+   from server.main import app, meraki
+   network_id = 'L_726205439913500692'
+   device_serial = 'Q2PD-JL52-H3B2'
+   
+   # Test with proper parameters
+   result = meraki.dashboard.wireless.getNetworkWirelessUsageHistory(
+       network_id, 
+       deviceSerial=device_serial,  # This is REQUIRED
+       timespan=86400
+   )
+   ```
+
+6. **Tool name exceeds 64 characters**
    - Shorten the tool name (not description)
    - Common abbreviations: `organization` → `org`, `utilization` → `util`, `history` → `hist`
 
-4. **Missing required parameters**
+7. **Missing required parameters**
    - `getNetworkWirelessUsageHistory` requires either `device_serial` OR `client_id`
    - `getNetworkWirelessClientConnectivityEvents` needs proper parameter handling
 

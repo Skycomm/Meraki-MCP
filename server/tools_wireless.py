@@ -323,7 +323,7 @@ def register_wireless_tool_handlers():
     
     @app.tool(
         name="get_network_wireless_usage",
-        description="Get wireless usage statistics for a Meraki network"
+        description="📊 Get wireless usage statistics (REQUIRES: device_serial - use get_network_devices first)"
     )
     def get_network_wireless_usage(network_id: str, ssid_number: int = None, device_serial: str = None):
         """
@@ -338,6 +338,12 @@ def register_wireless_tool_handlers():
             Formatted wireless usage statistics
         """
         try:
+            # Check if device_serial is provided
+            if not device_serial:
+                return ("❌ This tool requires device_serial parameter.\n"
+                       "💡 Tip: First use get_network_devices to find AP serials, then call this tool with device_serial.\n"
+                       "Alternative: Use get_network_wireless_usage_history with device_serial parameter.")
+            
             usage = meraki_client.get_network_wireless_usage(
                 network_id, 
                 ssid_number=ssid_number,
@@ -345,7 +351,11 @@ def register_wireless_tool_handlers():
             )
             
             if not usage:
-                return f"No wireless usage statistics found for network {network_id}."
+                return (f"No wireless usage data available for device {device_serial}.\n"
+                       f"This may mean:\n"
+                       f"• No data has been collected yet\n"
+                       f"• Analytics not enabled on this network\n"
+                       f"• Device hasn't been online long enough to collect data")
                 
             # Format the output for readability
             result = f"# Wireless Usage Statistics for Network ({network_id})\n\n"

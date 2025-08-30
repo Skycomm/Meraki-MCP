@@ -880,9 +880,11 @@ def register_radio_mesh_tools():
 def register_history_tools():
     """Register historical data and analytics tools."""
     
+    # NOTE: getNetworkWirelessDevicesLatencies doesn't exist in the SDK
+    # Use getNetworkWirelessLatencyStats instead
     @app.tool(
         name="get_network_wireless_devices_latencies",
-        description="📡📊 Get latency statistics for all wireless devices in a network"
+        description="📡📊 Get latency statistics (NOTE: This endpoint may not be available)"
     )
     def get_network_wireless_devices_latencies(
         network_id: str,
@@ -896,42 +898,9 @@ def register_history_tools():
         fields: Optional[str] = None
     ):
         """Get latency statistics for all wireless devices."""
-        try:
-            kwargs = {}
-            if t0:
-                kwargs['t0'] = t0
-            if t1:
-                kwargs['t1'] = t1
-            if timespan:
-                kwargs['timespan'] = timespan
-            if band:
-                kwargs['band'] = band
-            if ssid is not None:
-                kwargs['ssid'] = ssid
-            if vlan is not None:
-                kwargs['vlan'] = vlan
-            if ap_tag:
-                kwargs['apTag'] = ap_tag
-            if fields:
-                kwargs['fields'] = fields
-            
-            result = meraki_client.dashboard.wireless.getNetworkWirelessDevicesLatencies(network_id, **kwargs)
-            
-            response = f"# 📊 Network Wireless Devices Latency\n\n"
-            
-            if isinstance(result, list):
-                response += f"**Devices Reporting**: {len(result)}\n\n"
-                for device in result[:5]:  # Show first 5
-                    response += f"## Device: {device.get('serial', 'Unknown')}\n"
-                    latency = device.get('latency', {})
-                    response += f"- Background: {latency.get('backgroundTraffic', {}).get('avg', 0):.1f} ms avg\n"
-                    response += f"- Best Effort: {latency.get('bestEffortTraffic', {}).get('avg', 0):.1f} ms avg\n"
-                    response += f"- Video: {latency.get('videoTraffic', {}).get('avg', 0):.1f} ms avg\n"
-                    response += f"- Voice: {latency.get('voiceTraffic', {}).get('avg', 0):.1f} ms avg\n\n"
-            
-            return response
-        except Exception as e:
-            return f"❌ Error getting devices latencies: {str(e)}"
+        return ("❌ This API endpoint doesn't exist in the Meraki SDK.\n"
+                "💡 Use get_network_wireless_latency_stats instead for network-wide latency statistics.\n"
+                "Or use get_device_wireless_latency_stats for specific device latency.")
     
     @app.tool(
         name="get_network_wireless_devices_packet_loss",
@@ -987,7 +956,7 @@ def register_history_tools():
     
     @app.tool(
         name="get_network_wireless_client_count_history",
-        description="📡📈 Get historical client count over time"
+        description="📡📈 Get historical client count (TIP: Specify device_serial for per-AP counts)"
     )
     def get_network_wireless_client_count_history(
         network_id: str,
@@ -1017,16 +986,26 @@ def register_history_tools():
                 response += f"**Data Points**: {len(result)}\n\n"
                 
                 if result:
-                    # Find min/max
-                    counts = [point.get('clientCount', 0) for point in result]
-                    response += f"**Peak Clients**: {max(counts)}\n"
-                    response += f"**Minimum Clients**: {min(counts)}\n"
-                    response += f"**Average**: {sum(counts) // len(counts)}\n\n"
+                    # Find min/max, filtering out None values
+                    counts = [point.get('clientCount') for point in result if point.get('clientCount') is not None]
+                    
+                    if counts:
+                        response += f"**Peak Clients**: {max(counts)}\n"
+                        response += f"**Minimum Clients**: {min(counts)}\n"
+                        response += f"**Average**: {sum(counts) // len(counts)}\n\n"
+                    else:
+                        response += "⚠️ **No data available** - The API returned time slots but no client count data.\n"
+                        response += "This usually means:\n"
+                        response += "• Analytics data collection is not enabled\n"
+                        response += "• The network is newly created\n"
+                        response += "• No clients have connected during this time period\n\n"
                     
                     # Show recent data
                     response += "## Recent Data Points:\n"
                     for point in result[-5:]:
-                        response += f"- {point.get('startTs', 'Unknown')}: **{point.get('clientCount', 0)}** clients\n"
+                        client_count = point.get('clientCount')
+                        count_str = str(client_count) if client_count is not None else "No data"
+                        response += f"- {point.get('startTs', 'Unknown')}: **{count_str}** clients\n"
             
             return response
         except Exception as e:
@@ -1034,7 +1013,7 @@ def register_history_tools():
     
     @app.tool(
         name="get_network_wireless_data_rate_history",
-        description="📡📊 Get historical data rate information"
+        description="📡📊 Get historical data rate info (TIP: May need device_serial for actual data)"
     )
     def get_network_wireless_data_rate_history(
         network_id: str,
@@ -1064,12 +1043,33 @@ def register_history_tools():
                 response += f"**Data Points**: {len(result)}\n\n"
                 
                 if result:
-                    # Analyze recent data rates
-                    recent = result[-1] if result else {}
-                    if recent:
-                        response += "## Current Data Rates:\n"
-                        response += f"- **Average Download**: {recent.get('downloadRate', 0)} Mbps\n"
-                        response += f"- **Average Upload**: {recent.get('uploadRate', 0)} Mbps\n"
+                    # Check if we have actual data
+                    has_data = any(point.get('averageKbps') is not None or 
+                                  point.get('downloadKbps') is not None or 
+                                  point.get('uploadKbps') is not None 
+                                  for point in result)
+                    
+                    if has_data:
+                        # Analyze recent data rates
+                        recent = result[-1] if result else {}
+                        if recent:
+                            response += "## Current Data Rates:\n"
+                            avg_kbps = recent.get('averageKbps')
+                            dl_kbps = recent.get('downloadKbps')
+                            ul_kbps = recent.get('uploadKbps')
+                            
+                            if avg_kbps is not None:
+                                response += f"- **Average**: {avg_kbps / 1000:.2f} Mbps\n"
+                            if dl_kbps is not None:
+                                response += f"- **Download**: {dl_kbps / 1000:.2f} Mbps\n"
+                            if ul_kbps is not None:
+                                response += f"- **Upload**: {ul_kbps / 1000:.2f} Mbps\n"
+                    else:
+                        response += "⚠️ **No data available** - The API returned time slots but no rate data.\n"
+                        response += "This usually means:\n"
+                        response += "• Analytics data collection is not enabled\n"
+                        response += "• No traffic during this period\n"
+                        response += "• Try specifying a device_serial parameter\n"
             
             return response
         except Exception as e:
@@ -1129,7 +1129,7 @@ def register_history_tools():
     
     @app.tool(
         name="get_network_wireless_signal_quality_history",
-        description="📡📶 Get historical signal quality data"
+        description="📡📶 Get historical signal quality data (REQUIRES: device_serial OR client_id)"
     )
     def get_network_wireless_signal_quality_history(
         network_id: str,
@@ -1167,12 +1167,26 @@ def register_history_tools():
                 response += f"**Data Points**: {len(result)}\n\n"
                 
                 if result:
-                    # Analyze signal quality
-                    recent = result[-1] if result else {}
-                    if recent:
-                        response += "## Recent Signal Quality:\n"
-                        response += f"- **Average RSSI**: {recent.get('rssi', 0)} dBm\n"
-                        response += f"- **Average SNR**: {recent.get('snr', 0)} dB\n"
+                    # Check if we have actual data
+                    has_data = any(point.get('rssi') is not None or point.get('snr') is not None for point in result)
+                    
+                    if has_data:
+                        # Analyze signal quality
+                        recent = result[-1] if result else {}
+                        if recent:
+                            response += "## Recent Signal Quality:\n"
+                            rssi = recent.get('rssi')
+                            snr = recent.get('snr')
+                            if rssi is not None:
+                                response += f"- **Average RSSI**: {rssi} dBm\n"
+                            if snr is not None:
+                                response += f"- **Average SNR**: {snr} dB\n"
+                    else:
+                        response += "⚠️ **No signal data available** - The API returned time slots but no signal metrics.\n"
+                        response += "This usually means:\n"
+                        response += "• The device/client was not connected during this period\n"
+                        response += "• Analytics data collection is not enabled\n"
+                        response += "• Try a different device_serial or client_id\n"
             
             return response
         except Exception as e:
