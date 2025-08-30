@@ -323,9 +323,9 @@ def register_live_tool_handlers():
         name="create_device_live_tools_throughput_test",
         description="Enqueue a job for a throughput test from a device"
     )
-    async def create_device_live_tools_throughput_test(
+    def create_device_live_tools_throughput_test(
         serial: str
-    ) -> Dict[str, Any]:
+    ):
         """
         Create a throughput test from a device.
         Matches API: POST /devices/{serial}/liveTools/throughputTest
@@ -348,10 +348,10 @@ def register_live_tool_handlers():
         name="get_device_live_tools_throughput_test",
         description="Return a throughput test job result"
     )
-    async def get_device_live_tools_throughput_test(
+    def get_device_live_tools_throughput_test(
         serial: str,
         id: str
-    ) -> Dict[str, Any]:
+    ):
         """
         Get results of a throughput test.
         Matches API: GET /devices/{serial}/liveTools/throughputTest/{id}
