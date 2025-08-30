@@ -41,6 +41,8 @@ from server.tools_administered import register_administered_tools
 from server.tools_insight import register_insight_tools
 from server.tools_early_access import register_early_access_tools
 from server.tools_sensor import register_sensor_tools
+from server.tools_cellular_gateway import register_cellular_gateway_tools
+from server.tools_batch import register_batch_tools
 from server.tools_live import register_live_tools
 from server.tools_helpers import register_helper_tools
 from server.tools_search import register_search_tools
@@ -72,6 +74,8 @@ register_administered_tools(app, meraki)
 register_insight_tools(app, meraki)
 register_early_access_tools(app, meraki)
 register_sensor_tools(app, meraki)
+register_cellular_gateway_tools(app, meraki)
+register_batch_tools(app, meraki)
 register_live_tools(app, meraki)
 register_helper_tools(app, meraki)
 register_search_tools(app, meraki)
