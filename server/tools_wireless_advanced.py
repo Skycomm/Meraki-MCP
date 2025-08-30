@@ -934,7 +934,7 @@ def register_history_tools():
     
     @app.tool(
         name="get_network_wireless_devices_packet_loss",
-        description="📡📉 Get packet loss stats for wireless devices (Note: May require specific license/features)"
+        description="📡📉 DEPRECATED - Use organization-level packet loss tools instead (API doesn't exist at network level)"
     )
     def get_network_wireless_devices_packet_loss(
         network_id: str,
@@ -948,41 +948,17 @@ def register_history_tools():
         fields: Optional[str] = None
     ):
         """Get packet loss statistics for all wireless devices."""
-        try:
-            kwargs = {}
-            if t0:
-                kwargs['t0'] = t0
-            if t1:
-                kwargs['t1'] = t1
-            if timespan:
-                kwargs['timespan'] = timespan
-            if band:
-                kwargs['band'] = band
-            if ssid is not None:
-                kwargs['ssid'] = ssid
-            if vlan is not None:
-                kwargs['vlan'] = vlan
-            if ap_tag:
-                kwargs['apTag'] = ap_tag
-            if fields:
-                kwargs['fields'] = fields
-            
-            result = meraki_client.dashboard.wireless.getNetworkWirelessDevicesPacketLoss(network_id, **kwargs)
-            
-            response = f"# 📉 Network Wireless Devices Packet Loss\n\n"
-            
-            if isinstance(result, list):
-                response += f"**Devices Reporting**: {len(result)}\n\n"
-                for device in result[:5]:  # Show first 5
-                    response += f"## Device: {device.get('serial', 'Unknown')}\n"
-                    response += f"- Network: {device.get('network', {}).get('name', 'Unknown')}\n"
-                    loss = device.get('packetLoss', {})
-                    response += f"- Downstream: {loss.get('downstream', 0):.2f}%\n"
-                    response += f"- Upstream: {loss.get('upstream', 0):.2f}%\n\n"
-            
-            return response
-        except Exception as e:
-            return f"❌ Error getting devices packet loss: {str(e)}"
+        # This API doesn't exist at the network level - redirect to organization level
+        return ("❌ This tool doesn't exist in the Meraki SDK. Use organization-level packet loss tools instead.\n\n"
+                "💡 **Available packet loss tools:**\n"
+                "1. **get_organization_wireless_devices_packet_loss** - General org-level packet loss\n"
+                "2. **get_organization_wireless_devices_packet_loss_by_device** - Packet loss grouped by device\n"
+                "3. **get_organization_wireless_devices_packet_loss_by_network** - Packet loss grouped by network\n"
+                "4. **get_organization_wireless_devices_packet_loss_by_client** - Packet loss grouped by client\n\n"
+                "**Example usage:**\n"
+                f"get_organization_wireless_devices_packet_loss_by_device(org_id, network_ids='{network_id}')\n\n"
+                "These tools provide comprehensive packet loss data at the organization level.\n"
+                "You can filter by specific networks using the network_ids parameter.")
     
     @app.tool(
         name="get_network_wireless_client_count_history",
