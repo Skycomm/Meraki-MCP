@@ -40,7 +40,7 @@ def register_beta_tool_handlers():
             List of available early access features
         """
         try:
-            features = meraki_client.get_organization_early_access_features(org_id)
+            features = meraki_client.dashboard.organizations.getOrganizationEarlyAccessFeatures(org_id)
             
             if not features:
                 return f"No early access features available for organization {org_id}."
@@ -85,10 +85,10 @@ def register_beta_tool_handlers():
             return f"Error retrieving early access features: {str(e)}"
     
     @app.tool(
-        name="get_organization_early_access_opt_ins",
+        name="get_organization_early_access_features_opt_ins",
         description="🧪 List early access features opted into by organization"
     )
-    def get_organization_early_access_opt_ins(org_id: str):
+    def get_organization_early_access_features_opt_ins(org_id: str):
         """
         List all early access features that the organization has opted into.
         
