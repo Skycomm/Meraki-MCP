@@ -174,7 +174,7 @@ def register_client_specific_stats_tools():
     
     @app.tool(
         name="get_network_wireless_client_latency_stats",
-        description="📡📊 Get latency stats for a specific wireless client"
+        description="📡📊 Get latency stats for a specific wireless client (REQUIRES: client_id)"
     )
     def get_network_wireless_client_latency_stats(
         network_id: str,
@@ -797,7 +797,7 @@ def register_specialized_features_tools():
     
     @app.tool(
         name="get_network_wireless_channel_utilization_history",
-        description="📡📈 Get channel utilization history for network"
+        description="📡📈 Get channel utilization history (REQUIRES: device_serial OR client_id, plus band parameter)"
     )
     def get_network_wireless_channel_utilization_history(
         network_id: str,

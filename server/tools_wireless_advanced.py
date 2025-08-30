@@ -935,7 +935,7 @@ def register_history_tools():
     
     @app.tool(
         name="get_network_wireless_devices_packet_loss",
-        description="📡📉 Get packet loss statistics for all wireless devices in a network"
+        description="📡📉 Get packet loss stats for wireless devices (Note: May require specific license/features)"
     )
     def get_network_wireless_devices_packet_loss(
         network_id: str,
@@ -1077,7 +1077,7 @@ def register_history_tools():
     
     @app.tool(
         name="get_network_wireless_usage_history",
-        description="📡📉 Get historical wireless usage data"
+        description="📡📉 Get historical wireless usage data (REQUIRES: device_serial OR client_id)"
     )
     def get_network_wireless_usage_history(
         network_id: str,

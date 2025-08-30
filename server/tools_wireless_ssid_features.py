@@ -1056,7 +1056,7 @@ def register_location_scanning_tools():
     
     @app.tool(
         name="get_network_wireless_location_scanning",
-        description="📡📍 Get location scanning settings for wireless network"
+        description="📡📍 Get location scanning settings (Note: Requires location analytics license)"
     )
     def get_network_wireless_location_scanning(network_id: str):
         """Get network location scanning settings."""

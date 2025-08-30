@@ -1,0 +1,15 @@
+81df4bb Add remote/network deployment architecture using Cloudflare Workers
+a4eb4e6 Fix multiple MCP tool issues identified from user feedback
+c2a9bfe Add safety confirmations to reboot functions
+537b810 Fix MCP tool to properly show 5-minute packet loss data
+86a470e Major update: 2025 API features, fixes, and improvements
+865018d fix: Complete 100% API test success - all 35 APIs working perfectly\!
+dcae43c fix: Correct ALL API method names to match official Cisco Meraki SDK
+cc7e890 fix: Correct uplink loss/latency parsing to match real API response
+609530a docs: Add comprehensive test guide for all 55 tools
+2367778 feat: Add 22 new REAL Cisco Meraki tools - now 55 total tools\!
+d07f55a fix: Add ALL missing REAL Cisco Meraki SDK methods - 100% real APIs
+62c5aa9 fix: Replace all made-up API methods with REAL Cisco Meraki SDK methods
+62674b1 feat: Enhanced Cisco Meraki MCP Server v2.0.0
+4d4b14f modified README.md - github link
+7216585 first commit

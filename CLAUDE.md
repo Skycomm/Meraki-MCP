@@ -48,13 +48,21 @@ python test_100_sdk_coverage.py
 1. **"perPage parameter must be between X and Y" errors**
    - Check the specific endpoint's documentation
    - Reduce perPage to the maximum allowed (often 500 for "statuses" endpoints)
-   - Add a comment documenting the limit
 
-2. **Tool name exceeds 64 characters**
+2. **Tools requiring specific parameters**
+   Many wireless analytics tools require specific parameters that aren't obvious from the name:
+   - `get_network_wireless_channel_utilization_history`: REQUIRES device_serial OR client_id + band
+   - `get_network_wireless_usage_history`: REQUIRES device_serial OR client_id
+   - `get_network_wireless_location_scanning`: REQUIRES location analytics license
+   - `get_network_wireless_devices_packet_loss`: May require specific license/features
+   
+   When these tools fail, check the error message for parameter requirements
+
+3. **Tool name exceeds 64 characters**
    - Shorten the tool name (not description)
    - Common abbreviations: `organization` → `org`, `utilization` → `util`, `history` → `hist`
 
-3. **Missing required parameters**
+4. **Missing required parameters**
    - `getNetworkWirelessUsageHistory` requires either `device_serial` OR `client_id`
    - `getNetworkWirelessClientConnectivityEvents` needs proper parameter handling
 

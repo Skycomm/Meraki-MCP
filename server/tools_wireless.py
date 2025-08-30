@@ -512,7 +512,7 @@ def register_wireless_tool_handlers():
     
     @app.tool(
         name="get_network_wireless_channel_utilization",
-        description="📊 Get channel utilization history"
+        description="📊 Get channel utilization (TIP: Try get_network_wireless_channel_utilization_history with device_serial instead)"
     )
     def get_network_wireless_channel_utilization(network_id: str, timespan: int = 3600, ssid_number: int = None, device_serial: str = None):
         """

@@ -1,0 +1,78 @@
+dfc32a0 Fix productType parameter issue for getNetworkEvents API
+72becb8 Fix indentation errors in tools_event_analysis.py
+30c08bd Fix licensing tools to support both PDL and co-termination models
+d0616f6 Merge all wireless fixes and improvements from sse branch
+54ddb9d Fix syntax errors from duplicate removal
+45442c2 Remove duplicate tool definitions to prevent intermittent issues
+fc003e3 Fix VLAN ID display issue in wireless SSIDs
+83b4f9f Fix wireless audit issues identified in testing
+be90c79 Remove non-existent packet loss history API endpoint
+d0bd01a Fix wireless API parameter requirements
+c09f507 Revert usage history change - API does require device or client
+efe0047 Add efficient device search tools
+aa84bf2 Document unused wireless tools from comprehensive audit
+b6cbe22 Fix channel utilization API issues
+3553b8f Maximize pagination to 1000 for all API calls
+9275537 Remove automatic 'total_pages=all' from get_network_events
+3e64402 Increase default perPage to 1000 for get_network_events
+085bfc4 Fix API implementation issues found during documentation audit
+e7b26f0 Add CLAUDE.md with helpful context for future AI assistants
+1689395 Fix API pagination limits for specific endpoints
+6429389 🚀 Achieve 100% Wireless SDK Coverage - 142 Tools Implemented
+902933f Add comprehensive wireless MCP tools test suite
+6a419e3 Fix pagination issues in client detection
+c159702 Add comprehensive wireless firewall and traffic shaping tools
+119cae1 Fix VLAN tool confusion - prevent creating duplicate VLANs
+3b53e19 Add reserved_ip_ranges parameter to update_network_appliance_vlan tool
+3517af4 Update VPN tools and add comprehensive testing
+dbcaf8d Add comprehensive VPN tools support matching official API
+23774d0 docs(sse): add step-by-step Deployment Guide for SSE/HTTP server
+d4bda64 fix(sse): JSON-serialize resource URIs (AnyUrl -> str) in HTTP adapter
+380cbd3 docs(sse): document HTTP/SSE server; improve adapter error handling and import; await adapter in /mcp
+4a182eb feat(sse): implement MCP HTTP adapter (list/read/call) with read-only enforcement for non-admin roles
+4817619 feat(sse): scaffold HTTP/SSE server with multi-role Bearer auth, config updates, and Docker files
+d0d1478 Fix get_network_devices pagination error
+660b6d0 Fix licensing tools and apply security hardening
+39fc7bc Add stdio debugging and test scripts
+84e1685 Fix firewall and content filtering tools for Claude Desktop
+f5ddba9 Enhanced MCP server with bridge mode, better tool descriptions, and helper tools
+68eee7a Fix pagination for all list-returning API methods
+f196714 Enhanced MCP server with pagination fix and PSK support
+92823b8 Fix MX port VLAN configuration loss issue
+6c4eea2 Enhance MCP tools to be more helpful for Claude Desktop users
+30db19c Add MX port and VLAN management tools
+d947b82 Improve error handling and add MX appliance port configuration tool
+e418376 Clarify that alert timeouts are in seconds, not minutes
+5dc9ba9 Fix alert type mismatches to use correct Meraki API types
+05b7744 Update SSE version with timezone and coordinate support
+6184cd5 Add timezone, coordinates, and comprehensive alert capabilities
+1837763 Update SSE version with webhook fixes from main version
+d98a326 Add webhook deletion tools and content filtering categories
+428b0fd Add security tools to comprehensive test suite
+cd47892 Add comprehensive security tool wrappers
+5f42981 Add comprehensive security API methods to MCP server
+a57e0ee Add IPS/IDS update capability to MCP server
+1296eec Add unclaim_device_from_network tool
+edb317d Add claim_device_direct tool for MCP clients
+e901a6d Add comprehensive clone organization checker script and documentation
+9b9e4c7 Add comprehensive organization checking and comparison tools
+71a6847 Fix critical MCP client safety issue
+7b30424 Improve MCP client safety feedback
+e5c7865 Add read-only safety to all test scripts
+a6fe74c Clean up project structure and organize files
+e9fb4fb Add comprehensive safety features to prevent accidental deletions
+ab46d68 Update README with branch structure information
+a4eb4e6 Fix multiple MCP tool issues identified from user feedback
+c2a9bfe Add safety confirmations to reboot functions
+537b810 Fix MCP tool to properly show 5-minute packet loss data
+86a470e Major update: 2025 API features, fixes, and improvements
+865018d fix: Complete 100% API test success - all 35 APIs working perfectly\!
+dcae43c fix: Correct ALL API method names to match official Cisco Meraki SDK
+cc7e890 fix: Correct uplink loss/latency parsing to match real API response
+609530a docs: Add comprehensive test guide for all 55 tools
+2367778 feat: Add 22 new REAL Cisco Meraki tools - now 55 total tools\!
+d07f55a fix: Add ALL missing REAL Cisco Meraki SDK methods - 100% real APIs
+62c5aa9 fix: Replace all made-up API methods with REAL Cisco Meraki SDK methods
+62674b1 feat: Enhanced Cisco Meraki MCP Server v2.0.0
+4d4b14f modified README.md - github link
+7216585 first commit
