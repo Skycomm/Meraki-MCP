@@ -508,9 +508,7 @@ def register_rf_profile_crud_tools():
 
 def register_radio_settings_tools():
     """Register radio settings tools."""
-    # DUPLICATE: Commented out - defined in tools_wireless_advanced.py  
-    return  # Skip registration to avoid duplicates
-    '''
+    
     @app.tool(
         name="get_device_wireless_radio_settings",
         description="📡📻 Get radio settings for a wireless device"
@@ -580,6 +578,48 @@ def register_update_operations_tools():
     """Register update operations for existing features."""
     # DUPLICATE: Commented out - defined in tools_wireless_advanced.py
     return  # Skip registration to avoid duplicates
+    '''
+    @app.tool(
+        name="update_network_wireless_settings",
+        description="📡⚙️ Update general wireless settings for network"
+    )
+    def update_network_wireless_settings(
+        network_id: str,
+        meshing_enabled: Optional[bool] = None,
+        ipv6_bridge_enabled: Optional[bool] = None,
+        location_analytics_enabled: Optional[bool] = None,
+        led_lights_on: Optional[bool] = None,
+        named_vlans_pool_dhcp_monitoring: Optional[bool] = None
+    ):
+        """Update network wireless settings."""
+        try:
+            kwargs = {}
+            
+            if meshing_enabled is not None:
+                kwargs['meshingEnabled'] = meshing_enabled
+            if ipv6_bridge_enabled is not None:
+                kwargs['ipv6BridgeEnabled'] = ipv6_bridge_enabled
+            if location_analytics_enabled is not None:
+                kwargs['locationAnalyticsEnabled'] = location_analytics_enabled
+            if led_lights_on is not None:
+                kwargs['ledLightsOn'] = led_lights_on
+            if named_vlans_pool_dhcp_monitoring is not None:
+                kwargs['namedVlansPoolDhcpMonitoring'] = named_vlans_pool_dhcp_monitoring
+            
+            result = meraki_client.dashboard.wireless.updateNetworkWirelessSettings(
+                network_id, **kwargs
+            )
+            
+            response = f"✅ Updated wireless settings\n"
+            response += f"- Meshing: {'✅' if result.get('meshingEnabled') else '❌'}\n"
+            response += f"- IPv6 Bridge: {'✅' if result.get('ipv6BridgeEnabled') else '❌'}\n"
+            response += f"- Location Analytics: {'✅' if result.get('locationAnalyticsEnabled') else '❌'}\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error updating wireless settings: {str(e)}"
+    '''
 
 # ==================== SPECIALIZED FEATURES ====================
 
