@@ -39,9 +39,11 @@ from server.tools_monitoring import register_monitoring_tools
 from server.tools_beta import register_beta_tools
 from server.tools_administered import register_administered_tools
 from server.tools_insight import register_insight_tools
-from server.tools_early_access import register_early_access_tools
+from server.tools_organizations_earlyAccess import register_early_access_tools
 from server.tools_sensor import register_sensor_tools
-from server.tools_cellular_gateway import register_cellular_gateway_tools
+from server.tools_appliance_additional import register_appliance_extended_tools
+from server.tools_appliance_firewall import register_appliance_firewall_tools
+from server.tools_cellularGateway import register_cellular_gateway_tools
 from server.tools_batch import register_batch_tools
 from server.tools_live import register_live_tools
 from server.tools_helpers import register_helper_tools
@@ -74,6 +76,8 @@ register_administered_tools(app, meraki)
 register_insight_tools(app, meraki)
 register_early_access_tools(app, meraki)
 register_sensor_tools(app, meraki)
+register_appliance_extended_tools(app, meraki)
+register_appliance_firewall_tools(app, meraki)
 register_cellular_gateway_tools(app, meraki)
 register_batch_tools(app, meraki)
 register_live_tools(app, meraki)
