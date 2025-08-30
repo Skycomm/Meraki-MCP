@@ -12,8 +12,8 @@ services:
     environment:
       - MERAKI_API_KEY=${MERAKI_API_KEY}
     # If you want to expose the server externally, uncomment the ports section
-    # ports:
-    #   - "8000:8000"
+    ports:
+      - "8000:8000"
     volumes:
       # Optional: For development, mount the code directory for hot-reloading
       # - ./:/app

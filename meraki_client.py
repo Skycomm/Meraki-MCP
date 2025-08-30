@@ -128,7 +128,12 @@ class MerakiClient:
     def get_network_wireless_clients(self, network_id: str, timespan: int = 86400):
         """Get wireless clients - REAL method."""
         # Use the general network clients endpoint and filter for wireless
-        return self.dashboard.networks.getNetworkClients(network_id, timespan=timespan)
+        return self.dashboard.networks.getNetworkClients(
+            network_id, 
+            timespan=timespan,
+            perPage=1000,  # Get up to 1000 clients to avoid pagination issues
+            total_pages='all'  # Ensure we get all pages
+        )
     
     def get_network_wireless_usage(self, network_id: str, timespan: int = 86400, device_serial: str = None, ssid_number: int = None, client_mac: str = None):
         """Get wireless usage history - REAL method."""
@@ -444,11 +449,11 @@ class MerakiClient:
     # Network Events (including port status changes)
     def get_network_events(self, network_id: str, **kwargs):
         """Get network events including port carrier changes - REAL method."""
-        # Ensure we get all events, not just first page
+        # Default to 1000 per page but don't fetch all pages automatically
+        # to avoid timeout issues with networks that have many events
         if 'perPage' not in kwargs:
             kwargs['perPage'] = 1000
-        if 'total_pages' not in kwargs:
-            kwargs['total_pages'] = 'all'
+        # Don't automatically fetch all pages - let caller handle pagination if needed
         return self.dashboard.networks.getNetworkEvents(network_id, **kwargs)
     
     # NAT Rules Methods
@@ -517,21 +522,15 @@ class MerakiClient:
     
     def get_network_wireless_channel_utilization(self, network_id: str, timespan: int = 3600, device_serial: str = None, ssid_number: int = None, client_mac: str = None):
         """Get channel utilization history - REAL method."""
-        # This API requires deviceSerial or clientId parameter
+        # Build kwargs - all parameters are optional
         kwargs = {'timespan': timespan}
         
         if device_serial:
             kwargs['deviceSerial'] = device_serial
-        elif client_mac:
+        if client_mac:
             kwargs['clientId'] = client_mac
-        elif ssid_number is not None:
-            # SSID alone won't work - need device or client
+        if ssid_number is not None:
             kwargs['ssid'] = ssid_number
-            # Return empty result since API requires device/client
-            return []
-        else:
-            # API requires device or client - can't get aggregate data
-            return []
             
         return self.dashboard.wireless.getNetworkWirelessChannelUtilizationHistory(network_id, **kwargs)
     
@@ -631,7 +630,7 @@ class MerakiClient:
     
     def get_organization_devices_migration_status(self, org_id: str):
         """Get organization devices migration status - REAL method."""
-        return self.dashboard.organizations.getOrganizationDevices(org_id)
+        return self.dashboard.organizations.getOrganizationDevices(org_id, perPage=1000, total_pages='all')
     
     def get_organization_api_requests(self, org_id: str, **kwargs):
         """Get organization API usage/requests - REAL method."""
@@ -667,6 +666,22 @@ class MerakiClient:
         """Get device ping test results - REAL method."""
         return self.dashboard.devices.getDeviceLiveToolsPing(serial, ping_id)
     
+    def create_device_live_tools_ping_device(self, serial: str):
+        """Create ping test to the device itself - REAL method."""
+        return self.dashboard.devices.createDeviceLiveToolsPingDevice(serial)
+    
+    def get_device_live_tools_ping_device(self, serial: str, id: str):
+        """Get ping device test results - REAL method."""
+        return self.dashboard.devices.getDeviceLiveToolsPingDevice(serial, id)
+    
+    def create_device_live_tools_trace_route(self, serial: str, **kwargs):
+        """Create traceroute test - REAL method."""
+        return self.dashboard.devices.createDeviceLiveToolsTraceRoute(serial, **kwargs)
+    
+    def get_device_live_tools_trace_route(self, serial: str, id: str):
+        """Get traceroute test results - REAL method."""
+        return self.dashboard.devices.getDeviceLiveToolsTraceRoute(serial, id)
+    
     def create_device_live_tools_throughput_test(self, serial: str, **kwargs):
         """Create device throughput test - REAL method."""
         return self.dashboard.devices.createDeviceLiveToolsThroughputTest(serial, **kwargs)
@@ -686,6 +701,18 @@ class MerakiClient:
     def create_device_live_tools_wake_on_lan(self, serial: str, **kwargs):
         """Send Wake-on-LAN - REAL method."""
         return self.dashboard.devices.createDeviceLiveToolsWakeOnLan(serial, **kwargs)
+    
+    def get_device_live_tools_wake_on_lan(self, serial: str, id: str):
+        """Get Wake-on-LAN job results - REAL method."""
+        return self.dashboard.devices.getDeviceLiveToolsWakeOnLan(serial, id)
+    
+    def create_device_live_tools_arp_table(self, serial: str):
+        """Create ARP table request - REAL method."""
+        return self.dashboard.devices.createDeviceLiveToolsArpTable(serial)
+    
+    def get_device_live_tools_arp_table(self, serial: str, id: str):
+        """Get ARP table results - REAL method."""
+        return self.dashboard.devices.getDeviceLiveToolsArpTable(serial, id)
     
     def create_device_live_tools_mac_table(self, serial: str):
         """Create MAC table request - REAL method."""

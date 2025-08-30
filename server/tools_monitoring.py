@@ -303,7 +303,7 @@ def register_monitoring_tool_handlers():
         description="📋 Get network events - security alerts, config changes, port flapping, device status, admin activity"
     )
     def get_network_events(network_id: str, product_type: str = None, event_types: str = None, 
-                          per_page: int = 100, timespan: int = 86400):
+                          per_page: int = 1000, timespan: int = 86400):
         """
         Get network events including port status changes.
         

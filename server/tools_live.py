@@ -1,7 +1,8 @@
 """
-Live Tools for the Cisco Meraki MCP Server - Beta/Early Access features.
-These are new 2025 live diagnostic tools available with early API access.
+Live Tools for the Cisco Meraki MCP Server - Fixed to match official API exactly.
 """
+
+from typing import Optional, Dict, Any
 
 # Global variables to store app and meraki client
 app = None
@@ -19,447 +20,409 @@ def register_live_tools(mcp_app, meraki):
     app = mcp_app
     meraki_client = meraki
     
-    # Register all live tools
+    # Register all live tool handlers
     register_live_tool_handlers()
 
 def register_live_tool_handlers():
-    """Register all live tool handlers using ONLY REAL API methods."""
+    """Register all live tool handlers matching official API."""
+    
+    # ==================== PING TOOLS ====================
     
     @app.tool(
-        name="create_device_ping_test",
-        description="🏓 Run a ping test from a device (beta)"
+        name="create_device_live_tools_ping",
+        description="Enqueue a job to ping a target host from the device"
     )
-    def create_device_ping_test(serial: str, target: str, count: int = 5):
+    async def create_device_live_tools_ping(
+        serial: str,
+        target: str,
+        count: Optional[int] = 5
+    ) -> Dict[str, Any]:
         """
-        Create a ping test from a device.
+        Create a ping test from a device to an external target.
+        Matches API: POST /devices/{serial}/liveTools/ping
         
         Args:
             serial: Device serial number
-            target: Target IP or hostname to ping
+            target: Target IP or hostname to ping (e.g., "192.168.51.1")
             count: Number of pings (default 5, max 5)
             
         Returns:
-            Ping test job details
+            Ping test job details including pingId
         """
         try:
-            # Ensure count doesn't exceed maximum
-            if count > 5:
-                count = 5
-                
-            result = meraki_client.create_device_live_tools_ping(
+            result = meraki_client.dashboard.devices.createDeviceLiveToolsPing(
                 serial,
                 target=target,
                 count=count
             )
-            
-            # Check if we got a valid response
-            if not result:
-                return "❌ Error: No response from API. The device may be offline or Live Tools may not be enabled."
-            
-            # Get the job ID - it might be 'id' or 'pingId'
-            job_id = result.get('pingId') or result.get('id')
-            
-            if not job_id:
-                return f"""❌ Error: Ping test creation failed.
-                
-API Response: {result}
-
-Possible causes:
-- Device is offline or unreachable
-- Live Tools not enabled for this organization
-- Invalid target address
-- Device doesn't support Live Tools"""
-            
-            response = f"# 🏓 Ping Test Started Successfully\n\n"
-            response += f"**Device**: {serial}\n"
-            response += f"**Target**: {target}\n"
-            response += f"**Count**: {count}\n"
-            response += f"**Job ID**: `{job_id}`\n"
-            response += f"**Status**: {result.get('status', 'Unknown')}\n\n"
-            
-            response += "⏳ Test in progress. Use `get_device_ping_test` with the job ID to check results.\n"
-            response += f"\nExample: `get_device_ping_test serial=\"{serial}\" ping_id=\"{job_id}\"`\n"
-            
-            return response
-            
+            return result
         except Exception as e:
-            return f"Error creating ping test: {str(e)}"
+            return {"error": str(e)}
     
     @app.tool(
-        name="get_device_ping_test",
-        description="🏓 Get ping test results (beta)"
+        name="get_device_live_tools_ping",
+        description="Return a ping job result"
     )
-    def get_device_ping_test(serial: str, ping_id: str):
+    async def get_device_live_tools_ping(
+        serial: str,
+        id: str
+    ) -> Dict[str, Any]:
         """
         Get results of a ping test.
+        Matches API: GET /devices/{serial}/liveTools/ping/{id}
         
         Args:
             serial: Device serial number
-            ping_id: Ping test job ID
+            id: Ping test job ID
             
         Returns:
-            Ping test results
+            Ping test results with sent/received counts, loss %, and latency
         """
         try:
-            result = meraki_client.get_device_live_tools_ping(serial, ping_id)
-            
-            response = f"# 🏓 Ping Test Results\n\n"
-            response += f"**Status**: {result.get('status', 'Unknown')}\n"
-            
-            # Results
-            results = result.get('results', {})
-            if results:
-                response += f"\n## Results\n"
-                response += f"- **Sent**: {results.get('sent', 0)} packets\n"
-                response += f"- **Received**: {results.get('received', 0)} packets\n"
-                response += f"- **Loss**: {results.get('loss', {}).get('percentage', 0)}%\n"
-                
-                # Latency stats
-                latency = results.get('latency', {})
-                if latency:
-                    response += f"\n## Latency\n"
-                    response += f"- **Min**: {latency.get('minimum', 0)}ms\n"
-                    response += f"- **Avg**: {latency.get('average', 0)}ms\n"
-                    response += f"- **Max**: {latency.get('maximum', 0)}ms\n"
-                
-                # Individual replies
-                replies = results.get('replies', [])
-                if replies:
-                    response += f"\n## Replies\n"
-                    for i, reply in enumerate(replies[:5], 1):
-                        response += f"{i}. Seq {reply.get('sequenceId')}: {reply.get('size')} bytes, {reply.get('latency')}ms\n"
-                        
-            return response
-            
+            result = meraki_client.dashboard.devices.getDeviceLiveToolsPing(
+                serial,
+                id
+            )
+            return result
         except Exception as e:
-            return f"Error getting ping test results: {str(e)}"
+            return {"error": str(e)}
     
     @app.tool(
-        name="create_device_throughput_test",
-        description="🚀 Run throughput test between devices (beta)"
+        name="create_device_live_tools_ping_device",
+        description="Enqueue a job to check connectivity status to the device"
     )
-    def create_device_throughput_test(serial: str, target_serial: str):
+    async def create_device_live_tools_ping_device(
+        serial: str
+    ) -> Dict[str, Any]:
         """
-        Create a throughput test between two devices.
+        Create a ping test TO the device itself.
+        Matches API: POST /devices/{serial}/liveTools/pingDevice
         
         Args:
-            serial: Source device serial
-            target_serial: Target device serial
+            serial: Device serial number
+            
+        Returns:
+            Ping device job details including id
+        """
+        try:
+            result = meraki_client.dashboard.devices.createDeviceLiveToolsPingDevice(
+                serial
+            )
+            return result
+        except Exception as e:
+            return {"error": str(e)}
+    
+    @app.tool(
+        name="get_device_live_tools_ping_device",
+        description="Return a ping device job result"
+    )
+    async def get_device_live_tools_ping_device(
+        serial: str,
+        id: str
+    ) -> Dict[str, Any]:
+        """
+        Get results of a ping device test.
+        Matches API: GET /devices/{serial}/liveTools/pingDevice/{id}
+        
+        Args:
+            serial: Device serial number
+            id: Ping device job ID
+            
+        Returns:
+            Ping device test results
+        """
+        try:
+            result = meraki_client.dashboard.devices.getDeviceLiveToolsPingDevice(
+                serial,
+                id
+            )
+            return result
+        except Exception as e:
+            return {"error": str(e)}
+    
+    # ==================== TRACEROUTE TOOLS ====================
+    
+    @app.tool(
+        name="create_device_live_tools_trace_route",
+        description="Enqueue a job for running traceroute from the device"
+    )
+    async def create_device_live_tools_trace_route(
+        serial: str,
+        target: str
+    ) -> Dict[str, Any]:
+        """
+        Create a traceroute test from a device.
+        Matches API: POST /devices/{serial}/liveTools/traceRoute
+        
+        Args:
+            serial: Device serial number
+            target: Target IP or hostname
+            
+        Returns:
+            Traceroute job details including traceRouteId
+        """
+        try:
+            result = meraki_client.dashboard.devices.createDeviceLiveToolsTraceRoute(
+                serial,
+                target=target
+            )
+            return result
+        except Exception as e:
+            return {"error": str(e)}
+    
+    @app.tool(
+        name="get_device_live_tools_trace_route",
+        description="Return a traceroute job result"
+    )
+    async def get_device_live_tools_trace_route(
+        serial: str,
+        id: str
+    ) -> Dict[str, Any]:
+        """
+        Get results of a traceroute test.
+        Matches API: GET /devices/{serial}/liveTools/traceRoute/{id}
+        
+        Args:
+            serial: Device serial number
+            id: Traceroute job ID
+            
+        Returns:
+            Traceroute results with hop details
+        """
+        try:
+            result = meraki_client.dashboard.devices.getDeviceLiveToolsTraceRoute(
+                serial,
+                id
+            )
+            return result
+        except Exception as e:
+            return {"error": str(e)}
+    
+    # ==================== CABLE TEST TOOLS ====================
+    
+    @app.tool(
+        name="create_device_live_tools_cable_test",
+        description="Enqueue a job for performing a cable test on a switch port"
+    )
+    async def create_device_live_tools_cable_test(
+        serial: str,
+        ports: list
+    ) -> Dict[str, Any]:
+        """
+        Create a cable test for switch ports.
+        Matches API: POST /devices/{serial}/liveTools/cableTest
+        
+        Args:
+            serial: Switch serial number
+            ports: List of port IDs to test (e.g., ["1", "2", "3"])
+            
+        Returns:
+            Cable test job details including id
+        """
+        try:
+            result = meraki_client.dashboard.devices.createDeviceLiveToolsCableTest(
+                serial,
+                ports=ports
+            )
+            return result
+        except Exception as e:
+            return {"error": str(e)}
+    
+    @app.tool(
+        name="get_device_live_tools_cable_test",
+        description="Return a cable test job result"
+    )
+    async def get_device_live_tools_cable_test(
+        serial: str,
+        id: str
+    ) -> Dict[str, Any]:
+        """
+        Get results of a cable test.
+        Matches API: GET /devices/{serial}/liveTools/cableTest/{id}
+        
+        Args:
+            serial: Switch serial number
+            id: Cable test job ID
+            
+        Returns:
+            Cable test results for each port
+        """
+        try:
+            result = meraki_client.dashboard.devices.getDeviceLiveToolsCableTest(
+                serial,
+                id
+            )
+            return result
+        except Exception as e:
+            return {"error": str(e)}
+    
+    # ==================== WAKE ON LAN ====================
+    
+    @app.tool(
+        name="create_device_live_tools_wake_on_lan",
+        description="Enqueue a job to send a Wake-on-LAN packet"
+    )
+    async def create_device_live_tools_wake_on_lan(
+        serial: str,
+        vlan_id: int,
+        mac: str
+    ) -> Dict[str, Any]:
+        """
+        Send a Wake-on-LAN packet from a device.
+        Matches API: POST /devices/{serial}/liveTools/wakeOnLan
+        
+        Args:
+            serial: Device serial number
+            vlan_id: VLAN ID to send the packet on
+            mac: MAC address of the target device
+            
+        Returns:
+            Wake-on-LAN job details
+        """
+        try:
+            result = meraki_client.dashboard.devices.createDeviceLiveToolsWakeOnLan(
+                serial,
+                vlanId=vlan_id,
+                mac=mac
+            )
+            return result
+        except Exception as e:
+            return {"error": str(e)}
+    
+    @app.tool(
+        name="get_device_live_tools_wake_on_lan",
+        description="Return a Wake-on-LAN job result"
+    )
+    async def get_device_live_tools_wake_on_lan(
+        serial: str,
+        id: str
+    ) -> Dict[str, Any]:
+        """
+        Get results of a Wake-on-LAN job.
+        Matches API: GET /devices/{serial}/liveTools/wakeOnLan/{id}
+        
+        Args:
+            serial: Device serial number
+            id: Wake-on-LAN job ID
+            
+        Returns:
+            Wake-on-LAN job status
+        """
+        try:
+            result = meraki_client.dashboard.devices.getDeviceLiveToolsWakeOnLan(
+                serial,
+                id
+            )
+            return result
+        except Exception as e:
+            return {"error": str(e)}
+    
+    # ==================== THROUGHPUT TEST ====================
+    
+    @app.tool(
+        name="create_device_live_tools_throughput_test",
+        description="Enqueue a job for a throughput test from a device"
+    )
+    async def create_device_live_tools_throughput_test(
+        serial: str
+    ) -> Dict[str, Any]:
+        """
+        Create a throughput test from a device.
+        Matches API: POST /devices/{serial}/liveTools/throughputTest
+        
+        Args:
+            serial: Device serial number
             
         Returns:
             Throughput test job details
         """
         try:
-            result = meraki_client.create_device_live_tools_throughput_test(
-                serial,
-                targetSerial=target_serial
+            result = meraki_client.dashboard.devices.createDeviceLiveToolsThroughputTest(
+                serial
             )
-            
-            # Check if we got a valid response
-            if not result:
-                return "❌ Error: No response from API. Live Tools may not be enabled."
-            
-            # Get the job ID - it might be 'id' or 'throughputTestId'
-            job_id = result.get('throughputTestId') or result.get('id')
-            
-            if not job_id:
-                return f"""❌ Error: Throughput test creation failed.
-                
-API Response: {result}
-
-Possible causes:
-- Devices must be on the same network
-- Both devices must support Live Tools
-- Devices must be compatible (e.g., switch to switch, MX to MX)
-- Live Tools not enabled for this organization
-- One or both devices may be offline"""
-            
-            response = f"# 🚀 Throughput Test Started Successfully\n\n"
-            response += f"**Source Device**: {serial}\n"
-            response += f"**Target Device**: {target_serial}\n"
-            response += f"**Job ID**: `{job_id}`\n"
-            response += f"**Status**: {result.get('status', 'Unknown')}\n\n"
-            
-            response += "⏳ Test in progress. This may take 1-3 minutes.\n"
-            response += f"\nExample: `get_device_throughput_test serial=\"{serial}\" test_id=\"{job_id}\"`\n"
-            
-            return response
-            
+            return result
         except Exception as e:
-            error_msg = str(e)
-            
-            # Provide helpful error messages for common issues
-            if "400" in error_msg:
-                return f"""❌ Error: {error_msg}
-
-Common causes:
-- Devices must be on the same network
-- Device types must be compatible
-- Both devices must support Live Tools throughput testing"""
-            elif "404" in error_msg:
-                return f"""❌ Error: {error_msg}
-
-Device not found or Live Tools not available."""
-            else:
-                return f"❌ Error creating throughput test: {error_msg}"
+            return {"error": str(e)}
     
     @app.tool(
-        name="get_device_throughput_test",
-        description="🚀 Get throughput test results (beta)"
+        name="get_device_live_tools_throughput_test",
+        description="Return a throughput test job result"
     )
-    def get_device_throughput_test(serial: str, test_id: str):
+    async def get_device_live_tools_throughput_test(
+        serial: str,
+        id: str
+    ) -> Dict[str, Any]:
         """
         Get results of a throughput test.
+        Matches API: GET /devices/{serial}/liveTools/throughputTest/{id}
         
         Args:
             serial: Device serial number
-            test_id: Test job ID
+            id: Throughput test job ID
             
         Returns:
-            Throughput test results
+            Throughput test results with speeds
         """
         try:
-            result = meraki_client.get_device_live_tools_throughput_test(serial, test_id)
-            
-            response = f"# 🚀 Throughput Test Results\n\n"
-            response += f"**Status**: {result.get('status', 'Unknown')}\n"
-            
-            # Results
-            results = result.get('results', {})
-            if results:
-                speeds = results.get('speeds', {})
-                if speeds:
-                    response += f"\n## Speed Results\n"
-                    response += f"- **Download**: {speeds.get('downstream', 0)} Mbps\n"
-                    response += f"- **Upload**: {speeds.get('upstream', 0)} Mbps\n"
-                    
-            return response
-            
-        except Exception as e:
-            return f"Error getting throughput test results: {str(e)}"
-    
-    @app.tool(
-        name="create_switch_cable_test",
-        description="🔌 Run cable diagnostic test on switch port (beta)"
-    )
-    def create_switch_cable_test(serial: str, port: str):
-        """
-        Run cable diagnostic test on a switch port.
-        
-        Args:
-            serial: Switch serial number
-            port: Port ID (e.g., "1", "5")
-            
-        Returns:
-            Cable test job details
-        """
-        try:
-            result = meraki_client.create_device_live_tools_cable_test(
+            result = meraki_client.dashboard.devices.getDeviceLiveToolsThroughputTest(
                 serial,
-                ports=[port]
+                id
             )
-            
-            response = f"# 🔌 Cable Test Started\n\n"
-            response += f"**Switch**: {serial}\n"
-            response += f"**Port**: {port}\n"
-            response += f"**Job ID**: {result.get('id', 'N/A')}\n\n"
-            
-            response += "⏳ Testing cable. Use `get_switch_cable_test` to check results.\n"
-            
-            return response
-            
+            return result
         except Exception as e:
-            return f"Error creating cable test: {str(e)}"
+            return {"error": str(e)}
+    
+    # ==================== ARP TABLE ====================
     
     @app.tool(
-        name="get_switch_cable_test",
-        description="🔌 Get cable test results (beta)"
+        name="create_device_live_tools_arp_table",
+        description="Enqueue a job to perform an ARP table request for the device"
     )
-    def get_switch_cable_test(serial: str, test_id: str):
+    async def create_device_live_tools_arp_table(
+        serial: str
+    ) -> Dict[str, Any]:
         """
-        Get results of a cable test.
-        
-        Args:
-            serial: Switch serial number
-            test_id: Test job ID
-            
-        Returns:
-            Cable test results
-        """
-        try:
-            result = meraki_client.get_device_live_tools_cable_test(serial, test_id)
-            
-            response = f"# 🔌 Cable Test Results\n\n"
-            response += f"**Status**: {result.get('status', 'Unknown')}\n"
-            
-            # Results
-            results = result.get('results', {})
-            if results:
-                ports = results.get('ports', {})
-                for port_id, port_data in ports.items():
-                    response += f"\n## Port {port_id}\n"
-                    response += f"- **Status**: {port_data.get('status', 'Unknown')}\n"
-                    response += f"- **Speed**: {port_data.get('speedMbps', 'N/A')} Mbps\n"
-                    
-                    # Pairs (cable pairs)
-                    pairs = port_data.get('pairs', [])
-                    if pairs:
-                        response += "- **Cable Pairs**:\n"
-                        for pair in pairs:
-                            status = pair.get('status', 'Unknown')
-                            length = pair.get('lengthMeters', 'N/A')
-                            icon = "✅" if status == 'ok' else "❌"
-                            response += f"  - Pair {pair.get('index')}: {icon} {status} ({length}m)\n"
-                            
-            return response
-            
-        except Exception as e:
-            return f"Error getting cable test results: {str(e)}"
-    
-    @app.tool(
-        name="create_device_wake_on_lan",
-        description="⏰ Send Wake-on-LAN to device (beta)"
-    )
-    def create_device_wake_on_lan(serial: str, vlan_id: int, mac_address: str):
-        """
-        Send Wake-on-LAN packet to wake up a device.
-        
-        Args:
-            serial: Device serial to send WOL from
-            vlan_id: VLAN ID
-            mac_address: Target MAC address to wake
-            
-        Returns:
-            WOL job details
-        """
-        try:
-            result = meraki_client.create_device_live_tools_wake_on_lan(
-                serial,
-                vlanId=vlan_id,
-                mac=mac_address
-            )
-            
-            response = f"# ⏰ Wake-on-LAN Sent\n\n"
-            response += f"**From Device**: {serial}\n"
-            response += f"**Target MAC**: {mac_address}\n"
-            response += f"**VLAN**: {vlan_id}\n"
-            response += f"**Job ID**: {result.get('id', 'N/A')}\n\n"
-            
-            response += "✅ Magic packet sent to wake the device.\n"
-            
-            return response
-            
-        except Exception as e:
-            return f"Error sending Wake-on-LAN: {str(e)}"
-    
-    @app.tool(
-        name="create_switch_mac_table",
-        description="📋 Get MAC address table from switch (beta)"
-    )
-    def create_switch_mac_table(serial: str):
-        """
-        Request MAC address table from a switch.
-        
-        Args:
-            serial: Switch serial number
-            
-        Returns:
-            MAC table job details
-        """
-        try:
-            result = meraki_client.create_device_live_tools_mac_table(serial)
-            
-            response = f"# 📋 MAC Table Request Started\n\n"
-            response += f"**Switch**: {serial}\n"
-            response += f"**Job ID**: {result.get('id', 'N/A')}\n\n"
-            
-            response += "⏳ Retrieving MAC table. Use `get_switch_mac_table` to view results.\n"
-            
-            return response
-            
-        except Exception as e:
-            return f"Error creating MAC table request: {str(e)}"
-    
-    @app.tool(
-        name="get_switch_mac_table",
-        description="📋 Get MAC table results (beta)"
-    )
-    def get_switch_mac_table(serial: str, request_id: str):
-        """
-        Get MAC address table results.
-        
-        Args:
-            serial: Switch serial number
-            request_id: MAC table request ID
-            
-        Returns:
-            MAC table entries
-        """
-        try:
-            result = meraki_client.get_device_live_tools_mac_table(serial, request_id)
-            
-            response = f"# 📋 MAC Address Table\n\n"
-            response += f"**Status**: {result.get('status', 'Unknown')}\n"
-            
-            # Entries
-            entries = result.get('entries', [])
-            if entries:
-                response += f"\n**Total Entries**: {len(entries)}\n\n"
-                
-                # Group by VLAN
-                vlan_groups = {}
-                for entry in entries:
-                    vlan = entry.get('vlanId', 'Unknown')
-                    if vlan not in vlan_groups:
-                        vlan_groups[vlan] = []
-                    vlan_groups[vlan].append(entry)
-                
-                for vlan, vlan_entries in sorted(vlan_groups.items()):
-                    response += f"## VLAN {vlan} ({len(vlan_entries)} entries)\n"
-                    
-                    for entry in vlan_entries[:10]:  # Show first 10 per VLAN
-                        mac = entry.get('mac', 'Unknown')
-                        port = entry.get('port', 'Unknown')
-                        response += f"- **{mac}** → Port {port}\n"
-                    
-                    if len(vlan_entries) > 10:
-                        response += f"... and {len(vlan_entries) - 10} more entries\n"
-                    response += "\n"
-                    
-            return response
-            
-        except Exception as e:
-            return f"Error getting MAC table results: {str(e)}"
-    
-    @app.tool(
-        name="blink_device_leds",
-        description="💡 Blink device LEDs for identification (beta)"
-    )
-    def blink_device_leds(serial: str, duration: int = 30):
-        """
-        Blink device LEDs to help identify it physically.
+        Create an ARP table request for a device.
+        Matches API: POST /devices/{serial}/liveTools/arpTable
         
         Args:
             serial: Device serial number
-            duration: Duration in seconds (default 30)
             
         Returns:
-            LED blink job details
+            ARP table job details including arpTableId
         """
         try:
-            result = meraki_client.create_device_live_tools_leds_blink(
-                serial,
-                duration=duration
+            result = meraki_client.dashboard.devices.createDeviceLiveToolsArpTable(
+                serial
             )
-            
-            response = f"# 💡 LED Blink Started\n\n"
-            response += f"**Device**: {serial}\n"
-            response += f"**Duration**: {duration} seconds\n"
-            response += f"**Job ID**: {result.get('id', 'N/A')}\n\n"
-            
-            response += "✨ Device LEDs are now blinking to help identify it!\n"
-            
-            return response
-            
+            return result
         except Exception as e:
-            return f"Error blinking LEDs: {str(e)}"
+            return {"error": str(e)}
+    
+    @app.tool(
+        name="get_device_live_tools_arp_table",
+        description="Return an ARP table job result"
+    )
+    async def get_device_live_tools_arp_table(
+        serial: str,
+        id: str
+    ) -> Dict[str, Any]:
+        """
+        Get the ARP table job results from a device.
+        Matches API: GET /devices/{serial}/liveTools/arpTable/{id}
+        
+        Args:
+            serial: Device serial number
+            id: ARP table job ID
+            
+        Returns:
+            ARP table entries
+        """
+        try:
+            result = meraki_client.dashboard.devices.getDeviceLiveToolsArpTable(
+                serial,
+                id
+            )
+            return result
+        except Exception as e:
+            return {"error": str(e)}

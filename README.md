@@ -1,3 +1,99 @@
+# Meraki-MCP
+
+This branch adds an HTTP/SSE MCP server for remote usage while keeping stdio intact.
+
+## HTTP/SSE server (sse branch)
+- Endpoints:
+  - GET /health — public
+  - GET /sse — text/event-stream keepalive
+  - POST /mcp — JSON actions: list_tools, list_resources, read_resource, call_tool
+- Auth: Bearer tokens with roles
+  - AUTH_TOKENS_ADMIN — comma-separated list
+  - AUTH_TOKENS_READONLY — comma-separated list
+  - If a token is in both, it is treated as admin
+  - /health does not require auth
+- Read-only policy:
+  - Non-admin tokens are read-only; destructive tool calls are blocked centrally
+  - Admin tokens bypass read-only
+
+### Environment
+- MERAKI_API_KEY (or Meraki_API)
+- AUTH_TOKENS_ADMIN
+- AUTH_TOKENS_READONLY
+- MCP_READ_ONLY_MODE=true (recommended default for HTTP)
+- SERVER_HOST=0.0.0.0
+- SERVER_PORT=8000
+
+### Deployment Guide (SSE)
+
+Prerequisites
+- Python 3.12+ or Docker
+- Env vars: MERAKI_API_KEY (or Meraki_API), AUTH_TOKENS_READONLY, AUTH_TOKENS_ADMIN
+
+Local (without Docker)
+1) Check out this branch:
+   git checkout sse
+2) Install deps:
+   pip install -r requirements.txt
+3) Export env:
+   export MERAKI_API_KEY="..."; # or export Meraki_API="..."
+   export AUTH_TOKENS_READONLY="ro-token1,ro-token2"
+   export AUTH_TOKENS_ADMIN="admin-token1"
+   export MCP_READ_ONLY_MODE=true
+4) Run:
+   python http_server.py
+5) Test:
+   curl http://localhost:8000/health
+   curl -s -H "Authorization: Bearer $RO_TOKEN" -H "Content-Type: application/json" -d '{"action":"list_tools"}' http://localhost:8000/mcp
+   curl -s -H "Authorization: Bearer $RO_TOKEN" -H "Content-Type: application/json" -d '{"action":"list_resources"}' http://localhost:8000/mcp
+   curl -s -H "Authorization: Bearer $RO_TOKEN" -H "Content-Type: application/json" -d '{"action":"read_resource","uri":"organizations://"}' http://localhost:8000/mcp
+   curl -N -H "Authorization: Bearer $RO_TOKEN" http://localhost:8000/sse
+
+Docker
+1) Build image:
+   docker build -t meraki-mcp-sse -f Dockerfile.sse .
+2) Run container:
+   docker run --name meraki-mcp-sse -d -p 8000:8000 \
+     -e MERAKI_API_KEY="$MERAKI_API_KEY" \
+     -e AUTH_TOKENS_READONLY="ro-token1" \
+     -e AUTH_TOKENS_ADMIN="admin-token1" \
+     -e MCP_READ_ONLY_MODE=true \
+     meraki-mcp-sse
+3) Test (same as local) against http://localhost:8000
+
+Notes
+- /health is public
+- /mcp and /sse require Authorization: Bearer &lt;token&gt;
+- Read-only tokens block destructive tools; admin tokens bypass
+
+### Run locally
+- pip install -r requirements.txt
+- python http_server.py
+
+Examples:
+- Health:
+  curl http://localhost:8000/health
+- List tools:
+  curl -s -H "Authorization: Bearer $RO_TOKEN" -H "Content-Type: application/json" -d '{"action":"list_tools"}' http://localhost:8000/mcp
+- Read resource:
+  curl -s -H "Authorization: Bearer $RO_TOKEN" -H "Content-Type: application/json" -d '{"action":"read_resource","uri":"resource://example"}' http://localhost:8000/mcp
+- Call tool (readonly blocked if destructive):
+  curl -s -H "Authorization: Bearer $RO_TOKEN" -H "Content-Type: application/json" -d '{"action":"call_tool","name":"delete_network","args":{"network_id":"..."}}' http://localhost:8000/mcp
+- SSE:
+  curl -N -H "Authorization: Bearer $RO_TOKEN" http://localhost:8000/sse
+
+### Docker
+- Build:
+  docker build -t meraki-mcp-sse -f Dockerfile.sse .
+- Run:
+  docker run -p 8000:8000 \
+    -e MERAKI_API_KEY=$MERAKI_API_KEY \
+    -e AUTH_TOKENS_ADMIN="admin-token" \
+    -e AUTH_TOKENS_READONLY="ro-token" \
+    -e MCP_READ_ONLY_MODE=true \
+    meraki-mcp-sse
+
+Stdio remains available via meraki_server.py.
 # Cisco Meraki MCP Server
 
 An MCP (Model Context Protocol) server that integrates with Cisco Meraki's API, allowing AI assistants to interact with and manage Meraki network infrastructure.
@@ -9,6 +105,7 @@ This repository has two main implementations:
 - **`stdio` branch**: Original stdio-based MCP server for Claude Desktop (local use)
 - **`sse` branch**: HTTP/SSE-based server for network access (n8n, remote clients)
 
+- In this branch, an HTTP/SSE server is provided for remote clients with Bearer-token auth. See section "SSE/HTTP Server".
 Choose the appropriate branch based on your use case:
 - Use `stdio` for Claude Desktop integration
 - Use `sse` for n8n MCP Client Tool or remote access
@@ -397,6 +494,27 @@ def list_organizations():
 - **API Key Errors**: Make sure your API key is valid and has the proper permissions
 - **Resource Not Found**: Verify that the organization/network/device exists and is accessible with your API key
 - **Permission Denied**: Check that your API key has the necessary permissions for the operation
+## SSE/HTTP Server (sse branch)
+
+- Endpoints:
+  - GET /health (public)
+  - GET /sse (requires Bearer; event-stream)
+  - POST /mcp (requires Bearer; placeholder 501 initially)
+- Auth:
+  - Provide tokens via env:
+    - AUTH_TOKENS_ADMIN: comma-separated list
+    - AUTH_TOKENS_READONLY: comma-separated list
+  - Read-only by default; admin tokens bypass read-only checks.
+- Run locally:
+  - uv pip install -r requirements.txt
+  - python http_server.py
+- Curl:
+  - curl http://localhost:8000/health
+  - curl -N -H "Authorization: Bearer YOUR_READONLY_TOKEN" http://localhost:8000/sse
+- Docker:
+  - docker build -t meraki-mcp-sse -f Dockerfile.sse .
+  - docker run -p 8000:8000 -e AUTH_TOKENS_ADMIN=admin123 -e AUTH_TOKENS_READONLY=ro123 meraki-mcp-sse
+
 - **Docker Issues**: Ensure your Docker environment has access to the environment variables
 
 ### Logs

@@ -26,4 +26,4 @@ USER merakiuser
 ENV PYTHONUNBUFFERED=1
 
 # Command to run the application
-CMD ["python", "meraki_server.py"]
+CMD ["python", "http_server.py"]

@@ -1375,7 +1375,7 @@ def register_appliance_tool_handlers():
     def get_network_appliance_security_events(
         network_id: str,
         timespan: int = 86400,
-        per_page: int = 100
+        per_page: int = 1000
     ):
         """
         Get security events for a network.
@@ -1797,7 +1797,7 @@ def register_appliance_tool_handlers():
     
     @app.tool(
         name="create_network_appliance_vlan",
-        description="🏷️ Create a new VLAN on the MX appliance"
+        description="🏷️ Create a NEW VLAN that doesn't exist yet (use update_network_appliance_vlan to modify existing VLANs)"
     )
     def create_network_appliance_vlan(
         network_id: str,
@@ -1823,6 +1823,33 @@ def register_appliance_tool_handlers():
             # Validate VLAN ID
             if not 1 <= vlan_id <= 4094:
                 return f"❌ Invalid VLAN ID {vlan_id}. Must be between 1 and 4094."
+            
+            # Check if VLAN already exists
+            try:
+                existing_vlans = meraki_client.dashboard.appliance.getNetworkApplianceVlans(network_id)
+                for vlan in existing_vlans:
+                    if int(vlan.get('id', 0)) == vlan_id:
+                        return f"""⚠️ VLAN {vlan_id} already exists!
+
+**Existing VLAN Details:**
+- Name: {vlan.get('name')}
+- Subnet: {vlan.get('subnet')}
+- MX IP: {vlan.get('applianceIp')}
+
+**To modify this VLAN, use:** `update_network_appliance_vlan` instead
+**To update DHCP ranges:** Include `reserved_ip_ranges` parameter
+
+Example to exclude IPs from DHCP:
+```
+update_network_appliance_vlan(
+    network_id="{network_id}",
+    vlan_id={vlan_id},
+    reserved_ip_ranges='[{{"start": "X.X.X.1", "end": "X.X.X.99", "comment": "Reserved"}}]'
+)
+```"""
+            except:
+                # If we can't check, proceed with creation
+                pass
             
             kwargs = {
                 'id': str(vlan_id),
@@ -1866,7 +1893,7 @@ def register_appliance_tool_handlers():
     
     @app.tool(
         name="update_network_appliance_vlan",
-        description="🏷️ Update VLAN configuration on the MX appliance"
+        description="🏷️ Update/modify an EXISTING VLAN (including DHCP ranges, reserved IPs, etc). Use this for any changes to existing VLANs"
     )
     def update_network_appliance_vlan(
         network_id: str,
@@ -1877,10 +1904,12 @@ def register_appliance_tool_handlers():
         dhcp_handling: str = None,
         dhcp_lease_time: str = None,
         dns_nameservers: str = None,
-        fixed_ip_assignments: str = None
+        fixed_ip_assignments: str = None,
+        reserved_ip_ranges: str = None
     ):
         """
         Update VLAN configuration on the MX appliance.
+        USE THIS to modify any existing VLAN including setting up DHCP exclusions.
         
         Args:
             network_id: Network ID
@@ -1893,6 +1922,8 @@ def register_appliance_tool_handlers():
             dns_nameservers: Custom DNS servers (comma-separated) or 'upstream_dns'
             fixed_ip_assignments: JSON string of DHCP reservations, e.g.:
                 '{"aa:bb:cc:dd:ee:ff": {"ip": "192.168.1.100", "name": "Server"}}'
+            reserved_ip_ranges: JSON string of reserved IP ranges (excluded from DHCP), e.g.:
+                '[{"start": "10.0.101.1", "end": "10.0.101.99", "comment": "Reserved"}]'
             
         Returns:
             Updated VLAN configuration
@@ -1922,6 +1953,15 @@ def register_appliance_tool_handlers():
                 except json.JSONDecodeError:
                     return "❌ Invalid fixed_ip_assignments format. Must be valid JSON."
             
+            if reserved_ip_ranges is not None:
+                try:
+                    import json
+                    # Parse the JSON string
+                    reserved_ranges = json.loads(reserved_ip_ranges)
+                    kwargs['reservedIpRanges'] = reserved_ranges
+                except json.JSONDecodeError:
+                    return "❌ Invalid reserved_ip_ranges format. Must be valid JSON array."
+            
             # Update VLAN
             result = meraki_client.dashboard.appliance.updateNetworkApplianceVlan(
                 network_id, 
@@ -1950,6 +1990,17 @@ def register_appliance_tool_handlers():
                 response += f"\n## Fixed IP Assignments ({len(fixed)} total)\n"
                 for mac, ip_info in fixed.items():
                     response += f"- **{mac}**: {ip_info.get('ip')} - {ip_info.get('name', 'No name')}\n"
+            
+            # Show reserved IP ranges if any
+            reserved = result.get('reservedIpRanges', [])
+            if reserved:
+                response += f"\n## Reserved IP Ranges (Excluded from DHCP)\n"
+                for r in reserved:
+                    response += f"- **{r['start']} - {r['end']}**: {r.get('comment', 'No comment')}\n"
+                
+                # Calculate available DHCP range
+                if result.get('subnet'):
+                    response += f"\n💡 DHCP will assign IPs outside of reserved ranges\n"
             
             return response
             

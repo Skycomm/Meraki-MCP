@@ -68,7 +68,7 @@ def register_wireless_tool_handlers():
                     use_vlan = ssid.get('useVlanTagging', False)
                     if use_vlan:
                         result += f"- VLAN Tagging: Enabled\n"
-                        result += f"- VLAN ID: {ssid.get('vlanId', 'Not set')}\n"
+                        result += f"- VLAN ID: {ssid.get('defaultVlanId', 'Not set')}\n"
                 
                 # Add additional settings
                 result += f"- Band Selection: {ssid.get('bandSelection', 'Unknown')}\n"
@@ -277,6 +277,49 @@ def register_wireless_tool_handlers():
             return f"Failed to list wireless clients for network {network_id}: {str(e)}"
     
     @app.tool(
+        name="get_network_wireless_client",
+        description="Get details for a specific wireless client"
+    )
+    def get_network_wireless_client(network_id: str, client_id: str):
+        """
+        Get details for a specific wireless client.
+        
+        Args:
+            network_id: ID of the network
+            client_id: ID of the client (MAC address)
+            
+        Returns:
+            Detailed information about the wireless client
+        """
+        try:
+            client = meraki_client.dashboard.networks.getNetworkClient(network_id, client_id)
+            
+            result = f"# Wireless Client Details\n\n"
+            result += f"**MAC Address**: {client.get('mac', 'N/A')}\n"
+            result += f"**Description**: {client.get('description', 'N/A')}\n"
+            result += f"**IP**: {client.get('ip', 'N/A')}\n"
+            result += f"**IPv6**: {client.get('ip6', 'N/A')}\n"
+            result += f"**User**: {client.get('user', 'N/A')}\n"
+            result += f"**VLAN**: {client.get('vlan', 'N/A')}\n"
+            result += f"**Manufacturer**: {client.get('manufacturer', 'N/A')}\n"
+            result += f"**OS**: {client.get('os', 'N/A')}\n"
+            result += f"**SSID**: {client.get('ssid', 'N/A')}\n"
+            result += f"**Status**: {client.get('status', 'N/A')}\n"
+            result += f"**Last Seen**: {client.get('lastSeen', 'N/A')}\n"
+            result += f"**Switch Port**: {client.get('switchport', 'N/A')}\n"
+            
+            usage = client.get('usage', {})
+            if usage:
+                result += f"\n## Usage\n"
+                result += f"- Sent: {usage.get('sent', 0):,} bytes\n"
+                result += f"- Received: {usage.get('recv', 0):,} bytes\n"
+            
+            return result
+            
+        except Exception as e:
+            return f"Failed to get wireless client {client_id}: {str(e)}"
+    
+    @app.tool(
         name="get_network_wireless_usage",
         description="Get wireless usage statistics for a Meraki network"
     )
@@ -361,7 +404,8 @@ def register_wireless_tool_handlers():
             
         except Exception as e:
             return f"Error retrieving RF profiles: {str(e)}"
-    
+    # DUPLICATE: Commented out - better implementation in tools_wireless_client_analytics.py
+    '''
     @app.tool(
         name="get_network_wireless_air_marshal",
         description="🛡️ Get Air Marshal security scan results"
@@ -418,6 +462,7 @@ def register_wireless_tool_handlers():
             
         except Exception as e:
             return f"Error retrieving Air Marshal data: {str(e)}"
+    '''
     
     @app.tool(
         name="get_network_wireless_bluetooth_clients", 
@@ -496,22 +541,20 @@ def register_wireless_tool_handlers():
             
             for entry in utilization:
                 timestamp = entry.get('startTs', 'Unknown')
-                result += f"## {timestamp}\n"
+                end_time = entry.get('endTs', 'Unknown')
+                result += f"## {timestamp} to {end_time}\n"
                 
-                # WiFi utilization
-                wifi = entry.get('wifi', {})
-                if wifi:
-                    result += f"- **WiFi Utilization**: {wifi.get('utilization', 0)}%\n"
+                # WiFi utilization (802.11)
+                wifi_util = entry.get('utilization80211', 0)
+                result += f"- **WiFi Utilization**: {wifi_util:.2f}%\n"
                     
-                # Non-WiFi utilization  
-                non_wifi = entry.get('nonWifi', {})
-                if non_wifi:
-                    result += f"- **Non-WiFi Interference**: {non_wifi.get('utilization', 0)}%\n"
+                # Non-WiFi utilization (interference)
+                non_wifi_util = entry.get('utilizationNon80211', 0)
+                result += f"- **Non-WiFi Interference**: {non_wifi_util:.2f}%\n"
                     
                 # Total utilization
-                total = entry.get('total', {})
-                if total:
-                    result += f"- **Total Utilization**: {total.get('utilization', 0)}%\n"
+                total_util = entry.get('utilizationTotal', 0)
+                result += f"- **Total Utilization**: {total_util:.2f}%\n"
                     
                 result += "\n"
                 
