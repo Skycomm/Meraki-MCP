@@ -798,7 +798,7 @@ def register_radio_mesh_tools():
     
     @app.tool(
         name="update_device_wireless_radio_settings",
-        description="📡📻 Update radio settings for a wireless device"
+        description="📡📻 Update radio settings (2.4GHz: ch 1-14, max 20dBm | 5GHz: ch 36-161, max 19dBm)"
     )
     def update_device_wireless_radio_settings(
         serial: str,
@@ -810,6 +810,36 @@ def register_radio_mesh_tools():
     ):
         """Update radio settings for a wireless device."""
         try:
+            # Validate 2.4GHz settings
+            if two_four_ghz_channel:
+                valid_24_channels = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+                if two_four_ghz_channel not in valid_24_channels:
+                    return (f"❌ Invalid 2.4GHz channel: {two_four_ghz_channel}\n"
+                            f"Valid channels: {valid_24_channels}\n"
+                            "Recommended: 1, 6, or 11 (non-overlapping)")
+            
+            if two_four_ghz_power:
+                if two_four_ghz_power > 20:
+                    return f"❌ 2.4GHz power too high: {two_four_ghz_power} dBm (max: 20 dBm)"
+                if two_four_ghz_power < 5:
+                    return f"❌ 2.4GHz power too low: {two_four_ghz_power} dBm (min: 5 dBm)"
+            
+            # Validate 5GHz settings
+            if five_ghz_channel:
+                # Australian valid 5GHz channels
+                valid_5_channels = [36, 40, 44, 48, 52, 56, 60, 64, 100, 104, 108, 112, 
+                                   116, 120, 124, 128, 132, 136, 140, 144, 149, 153, 157, 161]
+                if five_ghz_channel not in valid_5_channels:
+                    return (f"❌ Invalid 5GHz channel: {five_ghz_channel}\n"
+                            f"Valid channels (AU): {valid_5_channels}\n"
+                            "Note: Channel 165 not available in Australia")
+            
+            if five_ghz_power:
+                if five_ghz_power > 19:
+                    return f"❌ 5GHz power too high: {five_ghz_power} dBm (max: 19 dBm)"
+                if five_ghz_power < 5:
+                    return f"❌ 5GHz power too low: {five_ghz_power} dBm (min: 5 dBm)"
+            
             kwargs = {}
             if rf_profile_id: kwargs['rfProfileId'] = rf_profile_id
             
@@ -1112,9 +1142,23 @@ def register_history_tools():
             response = f"# 📉 Wireless Usage History\n\n"
             
             if isinstance(result, list):
-                response += f"**Data Points**: {len(result)}\n\n"
-                
-                if result:
+                if not result:
+                    response += "⚠️ **No data available for the specified parameters**\n\n"
+                    response += "**Possible reasons:**\n"
+                    response += "- The device/client has no activity in the timespan\n"
+                    response += "- Analytics data collection not enabled\n"
+                    response += "- Invalid device_serial or client_id\n\n"
+                    response += "💡 **Tips:**\n"
+                    if device_serial:
+                        response += f"- Verify device serial '{device_serial}' is correct\n"
+                        response += "- Use get_network_devices to list valid device serials\n"
+                    if client_id:
+                        response += f"- Verify client ID '{client_id}' is correct\n"
+                        response += "- Use get_network_wireless_clients to list active clients\n"
+                    response += f"- Try a longer timespan (current: {timespan/3600:.0f} hours)\n"
+                else:
+                    response += f"**Data Points**: {len(result)}\n\n"
+                    
                     # Calculate totals
                     total_sent = sum(point.get('sentKbps', 0) for point in result)
                     total_received = sum(point.get('receivedKbps', 0) for point in result)
@@ -1125,7 +1169,15 @@ def register_history_tools():
             
             return response
         except Exception as e:
-            return f"❌ Error: {str(e)}"
+            error_msg = str(e)
+            if '404' in error_msg or 'No device with serial' in error_msg:
+                return ("⚠️ **No data available - Device not found**\n\n"
+                        f"The device serial '{device_serial if device_serial else client_id}' was not found.\n\n"
+                        "💡 **Tips:**\n"
+                        "- Use get_network_devices to list valid device serials\n"
+                        "- Use get_network_wireless_clients to list active client IDs\n"
+                        "- Verify the device/client is in this network\n")
+            return f"❌ Error: {error_msg}"
     
     @app.tool(
         name="get_network_wireless_signal_quality_history",
@@ -1287,64 +1339,8 @@ def register_organization_wireless_tools():
 
 def register_special_features_tools():
     """Register special feature tools."""
-    # NOTE: These tools are now in tools_wireless_complete.py to avoid duplicates
-    return  # Skip registration as tools moved to complete file
-    
-    @app.tool(
-        name="get_network_wireless_bluetooth_settings",
-        description="📡🔵 Get Bluetooth settings for network"
-    )
-    def get_network_wireless_bluetooth_settings(network_id: str):
-        """Get Bluetooth settings for network."""
-        try:
-            result = meraki_client.dashboard.wireless.getNetworkWirelessBluetoothSettings(network_id)
-            
-            response = f"# 🔵 Network Bluetooth Settings\n\n"
-            
-            if isinstance(result, dict):
-                response += f"**Scanning**: {'Enabled ✅' if result.get('scanningEnabled') else 'Disabled ❌'}\n"
-                response += f"**Advertising**: {'Enabled ✅' if result.get('advertisingEnabled') else 'Disabled ❌'}\n"
-                
-                # UUID
-                if result.get('uuid'):
-                    response += f"**UUID**: {result.get('uuid')}\n"
-                
-                # Major/Minor
-                if result.get('majorMinorAssignmentMode'):
-                    response += f"**Assignment Mode**: {result.get('majorMinorAssignmentMode')}\n"
-            
-            return response
-        except Exception as e:
-            return f"❌ Error: {str(e)}"
-    
-    @app.tool(
-        name="update_network_wireless_bluetooth_settings",
-        description="📡🔵 Update Bluetooth settings for network"
-    )
-    def update_network_wireless_bluetooth_settings(
-        network_id: str,
-        scanning_enabled: Optional[bool] = None,
-        advertising_enabled: Optional[bool] = None,
-        uuid: Optional[str] = None
-    ):
-        """Update Bluetooth settings for network."""
-        try:
-            kwargs = {}
-            if scanning_enabled is not None: kwargs['scanningEnabled'] = scanning_enabled
-            if advertising_enabled is not None: kwargs['advertisingEnabled'] = advertising_enabled
-            if uuid: kwargs['uuid'] = uuid
-            
-            result = meraki_client.dashboard.wireless.updateNetworkWirelessBluetoothSettings(
-                network_id, **kwargs
-            )
-            
-            response = f"# ✅ Updated Bluetooth Settings\n\n"
-            response += f"**Scanning**: {'Enabled ✅' if result.get('scanningEnabled') else 'Disabled ❌'}\n"
-            response += f"**Advertising**: {'Enabled ✅' if result.get('advertisingEnabled') else 'Disabled ❌'}\n"
-            
-            return response
-        except Exception as e:
-            return f"❌ Error: {str(e)}"
+    # NOTE: Bluetooth tools moved to tools_wireless_ssid_features.py to avoid duplicates
+    return  # Skip registration as tools moved to avoid duplicates
     
     @app.tool(
         name="get_network_wireless_ssid_bonjour_forwarding",

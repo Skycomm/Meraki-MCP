@@ -522,7 +522,7 @@ def register_wireless_tool_handlers():
     
     @app.tool(
         name="get_network_wireless_channel_utilization",
-        description="📊 Get channel utilization (TIP: Try get_network_wireless_channel_utilization_history with device_serial instead)"
+        description="📊 Get channel utilization (REQUIRES device_serial - use get_network_devices first)"
     )
     def get_network_wireless_channel_utilization(network_id: str, timespan: int = 3600, ssid_number: int = None, device_serial: str = None):
         """
@@ -537,43 +537,17 @@ def register_wireless_tool_handlers():
         Returns:
             Channel utilization statistics
         """
-        try:
-            utilization = meraki_client.get_network_wireless_channel_utilization(
-                network_id, 
-                timespan,
-                ssid_number=ssid_number,
-                device_serial=device_serial
-            )
-            
-            if not utilization:
-                return f"No channel utilization data found for network {network_id}."
-                
-            result = f"# 📊 Channel Utilization - Network {network_id}\n"
-            result += f"**Time Period**: Last {timespan/3600:.1f} hours\n\n"
-            
-            for entry in utilization:
-                timestamp = entry.get('startTs', 'Unknown')
-                end_time = entry.get('endTs', 'Unknown')
-                result += f"## {timestamp} to {end_time}\n"
-                
-                # WiFi utilization (802.11)
-                wifi_util = entry.get('utilization80211', 0)
-                result += f"- **WiFi Utilization**: {wifi_util:.2f}%\n"
-                    
-                # Non-WiFi utilization (interference)
-                non_wifi_util = entry.get('utilizationNon80211', 0)
-                result += f"- **Non-WiFi Interference**: {non_wifi_util:.2f}%\n"
-                    
-                # Total utilization
-                total_util = entry.get('utilizationTotal', 0)
-                result += f"- **Total Utilization**: {total_util:.2f}%\n"
-                    
-                result += "\n"
-                
-            return result
-            
-        except Exception as e:
-            return f"Error retrieving channel utilization: {str(e)}"
+        # This tool is deprecated - redirect to the correct tool
+        return ("❌ This tool is deprecated. Use get_network_wireless_channel_utilization_history instead.\n\n"
+                "💡 **The correct tool to use:**\n"
+                f"get_network_wireless_channel_utilization_history('{network_id}', device_serial='{device_serial or 'Q2XX-XXXX-XXXX'}', band='2.4')\n\n"
+                "**Required parameters:**\n"
+                "- network_id\n"
+                "- device_serial (get from get_network_devices)\n" 
+                "- band ('2.4', '5', or '6')\n\n"
+                "OR use client_id instead of device_serial+band:\n"
+                f"get_network_wireless_channel_utilization_history('{network_id}', client_id='k74272e')\n\n"
+                "This provides the same channel utilization data with proper parameter support.")
     
     @app.tool(
         name="configure_ssid_bridge_mode",

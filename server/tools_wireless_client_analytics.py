@@ -383,13 +383,40 @@ def register_client_specific_stats_tools():
             )
             
             response = f"# 📊 Device {serial} - Connection Stats\n\n"
+            response += f"**Time Period**: {timespan/3600:.0f} hours\n\n"
             
             if isinstance(result, dict):
-                response += f"**Associations**: {result.get('assoc', 0)}\n"
-                response += f"**Authentications**: {result.get('auth', 0)}\n"
-                response += f"**DHCP**: {result.get('dhcp', 0)}\n"
-                response += f"**DNS**: {result.get('dns', 0)}\n"
-                response += f"**Successful Connections**: {result.get('success', 0)}\n"
+                # Check if all values are 0 or None
+                has_data = any([
+                    result.get('assoc', 0) > 0,
+                    result.get('auth', 0) > 0,
+                    result.get('dhcp', 0) > 0,
+                    result.get('dns', 0) > 0,
+                    result.get('success', 0) > 0
+                ])
+                
+                if not has_data:
+                    response += "⚠️ **No connection activity in this time period**\n\n"
+                    response += "**Possible reasons:**\n"
+                    response += "- No clients connected to this AP during the timespan\n"
+                    response += "- AP was offline or rebooting\n"
+                    response += "- Analytics data collection not enabled\n\n"
+                    response += "💡 **Tips:**\n"
+                    response += "- Try a longer timespan (e.g., 86400 for 24 hours)\n"
+                    response += "- Check if the AP has connected clients: get_device_wireless_status\n"
+                    response += "- Use get_network_wireless_connection_stats for network-wide stats\n"
+                else:
+                    response += f"**Associations**: {result.get('assoc', 0)}\n"
+                    response += f"**Authentications**: {result.get('auth', 0)}\n"
+                    response += f"**DHCP**: {result.get('dhcp', 0)}\n"
+                    response += f"**DNS**: {result.get('dns', 0)}\n"
+                    response += f"**Successful Connections**: {result.get('success', 0)}\n"
+                    
+                    # Calculate success rate if there were attempts
+                    total_attempts = result.get('assoc', 0)
+                    if total_attempts > 0:
+                        success_rate = (result.get('success', 0) / total_attempts) * 100
+                        response += f"\n**Success Rate**: {success_rate:.1f}%\n"
             
             return response
             
@@ -797,7 +824,7 @@ def register_specialized_features_tools():
     
     @app.tool(
         name="get_network_wireless_channel_utilization_history",
-        description="📡📈 Get channel utilization history (REQUIRES: device_serial OR client_id, plus band parameter)"
+        description="📡📈 Get channel utilization history (REQUIRES: device_serial + band OR client_id)"
     )
     def get_network_wireless_channel_utilization_history(
         network_id: str,
@@ -811,11 +838,23 @@ def register_specialized_features_tools():
         ap_tag: Optional[str] = None,
         band: Optional[str] = None
     ):
-        """Get channel utilization history. Requires either device_serial OR client_id."""
+        """Get channel utilization history. Requires either device_serial+band OR client_id."""
         try:
             # API requires either device or client
             if not device_serial and not client_id:
-                return "❌ Error: Must specify either device_serial or client_id parameter"
+                return ("❌ Error: Must specify either:\n"
+                        "  • device_serial + band parameters (e.g., band='2.4' or '5')\n"
+                        "  • client_id parameter\n\n"
+                        "💡 Examples:\n"
+                        f"  • get_network_wireless_channel_utilization_history('{network_id}', device_serial='Q2XX-XXXX-XXXX', band='2.4')\n"
+                        f"  • get_network_wireless_channel_utilization_history('{network_id}', client_id='k74272e')")
+            
+            # When device_serial is provided, band is required
+            if device_serial and not band:
+                return ("❌ Error: When using device_serial, band parameter is required\n\n"
+                        "💡 Valid band values: '2.4', '5', or '6'\n\n"
+                        "Example:\n"
+                        f"  get_network_wireless_channel_utilization_history('{network_id}', device_serial='{device_serial}', band='2.4')")
             
             kwargs = {}
             
@@ -851,24 +890,39 @@ def register_specialized_features_tools():
             if isinstance(result, list) and result:
                 response += f"**Data Points**: {len(result)}\n\n"
                 
-                # Get average utilization
-                total_util = sum(d.get('utilization80211', 0) for d in result)
-                avg_util = total_util / len(result) if result else 0
-                
-                response += f"## Statistics\n"
-                response += f"- **Average 802.11 Utilization**: {avg_util:.1f}%\n"
-                
-                # Find peak utilization
-                peak = max(result, key=lambda x: x.get('utilization80211', 0))
-                response += f"- **Peak Utilization**: {peak.get('utilization80211', 0):.1f}%\n"
-                response += f"- **Peak Time**: {peak.get('startTs')}\n"
+                # Get average utilization - handle None values
+                valid_utils = [d.get('utilization80211') for d in result if d.get('utilization80211') is not None]
+                if valid_utils:
+                    avg_util = sum(valid_utils) / len(valid_utils)
+                    response += f"## Statistics\n"
+                    response += f"- **Average 802.11 Utilization**: {avg_util:.1f}%\n"
+                    
+                    # Find peak utilization
+                    peak = max(result, key=lambda x: x.get('utilization80211', 0) if x.get('utilization80211') is not None else 0)
+                    peak_val = peak.get('utilization80211')
+                    if peak_val is not None:
+                        response += f"- **Peak Utilization**: {peak_val:.1f}%\n"
+                        response += f"- **Peak Time**: {peak.get('startTs')}\n"
+                else:
+                    response += "## Statistics\n"
+                    response += "- **No utilization data available**\n"
                 
                 # Show recent data points
                 response += f"\n## Recent Utilization\n"
                 for point in result[-5:]:  # Last 5 points
                     response += f"- {point.get('startTs')}: "
-                    response += f"WiFi {point.get('utilization80211', 0):.1f}%, "
-                    response += f"Non-WiFi {point.get('utilizationNon80211', 0):.1f}%\n"
+                    wifi_util = point.get('utilization80211')
+                    non_wifi_util = point.get('utilizationNon80211')
+                    
+                    if wifi_util is not None:
+                        response += f"WiFi {wifi_util:.1f}%, "
+                    else:
+                        response += f"WiFi N/A, "
+                    
+                    if non_wifi_util is not None:
+                        response += f"Non-WiFi {non_wifi_util:.1f}%\n"
+                    else:
+                        response += f"Non-WiFi N/A\n"
             
             return response
             

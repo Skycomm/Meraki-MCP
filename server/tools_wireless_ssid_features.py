@@ -678,13 +678,14 @@ def register_bluetooth_tools():
     
     @app.tool(
         name="update_network_wireless_bluetooth_settings",
-        description="📡🔵 Update Bluetooth settings for wireless network"
+        description="📡🔵 Update Bluetooth settings (majorMinorMode: 'Unique' or 'Non-unique')"
     )
     def update_network_wireless_bluetooth_settings(
         network_id: str,
         scanning_enabled: Optional[bool] = None,
         advertising_enabled: Optional[bool] = None,
         uuid: Optional[str] = None,
+        major_minor_mode: Optional[str] = None,
         major: Optional[int] = None,
         minor: Optional[int] = None
     ):
@@ -698,9 +699,17 @@ def register_bluetooth_tools():
                 kwargs['advertisingEnabled'] = advertising_enabled
             if uuid:
                 kwargs['uuid'] = uuid
-            if major is not None:
+            if major_minor_mode:
+                kwargs['majorMinorAssignmentMode'] = major_minor_mode
+                # Major and minor only valid when mode is 'Non-unique'
+                if major_minor_mode == 'Non-unique':
+                    if major is not None:
+                        kwargs['major'] = major
+                    if minor is not None:
+                        kwargs['minor'] = minor
+            elif major is not None or minor is not None:
+                # If no mode specified but major/minor provided, assume Non-unique
                 kwargs['major'] = major
-            if minor is not None:
                 kwargs['minor'] = minor
             
             result = meraki_client.dashboard.wireless.updateNetworkWirelessBluetoothSettings(
