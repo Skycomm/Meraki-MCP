@@ -160,11 +160,11 @@ def register_helper_tool_handlers():
     
     @app.tool(
         name="check_network_health",
-        description="🏥 Check network health - uplink status, packet loss, device issues, recent events, performance metrics"
+        description="🏥 Check network health - device status, recent events, wireless performance metrics"
     )
     def check_network_health(network_id: str):
         """
-        Check overall network health including uplinks, devices, and performance.
+        Check overall network health including devices and performance.
         
         Args:
             network_id: ID of the network to check
@@ -177,53 +177,65 @@ def register_helper_tool_handlers():
             network = meraki_client.get_network(network_id)
             network_name = network.get('name', 'Unknown')
             org_id = network.get('organizationId')
+            product_types = network.get('productTypes', [])
             
             health_report = []
             health_report.append(f"# 🏥 Network Health Report: {network_name}")
-            health_report.append(f"**Check Time**: {__import__('datetime').datetime.now().isoformat()}\n")
+            health_report.append(f"**Check Time**: {__import__('datetime').datetime.now().isoformat()}")
+            health_report.append(f"**Product Types**: {', '.join(product_types)}\n")
             
-            # 1. Check uplink status
-            try:
-                # Get organization uplink statuses
-                uplink_statuses = meraki_client.get_organization_appliance_uplink_statuses(org_id)
-                network_uplinks = [u for u in uplink_statuses if u.get('networkId') == network_id]
-                
-                if network_uplinks:
-                    health_report.append("## 🌐 Uplink Status")
-                    for uplink in network_uplinks:
-                        for interface in uplink.get('uplinks', []):
-                            status = interface.get('status', 'unknown')
-                            interface_name = interface.get('interface', 'Unknown')
-                            if status == 'active':
-                                health_report.append(f"- ✅ {interface_name}: Active")
+            # 1. For wireless networks, check connection stats
+            if 'wireless' in product_types:
+                try:
+                    conn_stats = meraki_client.dashboard.wireless.getNetworkWirelessConnectionStats(
+                        network_id, timespan=3600
+                    )
+                    if conn_stats:
+                        health_report.append("## 📡 Wireless Performance (Last Hour)")
+                        
+                        # Calculate success rate from raw counts
+                        success_count = conn_stats.get('success', 0)
+                        auth_fails = conn_stats.get('auth', 0)
+                        assoc_fails = conn_stats.get('assoc', 0)
+                        dhcp_fails = conn_stats.get('dhcp', 0)
+                        dns_fails = conn_stats.get('dns', 0)
+                        
+                        total_attempts = success_count + auth_fails + assoc_fails + dhcp_fails + dns_fails
+                        
+                        if total_attempts > 0:
+                            success_rate = (success_count / total_attempts) * 100
+                            if success_rate < 90:
+                                health_report.append(f"- ⚠️ Success Rate: {success_rate:.1f}% (LOW)")
                             else:
-                                health_report.append(f"- ❌ {interface_name}: {status}")
-                    health_report.append("")
-            except:
-                health_report.append("## ⚠️ Uplink Status: Unable to check\n")
-            
-            # 2. Check packet loss and latency
-            try:
-                loss_latency = meraki_client.get_organization_uplinks_loss_and_latency(org_id, timespan=300)
-                for uplink in loss_latency:
-                    if uplink.get('networkId') == network_id:
-                        loss_percent = uplink.get('lossPercent', 0)
-                        latency_ms = uplink.get('latencyMs', 0)
-                        
-                        health_report.append("## 📊 Network Performance (Last 5 min)")
-                        if loss_percent > 1:
-                            health_report.append(f"- ❌ Packet Loss: {loss_percent}% (HIGH)")
-                        else:
-                            health_report.append(f"- ✅ Packet Loss: {loss_percent}%")
-                        
-                        if latency_ms > 100:
-                            health_report.append(f"- ⚠️ Latency: {latency_ms}ms (HIGH)")
-                        else:
-                            health_report.append(f"- ✅ Latency: {latency_ms}ms")
+                                health_report.append(f"- ✅ Success Rate: {success_rate:.1f}%")
+                            
+                            if auth_fails > 0:
+                                auth_fail_rate = (auth_fails / total_attempts) * 100
+                                health_report.append(f"- ❌ Auth Failures: {auth_fail_rate:.1f}% ({auth_fails} failures)")
                         health_report.append("")
-                        break
-            except:
-                health_report.append("## ⚠️ Performance Metrics: Unable to check\n")
+                except:
+                    pass
+            
+            # 2. For appliance networks, check uplink status
+            if 'appliance' in product_types:
+                try:
+                    # Get organization uplink statuses
+                    uplink_statuses = meraki_client.get_organization_appliance_uplink_statuses(org_id)
+                    network_uplinks = [u for u in uplink_statuses if u.get('networkId') == network_id]
+                    
+                    if network_uplinks:
+                        health_report.append("## 🌐 Uplink Status")
+                        for uplink in network_uplinks:
+                            for interface in uplink.get('uplinks', []):
+                                status = interface.get('status', 'unknown')
+                                interface_name = interface.get('interface', 'Unknown')
+                                if status == 'active':
+                                    health_report.append(f"- ✅ {interface_name}: Active")
+                                else:
+                                    health_report.append(f"- ❌ {interface_name}: {status}")
+                        health_report.append("")
+                except:
+                    pass
             
             # 3. Check device status
             try:

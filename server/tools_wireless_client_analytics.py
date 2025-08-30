@@ -719,56 +719,6 @@ def register_specialized_features_tools():
             return f"❌ Error getting Ethernet statuses: {str(e)}"
     
     @app.tool(
-        name="get_network_wireless_clients_health_scores",
-        description="📡❤️ Get health scores for wireless clients"
-    )
-    def get_network_wireless_clients_health_scores(
-        network_id: str,
-        t0: Optional[str] = None,
-        t1: Optional[str] = None,
-        timespan: Optional[float] = 86400,
-        per_page: Optional[int] = 1000
-    ):
-        """Get health scores for wireless clients."""
-        try:
-            kwargs = {'perPage': per_page}
-            
-            if t0:
-                kwargs['t0'] = t0
-            if t1:
-                kwargs['t1'] = t1
-            if timespan:
-                kwargs['timespan'] = timespan
-            
-            result = meraki_client.dashboard.wireless.getNetworkWirelessClientsHealthScores(
-                network_id, **kwargs
-            )
-            
-            response = f"# ❤️ Wireless Clients Health Scores\n\n"
-            
-            if isinstance(result, list):
-                response += f"**Total Clients**: {len(result)}\n\n"
-                
-                # Sort by health score
-                sorted_clients = sorted(result, key=lambda x: x.get('healthScore', 0))
-                
-                response += "## Clients with Lowest Health Scores\n"
-                for client in sorted_clients[:10]:
-                    score = client.get('healthScore', 0)
-                    emoji = "🟢" if score >= 8 else "🟡" if score >= 5 else "🔴"
-                    response += f"- {emoji} **{client.get('mac')}**: Score {score}/10\n"
-                    
-                    if client.get('performance'):
-                        perf = client.get('performance', {})
-                        response += f"  - Latency: {perf.get('latency', 0)} ms\n"
-                        response += f"  - Speed: {perf.get('speed', 0)} Mbps\n"
-            
-            return response
-            
-        except Exception as e:
-            return f"❌ Error getting client health scores: {str(e)}"
-    
-    @app.tool(
         name="get_network_wireless_devices_connection_stats",
         description="📡📊 Get connection stats for all wireless devices in network"
     )
