@@ -68,7 +68,7 @@ def register_wireless_tool_handlers():
                     use_vlan = ssid.get('useVlanTagging', False)
                     if use_vlan:
                         result += f"- VLAN Tagging: Enabled\n"
-                        result += f"- VLAN ID: {ssid.get('vlanId', 'Not set')}\n"
+                        result += f"- VLAN ID: {ssid.get('defaultVlanId', 'Not set')}\n"
                 
                 # Add additional settings
                 result += f"- Band Selection: {ssid.get('bandSelection', 'Unknown')}\n"
