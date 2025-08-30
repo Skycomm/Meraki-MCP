@@ -1191,6 +1191,8 @@ def register_history_tools():
     )
     def get_network_wireless_signal_quality_history(
         network_id: str,
+        device_serial: Optional[str] = None,
+        client_id: Optional[str] = None,
         t0: Optional[str] = None,
         t1: Optional[str] = None,
         timespan: Optional[float] = 86400,
@@ -1198,9 +1200,15 @@ def register_history_tools():
         ssid: Optional[int] = None,
         ap_tag: Optional[str] = None
     ):
-        """Get historical signal quality data."""
+        """Get historical signal quality data. Requires either device_serial OR client_id."""
         try:
+            # API requires either device or client
+            if not device_serial and not client_id:
+                return "❌ Error: Must specify either device_serial or client_id parameter"
+            
             kwargs = {'timespan': timespan}
+            if device_serial: kwargs['deviceSerial'] = device_serial
+            if client_id: kwargs['clientId'] = client_id
             if t0: kwargs['t0'] = t0
             if t1: kwargs['t1'] = t1
             if resolution: kwargs['resolution'] = resolution

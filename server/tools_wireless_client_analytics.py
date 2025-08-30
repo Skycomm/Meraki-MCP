@@ -885,8 +885,12 @@ def register_specialized_features_tools():
         ap_tag: Optional[str] = None,
         band: Optional[str] = None
     ):
-        """Get channel utilization history."""
+        """Get channel utilization history. Requires either device_serial OR client_id."""
         try:
+            # API requires either device or client
+            if not device_serial and not client_id:
+                return "❌ Error: Must specify either device_serial or client_id parameter"
+            
             kwargs = {}
             
             if t0:
@@ -895,10 +899,13 @@ def register_specialized_features_tools():
                 kwargs['t1'] = t1
             if timespan:
                 kwargs['timespan'] = timespan
-            if resolution:
-                kwargs['resolution'] = resolution
+            # Only set resolution if auto_resolution is False or None
             if auto_resolution is not None:
                 kwargs['autoResolution'] = auto_resolution
+                if not auto_resolution and resolution:
+                    kwargs['resolution'] = resolution
+            elif resolution:
+                kwargs['resolution'] = resolution
             if client_id:
                 kwargs['clientId'] = client_id
             if device_serial:
