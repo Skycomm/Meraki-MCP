@@ -1148,8 +1148,12 @@ def register_history_tools():
         ssid: Optional[int] = None,
         ap_tag: Optional[str] = None
     ):
-        """Get historical wireless usage data. Optional filters for device or client."""
+        """Get historical wireless usage data. Requires either device_serial OR client_id."""
         try:
+            # API requires either device or client
+            if not device_serial and not client_id:
+                return "❌ Error: Must specify either device_serial or client_id parameter"
+            
             kwargs = {'timespan': timespan}
             if device_serial: kwargs['deviceSerial'] = device_serial
             if client_id: kwargs['clientId'] = client_id
