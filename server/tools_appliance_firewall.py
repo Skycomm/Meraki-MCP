@@ -639,7 +639,8 @@ def register_appliance_firewall_tools(mcp_app, meraki):
     
     # ==================== FIREWALL SETTINGS ====================
     
-    @app.tool(
+    # SKIP: Already defined in tools_appliance.py
+    '''@app.tool(
         name="get_network_appliance_firewall_settings",
         description="🔥⚙️ Get firewall spoofing protection settings"
     )
@@ -662,9 +663,10 @@ def register_appliance_firewall_tools(mcp_app, meraki):
             
             return response
         except Exception as e:
-            return f"❌ Error getting firewall settings: {str(e)}"
+            return f"❌ Error getting firewall settings: {str(e)}"'''
     
-    @app.tool(
+    # SKIP: Already defined in tools_appliance.py
+    '''@app.tool(
         name="update_network_appliance_firewall_settings",
         description="🔥⚙️ Update firewall settings (ip_source_guard: none/dhcp)"
     )
@@ -699,4 +701,4 @@ def register_appliance_firewall_tools(mcp_app, meraki):
             
             return response
         except Exception as e:
-            return f"❌ Error updating firewall settings: {str(e)}"
+            return f"❌ Error updating firewall settings: {str(e)}"'''

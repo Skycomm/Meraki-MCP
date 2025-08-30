@@ -26,7 +26,8 @@ def register_appliance_extended_tools(mcp_app, meraki):
     
     # ==================== VLAN MANAGEMENT ====================
     
-    @app.tool(
+    # SKIP: Already defined in tools_appliance.py
+    '''@app.tool(
         name="create_network_appliance_vlan",
         description="🔧➕ Create a new VLAN on MX appliance (id, name, subnet, appliance_ip)"
     )
@@ -88,9 +89,10 @@ def register_appliance_extended_tools(mcp_app, meraki):
             
             return response
         except Exception as e:
-            return f"❌ Error creating VLAN: {str(e)}"
+            return f"❌ Error creating VLAN: {str(e)}"'''
     
-    @app.tool(
+    # SKIP: Already defined in tools_appliance.py
+    '''@app.tool(
         name="delete_network_appliance_vlan",
         description="🔧❌ Delete a VLAN from MX appliance"
     )
@@ -109,7 +111,7 @@ def register_appliance_extended_tools(mcp_app, meraki):
             
             return response
         except Exception as e:
-            return f"❌ Error deleting VLAN: {str(e)}"
+            return f"❌ Error deleting VLAN: {str(e)}"'''
     
     @app.tool(
         name="get_network_appliance_vlan",
@@ -150,7 +152,8 @@ def register_appliance_extended_tools(mcp_app, meraki):
         except Exception as e:
             return f"❌ Error getting VLAN: {str(e)}"
     
-    @app.tool(
+    # SKIP: Already defined in tools_appliance.py
+    '''@app.tool(
         name="update_network_appliance_vlan",
         description="🔧✏️ Update VLAN settings (name, subnet, dhcp, dns)"
     )
@@ -194,7 +197,7 @@ def register_appliance_extended_tools(mcp_app, meraki):
             
             return response
         except Exception as e:
-            return f"❌ Error updating VLAN: {str(e)}"
+            return f"❌ Error updating VLAN: {str(e)}"'''
     
     @app.tool(
         name="get_network_appliance_vlans_settings",
@@ -237,7 +240,8 @@ def register_appliance_extended_tools(mcp_app, meraki):
     
     # ==================== STATIC ROUTES ====================
     
-    @app.tool(
+    # SKIP: Already defined in tools_appliance.py
+    '''@app.tool(
         name="create_network_appliance_static_route",
         description="🔧🛤️ Create static route (name, subnet, gateway_ip, gateway_vlan_id)"
     )
@@ -288,7 +292,7 @@ def register_appliance_extended_tools(mcp_app, meraki):
             
             return response
         except Exception as e:
-            return f"❌ Error creating static route: {str(e)}"
+            return f"❌ Error creating static route: {str(e)}"'''
     
     @app.tool(
         name="delete_network_appliance_static_route",
@@ -337,7 +341,8 @@ def register_appliance_extended_tools(mcp_app, meraki):
         except Exception as e:
             return f"❌ Error getting static route: {str(e)}"
     
-    @app.tool(
+    # SKIP: Already defined in tools_appliance.py
+    '''@app.tool(
         name="get_network_appliance_static_routes",
         description="🔧🛤️ List all static routes for the network"
     )
@@ -364,7 +369,7 @@ def register_appliance_extended_tools(mcp_app, meraki):
             
             return response
         except Exception as e:
-            return f"❌ Error getting static routes: {str(e)}"
+            return f"❌ Error getting static routes: {str(e)}"'''
     
     @app.tool(
         name="update_network_appliance_static_route",
