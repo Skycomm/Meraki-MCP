@@ -300,7 +300,7 @@ def register_monitoring_tool_handlers():
     
     @app.tool(
         name="get_network_events",
-        description="📋 Get network events - security alerts, config changes, port flapping, device status, admin activity"
+        description="📋 Get network events (TIP: Specify product_type for multi-device networks: appliance/switch/wireless/camera)"
     )
     def get_network_events(network_id: str, product_type: str = None, event_types: str = None, 
                           per_page: int = 1000, timespan: int = 86400):
@@ -327,8 +327,50 @@ def register_monitoring_tool_handlers():
                 kwargs['productType'] = product_type
             if event_types:
                 kwargs['includedEventTypes'] = event_types.split(',')
-                
-            events = meraki_client.get_network_events(network_id, **kwargs)
+            
+            # Try to get events without productType first
+            try:
+                events = meraki_client.get_network_events(network_id, **kwargs)
+            except Exception as e:
+                error_msg = str(e)
+                # Check if productType is required
+                if 'productType' in error_msg or 'multiple device types' in error_msg:
+                    # Try to detect network types
+                    try:
+                        network_info = meraki_client.dashboard.networks.getNetwork(network_id)
+                        product_types = network_info.get('productTypes', [])
+                        
+                        if not product_types:
+                            # Try to detect from devices
+                            devices = meraki_client.dashboard.networks.getNetworkDevices(network_id)
+                            detected_types = set()
+                            for device in devices:
+                                model = device.get('model', '')
+                                if model.startswith('MX'):
+                                    detected_types.add('appliance')
+                                elif model.startswith('MS'):
+                                    detected_types.add('switch')
+                                elif model.startswith('MR'):
+                                    detected_types.add('wireless')
+                                elif model.startswith('MV'):
+                                    detected_types.add('camera')
+                            product_types = list(detected_types)
+                        
+                        if product_types:
+                            return ("❌ Network has multiple device types. Please specify product_type parameter:\n"
+                                   f"Available types: {', '.join(product_types)}\n\n"
+                                   "💡 Examples:\n"
+                                   f"  • get_network_events('{network_id}', product_type='wireless')\n"
+                                   f"  • get_network_events('{network_id}', product_type='switch')\n"
+                                   f"  • get_network_events('{network_id}', product_type='appliance')")
+                    except:
+                        pass
+                    
+                    return ("❌ This network requires productType parameter.\n"
+                           "Common values: appliance, switch, wireless, camera\n\n"
+                           "💡 Try: get_network_events(network_id, product_type='wireless')")
+                else:
+                    raise  # Re-raise original error
             
             if not events:
                 return f"No events found for network {network_id} in the last {timespan/3600:.0f} hours."

@@ -41,7 +41,53 @@ python test_100_sdk_coverage.py
 
 # Run the MCP server
 .venv/bin/python meraki_server.py
+
+# Test API fixes as MCP client would
+python test_api_fixes.py
 ```
+
+### Testing as an MCP Client
+
+When fixing API issues or testing tools, **always test as an MCP client would use them**, not directly against the API. This ensures the fixes work correctly in real-world usage (like Claude Desktop).
+
+**How to test API fixes:**
+
+1. **Create a test script that imports the MCP server:**
+```python
+from server.main import app, meraki
+
+# Test the tool as MCP client would call it
+result = meraki.dashboard.networks.getNetworkEvents(
+    network_id,
+    productType='wireless',  # Required for multi-device networks
+    perPage=10
+)
+```
+
+2. **Run with proper error handling to see helpful messages:**
+```python
+try:
+    result = meraki.dashboard.wireless.getNetworkWirelessUsage(network_id)
+except Exception as e:
+    print(f"Error message that MCP client sees: {e}")
+    # Should show helpful guidance about missing parameters
+```
+
+3. **Test edge cases like NULL data:**
+```python
+# History endpoints may return NULL when analytics not enabled
+result = meraki.dashboard.wireless.getNetworkWirelessClientCountHistory(
+    network_id, 
+    timespan=3600
+)
+# Should handle NULL gracefully and explain why
+```
+
+**Common testing patterns:**
+- Test with missing required parameters to ensure helpful error messages
+- Test with multi-device networks to catch productType requirements
+- Test history/analytics endpoints for NULL data handling
+- Verify confusing tool names redirect to correct ones
 
 ### Common Issues & Solutions
 
@@ -72,11 +118,18 @@ python test_100_sdk_coverage.py
    - Device/client wasn't connected during that time
    - Network is newly created and hasn't collected data yet
 
-4. **Non-existent API endpoints**
-   These tools reference endpoints that don't exist in the Meraki SDK:
-   - `get_network_wireless_devices_latencies` - Use `get_network_wireless_latency_stats` instead
+4. **API endpoints with confusing names**
+   - `get_network_wireless_devices_latencies` - Wrong name (typo), redirects to correct tool
+   - `get_network_wireless_devices_latency_stats` - Correct tool that works with just network_id!
    
-5. **Testing as MCP client**
+5. **Network Events API Special Requirements**
+   The `getNetworkEvents` API requires `productType` parameter for networks with multiple device types:
+   - Networks with appliance + switch + wireless need productType specified
+   - Valid values: appliance, camera, switch, wireless, cellularGateway, systemsManager
+   - The tool now auto-detects available types and provides helpful guidance
+   - Example: `get_network_events(network_id, product_type='wireless')`
+   
+6. **Testing as MCP client**
    When testing tools, always test as an MCP client would:
    ```python
    # Example testing pattern
@@ -92,11 +145,11 @@ python test_100_sdk_coverage.py
    )
    ```
 
-6. **Tool name exceeds 64 characters**
+7. **Tool name exceeds 64 characters**
    - Shorten the tool name (not description)
    - Common abbreviations: `organization` → `org`, `utilization` → `util`, `history` → `hist`
 
-7. **Missing required parameters**
+8. **Missing required parameters**
    - `getNetworkWirelessUsageHistory` requires either `device_serial` OR `client_id`
    - `getNetworkWirelessClientConnectivityEvents` needs proper parameter handling
 

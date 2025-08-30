@@ -199,7 +199,7 @@ def register_missing_network_tools():
     
     @app.tool(
         name="get_network_wireless_devices_latency_stats",
-        description="📡📊 Get latency stats for all wireless devices in network"
+        description="📡📊 Get aggregated latency stats for all wireless devices in network (works with just network_id)"
     )
     def get_network_wireless_devices_latency_stats(
         network_id: str,

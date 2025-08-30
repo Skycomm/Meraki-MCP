@@ -880,11 +880,10 @@ def register_radio_mesh_tools():
 def register_history_tools():
     """Register historical data and analytics tools."""
     
-    # NOTE: getNetworkWirelessDevicesLatencies doesn't exist in the SDK
-    # Use getNetworkWirelessLatencyStats instead
+    # NOTE: This is a duplicate - the correct tool is get_network_wireless_devices_latency_stats
     @app.tool(
         name="get_network_wireless_devices_latencies",
-        description="📡📊 Get latency statistics (NOTE: This endpoint may not be available)"
+        description="📡📊 Get latency statistics (REDIRECT: Use get_network_wireless_devices_latency_stats)"
     )
     def get_network_wireless_devices_latencies(
         network_id: str,
@@ -898,9 +897,10 @@ def register_history_tools():
         fields: Optional[str] = None
     ):
         """Get latency statistics for all wireless devices."""
-        return ("❌ This API endpoint doesn't exist in the Meraki SDK.\n"
-                "💡 Use get_network_wireless_latency_stats instead for network-wide latency statistics.\n"
-                "Or use get_device_wireless_latency_stats for specific device latency.")
+        return ("❌ Wrong tool name! The correct tool is: get_network_wireless_devices_latency_stats\n\n"
+                "💡 Use: get_network_wireless_devices_latency_stats\n"
+                "This tool exists and works correctly - just use the right name!\n\n"
+                "Example: get_network_wireless_devices_latency_stats(network_id)")
     
     @app.tool(
         name="get_network_wireless_devices_packet_loss",
