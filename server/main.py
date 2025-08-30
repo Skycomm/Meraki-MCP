@@ -39,6 +39,7 @@ from server.tools_monitoring import register_monitoring_tools
 from server.tools_beta import register_beta_tools
 from server.tools_live import register_live_tools
 from server.tools_helpers import register_helper_tools
+from server.tools_search import register_search_tools
 
 # Register resources and tools
 register_resources(app, meraki)
@@ -65,6 +66,7 @@ register_monitoring_tools(app, meraki)
 register_beta_tools(app, meraki)
 register_live_tools(app, meraki)
 register_helper_tools(app, meraki)
+register_search_tools(app, meraki)
 
 # When run directly, start the server
 if __name__ == "__main__":
