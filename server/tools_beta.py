@@ -29,12 +29,12 @@ def register_beta_tool_handlers():
         name="get_organization_early_access_features",
         description="🧪 List available early access features for organization"
     )
-    def get_organization_early_access_features(org_id: str):
+    def get_organization_early_access_features(organization_id: str):
         """
         List all available early access features for an organization.
         
         Args:
-            org_id: Organization ID
+            organization_id: Organization ID
             
         Returns:
             List of available early access features
@@ -88,12 +88,12 @@ def register_beta_tool_handlers():
         name="get_organization_early_access_features_opt_ins",
         description="🧪 List early access features opted into by organization"
     )
-    def get_organization_early_access_features_opt_ins(org_id: str):
+    def get_organization_early_access_features_opt_ins(organization_id: str):
         """
         List all early access features that the organization has opted into.
         
         Args:
-            org_id: Organization ID
+            organization_id: Organization ID
             
         Returns:
             List of opted-in early access features
@@ -138,12 +138,12 @@ def register_beta_tool_handlers():
         name="enable_organization_early_access_feature",
         description="🧪 Enable an early access feature for organization"
     )
-    def enable_organization_early_access_feature(org_id: str, feature_id: str, limit_to_networks: str = None):
+    def enable_organization_early_access_feature(organization_id: str, feature_id: str, limit_to_networks: str = None):
         """
         Opt into an early access feature for the organization.
         
         Args:
-            org_id: Organization ID
+            organization_id: Organization ID
             feature_id: Early access feature ID or short name
             limit_to_networks: Comma-separated network IDs to limit access (optional)
             
@@ -185,19 +185,19 @@ def register_beta_tool_handlers():
         name="disable_organization_early_access_feature",
         description="🧪 Disable an early access feature for organization"
     )
-    def disable_organization_early_access_feature(org_id: str, opt_in_id: str):
+    def disable_organization_early_access_feature(organization_id: str, opt_in_id: str):
         """
         Opt out of an early access feature for the organization.
         
         Args:
-            org_id: Organization ID
+            organization_id: Organization ID
             opt_in_id: Opt-in ID to disable
             
         Returns:
             Opt-out confirmation
         """
         try:
-            meraki_client.delete_organization_early_access_features_opt_in(org_id, opt_in_id)
+            meraki_client.delete_organization_early_access_features_opt_in(organization_id, opt_in_id)
             
             response = f"# 🧪 Early Access Feature Disabled\n\n"
             response += f"**Opt-In ID**: {opt_in_id}\n"
@@ -215,12 +215,12 @@ def register_beta_tool_handlers():
         name="get_organization_api_analytics",
         description="📊 View API usage analytics dashboard data"
     )
-    def get_organization_api_analytics(org_id: str, timespan: int = 86400):
+    def get_organization_api_analytics(organization_id: str, timespan: int = 86400):
         """
         Get API analytics for the organization (new 2025 feature).
         
         Args:
-            org_id: Organization ID
+            organization_id: Organization ID
             timespan: Time span in seconds (default 24 hours)
             
         Returns:
@@ -228,7 +228,7 @@ def register_beta_tool_handlers():
         """
         try:
             # This uses the existing API requests endpoint
-            requests = meraki_client.get_organization_api_requests(org_id, timespan=timespan)
+            requests = meraki_client.get_organization_api_requests(organization_id, timespan=timespan)
             
             if not requests:
                 return f"No API usage data available for organization {org_id}."

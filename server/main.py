@@ -48,6 +48,9 @@ from server.tools_batch import register_batch_tools
 from server.tools_live import register_live_tools
 from server.tools_helpers import register_helper_tools
 from server.tools_search import register_search_tools
+from server.tools_organizations_complete import register_organizations_complete_tools
+from server.tools_networks_complete import register_networks_complete_tools
+from server.tools_adaptive_policy import register_adaptive_policy_tools
 
 # Register resources and tools
 register_resources(app, meraki)
@@ -83,6 +86,9 @@ register_batch_tools(app, meraki)
 register_live_tools(app, meraki)
 register_helper_tools(app, meraki)
 register_search_tools(app, meraki)
+register_organizations_complete_tools(app, meraki)
+register_networks_complete_tools(app, meraki)
+register_adaptive_policy_tools(app, meraki)
 
 # When run directly, start the server
 if __name__ == "__main__":

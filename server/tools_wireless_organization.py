@@ -424,14 +424,32 @@ def register_organization_packet_loss_tools():
             if devices:
                 response += f"**Total Devices**: {len(devices)}\n\n"
                 
-                # Show devices with highest packet loss
-                sorted_devices = sorted(devices, key=lambda x: x.get('lossPercentage', 0), reverse=True)
-                response += "## Devices with Highest Packet Loss\n"
-                for device in sorted_devices[:10]:
-                    response += f"- **{device.get('name')}** ({device.get('serial')})\n"
-                    response += f"  - Loss: {device.get('lossPercentage', 0):.1f}%\n"
-                    response += f"  - Network: {device.get('network', {}).get('name')}\n"
-                    response += f"  - Model: {device.get('model')}\n"
+                # Sort devices by downstream packet loss
+                sorted_devices = sorted(devices, 
+                    key=lambda x: x.get('downstream', {}).get('lossPercentage', 0), 
+                    reverse=True)
+                
+                response += "## Devices with Packet Loss\n"
+                for device_data in sorted_devices[:10]:
+                    device_info = device_data.get('device', {})
+                    network_info = device_data.get('network', {})
+                    downstream = device_data.get('downstream', {})
+                    upstream = device_data.get('upstream', {})
+                    
+                    response += f"- **{device_info.get('name', 'Unknown')}** ({device_info.get('serial', 'N/A')})\n"
+                    response += f"  - Network: {network_info.get('name', 'Unknown')}\n"
+                    
+                    # Downstream stats
+                    if downstream:
+                        response += f"  - Downstream Loss: {downstream.get('lossPercentage', 0):.1f}% "
+                        response += f"({downstream.get('lost', 0):,}/{downstream.get('total', 0):,})\n"
+                    
+                    # Upstream stats  
+                    if upstream:
+                        response += f"  - Upstream Loss: {upstream.get('lossPercentage', 0):.1f}% "
+                        response += f"({upstream.get('lost', 0):,}/{upstream.get('total', 0):,})\n"
+                    
+                    response += "\n"
             else:
                 response += "No packet loss data available\n"
             
@@ -479,14 +497,27 @@ def register_organization_packet_loss_tools():
             if networks:
                 response += f"**Total Networks**: {len(networks)}\n\n"
                 
-                # Show networks with highest packet loss
-                sorted_networks = sorted(networks, key=lambda x: x.get('lossPercentage', 0), reverse=True)
-                response += "## Networks with Highest Packet Loss\n"
-                for network in sorted_networks:
-                    response += f"- **{network.get('name')}**\n"
-                    response += f"  - Loss: {network.get('lossPercentage', 0):.1f}%\n"
-                    response += f"  - Clients: {network.get('clientCount', 0)}\n"
-                    response += f"  - Devices: {network.get('deviceCount', 0)}\n"
+                # Show networks with packet loss data
+                response += "## Packet Loss by Network\n"
+                for network_data in networks:
+                    network_info = network_data.get('network', {})
+                    downstream = network_data.get('downstream', {})
+                    upstream = network_data.get('upstream', {})
+                    
+                    response += f"- **{network_info.get('name', 'Unknown')}**\n"
+                    response += f"  - Network ID: {network_info.get('id', 'N/A')}\n"
+                    
+                    # Downstream stats
+                    if downstream:
+                        response += f"  - Downstream Loss: {downstream.get('lossPercentage', 0):.1f}% "
+                        response += f"({downstream.get('lost', 0):,}/{downstream.get('total', 0):,} packets)\n"
+                    
+                    # Upstream stats
+                    if upstream:
+                        response += f"  - Upstream Loss: {upstream.get('lossPercentage', 0):.1f}% "
+                        response += f"({upstream.get('lost', 0):,}/{upstream.get('total', 0):,} packets)\n"
+                    
+                    response += "\n"
             else:
                 response += "No packet loss data available\n"
             

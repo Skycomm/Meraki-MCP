@@ -25,14 +25,14 @@ class MerakiClient:
         """Get all organizations the user has access to."""
         return self.dashboard.organizations.getOrganizations()
     
-    def get_organization(self, org_id: str) -> Dict[str, Any]:
+    def get_organization(self, organization_id: str) -> Dict[str, Any]:
         """Get information about a specific organization."""
-        return self.dashboard.organizations.getOrganization(org_id)
+        return self.dashboard.organizations.getOrganization(organization_id)
     
     # Networks
-    def get_organization_networks(self, org_id: str) -> List[Dict[str, Any]]:
+    def get_organization_networks(self, organization_id: str) -> List[Dict[str, Any]]:
         """Get networks in an organization."""
-        return self.dashboard.organizations.getOrganizationNetworks(org_id, perPage=1000, total_pages='all')
+        return self.dashboard.organizations.getOrganizationNetworks(organization_id, perPage=1000, total_pages='all')
     
     def get_network(self, network_id: str) -> Dict[str, Any]:
         """Get information about a specific network."""
@@ -70,14 +70,14 @@ class MerakiClient:
         return self.dashboard.appliance.getNetworkApplianceVlans(network_id)
     
     # Alerts
-    def get_organization_alerts(self, org_id: str) -> List[Dict[str, Any]]:
+    def get_organization_alerts(self, organization_id: str) -> List[Dict[str, Any]]:
         """Get alert profiles for an organization."""
-        return self.dashboard.organizations.getOrganizationAlertsProfiles(org_id)
+        return self.dashboard.organizations.getOrganizationAlertsProfiles(organization_id)
     
     # Firmware
-    def get_organization_firmware_upgrades(self, org_id: str) -> List[Dict[str, Any]]:
+    def get_organization_firmware_upgrades(self, organization_id: str) -> List[Dict[str, Any]]:
         """Get firmware upgrades for an organization."""
-        return self.dashboard.organizations.getOrganizationFirmwareUpgrades(org_id)
+        return self.dashboard.organizations.getOrganizationFirmwareUpgrades(organization_id)
     
     # Switch ports
     def get_device_switch_ports(self, serial: str) -> List[Dict[str, Any]]:
@@ -94,13 +94,13 @@ class MerakiClient:
         return self.dashboard.camera.getDeviceCameraVideoLink(serial, timestamp=timestamp)
     
     # REAL Analytics API Methods
-    def get_organization_devices_uplinks_loss_and_latency(self, org_id: str, timespan: int = 300):
+    def get_organization_devices_uplinks_loss_and_latency(self, organization_id: str, timespan: int = 300):
         """Get organization uplinks loss and latency - REAL packet loss data."""
-        return self.dashboard.organizations.getOrganizationDevicesUplinksLossAndLatency(org_id, timespan=timespan)
+        return self.dashboard.organizations.getOrganizationDevicesUplinksLossAndLatency(organization_id, timespan=timespan)
     
-    def get_organization_appliance_uplink_statuses(self, org_id: str):
+    def get_organization_appliance_uplink_statuses(self, organization_id: str):
         """Get appliance uplink statuses - REAL uplink status data."""
-        return self.dashboard.appliance.getOrganizationApplianceUplinkStatuses(org_id)
+        return self.dashboard.appliance.getOrganizationApplianceUplinkStatuses(organization_id)
     
     def get_device_appliance_performance(self, serial: str):
         """Get appliance performance - REAL method."""
@@ -247,12 +247,12 @@ class MerakiClient:
         return self.dashboard.devices.rebootDevice(serial)
     
     # REAL Organization Management Methods
-    def get_organization_admins(self, org_id: str, network_ids: List[str] = None) -> List[Dict[str, Any]]:
+    def get_organization_admins(self, organization_id: str, network_ids: List[str] = None) -> List[Dict[str, Any]]:
         """Get dashboard administrators for an organization - REAL method."""
         kwargs = {}
         if network_ids:
-            kwargs['networkIds'] = network_ids
-        return self.dashboard.organizations.getOrganizationAdmins(org_id, **kwargs)
+            kwargs['network_ids'] = network_ids
+        return self.dashboard.organizations.getOrganizationAdmins(organization_id, **kwargs)
     
     def create_organization(self, name: str) -> Dict[str, Any]:
         """Create a new organization - REAL method."""
@@ -275,7 +275,7 @@ class MerakiClient:
         """Get switch VLANs - This is not a per-device API, getting network VLANs instead."""
         # Note: Meraki API doesn't have per-device VLAN endpoint, VLANs are network-wide
         device = self.dashboard.devices.getDevice(serial)
-        network_id = device.get('networkId')
+        network_id = device.get('network_id')
         if network_id:
             return self.dashboard.appliance.getNetworkApplianceVlans(network_id)
         return []
@@ -284,7 +284,7 @@ class MerakiClient:
         """Create a VLAN - VLANs are network-wide in Meraki, not per-device."""
         # Get the network ID from the device
         device = self.dashboard.devices.getDevice(serial)
-        network_id = device.get('networkId')
+        network_id = device.get('network_id')
         if not network_id:
             raise ValueError(f"Device {serial} is not in a network")
         
@@ -299,11 +299,11 @@ class MerakiClient:
         return self.dashboard.networks.createNetworkVlan(network_id, **kwargs)
     
     # REAL Alert & Webhook Methods
-    def get_organization_webhooks(self, org_id: str):
+    def get_organization_webhooks(self, organization_id: str):
         """Get all webhook HTTP servers across all networks in the organization - REAL method."""
         # Since regular webhooks are network-level, we need to iterate through all networks
         try:
-            networks = self.dashboard.organizations.getOrganizationNetworks(org_id)
+            networks = self.dashboard.organizations.getOrganizationNetworks(organization_id)
             all_webhooks = []
             
             for network in networks:
@@ -312,7 +312,7 @@ class MerakiClient:
                     webhooks = self.dashboard.networks.getNetworkWebhooksHttpServers(network_id)
                     # Add network info to each webhook
                     for webhook in webhooks:
-                        webhook['networkId'] = network_id
+                        webhook['network_id'] = network_id
                         webhook['networkName'] = network.get('name', 'Unknown')
                         all_webhooks.append(webhook)
                 except Exception:
@@ -323,15 +323,15 @@ class MerakiClient:
         except Exception as e:
             # Fallback to organization level if available (for Meraki Insight)
             try:
-                return self.dashboard.organizations.getOrganizationWebhooksHttpServers(org_id)
+                return self.dashboard.organizations.getOrganizationWebhooksHttpServers(organization_id)
             except:
                 raise e
     
-    def create_organization_webhook(self, org_id: str, **kwargs):
+    def create_organization_webhook(self, organization_id: str, **kwargs):
         """Create organization webhook HTTP server - REAL method."""
-        return self.dashboard.organizations.createOrganizationWebhooksHttpServer(org_id, **kwargs)
+        return self.dashboard.organizations.createOrganizationWebhooksHttpServer(organization_id, **kwargs)
     
-    def delete_organization_webhook(self, org_id: str, webhook_id: str, network_id: str = None):
+    def delete_organization_webhook(self, organization_id: str, webhook_id: str, network_id: str = None):
         """Delete webhook HTTP server - REAL method."""
         # If network_id is provided, delete from network level
         if network_id:
@@ -339,10 +339,10 @@ class MerakiClient:
         else:
             # Try organization level (for Meraki Insight)
             try:
-                return self.dashboard.organizations.deleteOrganizationWebhooksHttpServer(org_id, webhook_id)
+                return self.dashboard.organizations.deleteOrganizationWebhooksHttpServer(organization_id, webhook_id)
             except:
                 # If that fails, search all networks for the webhook
-                networks = self.dashboard.organizations.getOrganizationNetworks(org_id)
+                networks = self.dashboard.organizations.getOrganizationNetworks(organization_id)
                 for network in networks:
                     try:
                         webhooks = self.dashboard.networks.getNetworkWebhooksHttpServers(network['id'])
@@ -350,7 +350,7 @@ class MerakiClient:
                             return self.dashboard.networks.deleteNetworkWebhooksHttpServer(network['id'], webhook_id)
                     except:
                         pass
-                raise Exception(f"Webhook {webhook_id} not found in organization {org_id}")
+                raise Exception(f"Webhook {webhook_id} not found in organization {organization_id}")
     
     def get_network_webhook_http_servers(self, network_id: str):
         """Get network webhook HTTP servers - REAL method."""
@@ -561,54 +561,54 @@ class MerakiClient:
         return self.dashboard.sm.getNetworkSmDevicePerformanceHistory(network_id, device_id)
     
     # REAL Licensing Methods
-    def get_organization_licenses(self, org_id: str):
+    def get_organization_licenses(self, organization_id: str):
         """Get organization licenses - REAL method."""
-        return self.dashboard.organizations.getOrganizationLicenses(org_id)
+        return self.dashboard.organizations.getOrganizationLicenses(organization_id)
     
-    def get_organization_licensing_coterm_licenses(self, org_id: str):
+    def get_organization_licensing_coterm_licenses(self, organization_id: str):
         """Get co-termination licenses - REAL method."""
-        return self.dashboard.licensing.getOrganizationLicensingCotermLicenses(org_id)
+        return self.dashboard.licensing.getOrganizationLicensingCotermLicenses(organization_id)
     
-    def claim_organization_license(self, org_id: str, **kwargs):
+    def claim_organization_license(self, organization_id: str, **kwargs):
         """Claim organization license - REAL method."""
-        return self.dashboard.organizations.claimOrganizationLicenses(org_id, **kwargs)
+        return self.dashboard.organizations.claimOrganizationLicenses(organization_id, **kwargs)
     
-    def update_organization_license(self, org_id: str, license_id: str, **kwargs):
+    def update_organization_license(self, organization_id: str, license_id: str, **kwargs):
         """Update organization license - REAL method."""
-        return self.dashboard.organizations.updateOrganizationLicense(org_id, license_id, **kwargs)
+        return self.dashboard.organizations.updateOrganizationLicense(organization_id, license_id, **kwargs)
     
-    def move_organization_licenses(self, org_id: str, **kwargs):
+    def move_organization_licenses(self, organization_id: str, **kwargs):
         """Move organization licenses - REAL method."""
-        return self.dashboard.organizations.moveOrganizationLicenses(org_id, **kwargs)
+        return self.dashboard.organizations.moveOrganizationLicenses(organization_id, **kwargs)
     
-    def renew_organization_licenses_seats(self, org_id: str, **kwargs):
+    def renew_organization_licenses_seats(self, organization_id: str, **kwargs):
         """Renew organization licenses seats - REAL method."""
-        return self.dashboard.organizations.renewOrganizationLicensesSeats(org_id, **kwargs)
+        return self.dashboard.organizations.renewOrganizationLicensesSeats(organization_id, **kwargs)
     
     # REAL Policy Objects Methods
-    def get_organization_policy_objects(self, org_id: str):
+    def get_organization_policy_objects(self, organization_id: str):
         """Get organization policy objects - REAL method."""
-        return self.dashboard.organizations.getOrganizationPolicyObjects(org_id)
+        return self.dashboard.organizations.getOrganizationPolicyObjects(organization_id)
     
-    def create_organization_policy_object(self, org_id: str, **kwargs):
+    def create_organization_policy_object(self, organization_id: str, **kwargs):
         """Create organization policy object - REAL method."""
-        return self.dashboard.organizations.createOrganizationPolicyObject(org_id, **kwargs)
+        return self.dashboard.organizations.createOrganizationPolicyObject(organization_id, **kwargs)
     
-    def update_organization_policy_object(self, org_id: str, policy_object_id: str, **kwargs):
+    def update_organization_policy_object(self, organization_id: str, policy_object_id: str, **kwargs):
         """Update organization policy object - REAL method."""
-        return self.dashboard.organizations.updateOrganizationPolicyObject(org_id, policy_object_id, **kwargs)
+        return self.dashboard.organizations.updateOrganizationPolicyObject(organization_id, policy_object_id, **kwargs)
     
-    def delete_organization_policy_object(self, org_id: str, policy_object_id: str):
+    def delete_organization_policy_object(self, organization_id: str, policy_object_id: str):
         """Delete organization policy object - REAL method."""
-        return self.dashboard.organizations.deleteOrganizationPolicyObject(org_id, policy_object_id)
+        return self.dashboard.organizations.deleteOrganizationPolicyObject(organization_id, policy_object_id)
     
-    def get_organization_policy_objects_groups(self, org_id: str):
+    def get_organization_policy_objects_groups(self, organization_id: str):
         """Get organization policy object groups - REAL method."""
-        return self.dashboard.organizations.getOrganizationPolicyObjectsGroups(org_id)
+        return self.dashboard.organizations.getOrganizationPolicyObjectsGroups(organization_id)
     
-    def create_organization_policy_objects_group(self, org_id: str, **kwargs):
+    def create_organization_policy_objects_group(self, organization_id: str, **kwargs):
         """Create organization policy object group - REAL method."""
-        return self.dashboard.organizations.createOrganizationPolicyObjectsGroup(org_id, **kwargs)
+        return self.dashboard.organizations.createOrganizationPolicyObjectsGroup(organization_id, **kwargs)
     
     # REAL Enhanced Monitoring Methods (2025 features)
     def get_device_memory_history(self, serial: str, **kwargs):
@@ -624,38 +624,38 @@ class MerakiClient:
         """Get wireless device CPU load - REAL method."""
         return self.dashboard.wireless.getDeviceWirelessStatus(serial)
     
-    def get_organization_switch_ports_history(self, org_id: str, **kwargs):
+    def get_organization_switch_ports_history(self, organization_id: str, **kwargs):
         """Get organization switch ports history - REAL method."""
-        return self.dashboard.switch.getOrganizationSwitchPortsStatusesBySwitch(org_id, **kwargs)
+        return self.dashboard.switch.getOrganizationSwitchPortsStatusesBySwitch(organization_id, **kwargs)
     
-    def get_organization_devices_migration_status(self, org_id: str):
+    def get_organization_devices_migration_status(self, organization_id: str):
         """Get organization devices migration status - REAL method."""
-        return self.dashboard.organizations.getOrganizationDevices(org_id, perPage=1000, total_pages='all')
+        return self.dashboard.organizations.getOrganizationDevices(organization_id, perPage=1000, total_pages='all')
     
-    def get_organization_api_requests(self, org_id: str, **kwargs):
+    def get_organization_api_requests(self, organization_id: str, **kwargs):
         """Get organization API usage/requests - REAL method."""
-        return self.dashboard.organizations.getOrganizationApiRequests(org_id, **kwargs)
+        return self.dashboard.organizations.getOrganizationApiRequests(organization_id, **kwargs)
     
     # REAL Beta/Early Access Methods
-    def get_organization_early_access_features(self, org_id: str):
+    def get_organization_early_access_features(self, organization_id: str):
         """Get organization early access features - REAL method."""
-        return self.dashboard.organizations.getOrganizationEarlyAccessFeatures(org_id)
+        return self.dashboard.organizations.getOrganizationEarlyAccessFeatures(organization_id)
     
-    def get_organization_early_access_features_opt_ins(self, org_id: str):
+    def get_organization_early_access_features_opt_ins(self, organization_id: str):
         """Get organization early access feature opt-ins - REAL method."""
-        return self.dashboard.organizations.getOrganizationEarlyAccessFeaturesOptIns(org_id)
+        return self.dashboard.organizations.getOrganizationEarlyAccessFeaturesOptIns(organization_id)
     
-    def create_organization_early_access_features_opt_in(self, org_id: str, **kwargs):
+    def create_organization_early_access_features_opt_in(self, organization_id: str, **kwargs):
         """Create organization early access feature opt-in - REAL method."""
-        return self.dashboard.organizations.createOrganizationEarlyAccessFeaturesOptIn(org_id, **kwargs)
+        return self.dashboard.organizations.createOrganizationEarlyAccessFeaturesOptIn(organization_id, **kwargs)
     
-    def delete_organization_early_access_features_opt_in(self, org_id: str, opt_in_id: str):
+    def delete_organization_early_access_features_opt_in(self, organization_id: str, opt_in_id: str):
         """Delete organization early access feature opt-in - REAL method."""
-        return self.dashboard.organizations.deleteOrganizationEarlyAccessFeaturesOptIn(org_id, opt_in_id)
+        return self.dashboard.organizations.deleteOrganizationEarlyAccessFeaturesOptIn(organization_id, opt_in_id)
     
-    def get_organization_devices(self, org_id: str):
+    def get_organization_devices(self, organization_id: str):
         """Get all devices in organization - REAL method."""
-        return self.dashboard.organizations.getOrganizationDevices(org_id, perPage=1000, total_pages='all')
+        return self.dashboard.organizations.getOrganizationDevices(organization_id, perPage=1000, total_pages='all')
     
     # REAL Live Tools Methods (Beta/Early Access)
     def create_device_live_tools_ping(self, serial: str, **kwargs):

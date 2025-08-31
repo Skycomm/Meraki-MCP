@@ -330,7 +330,7 @@ def register_monitoring_tool_handlers():
             
             # Try to get events without productType first
             try:
-                events = meraki_client.get_network_events(network_id, **kwargs)
+                events = meraki_client.dashboard.networks.getNetworkEvents(network_id, **kwargs)
             except Exception as e:
                 error_msg = str(e)
                 # Check if productType is required

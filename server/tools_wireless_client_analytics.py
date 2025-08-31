@@ -263,13 +263,35 @@ def register_client_specific_stats_tools():
                 network_id, **kwargs
             )
             
+            # Try to get client names
+            client_names = {}
+            try:
+                wireless_clients = meraki_client.dashboard.wireless.getNetworkWirelessClients(
+                    network_id, timespan=max(86400, timespan or 86400)
+                )
+                for wc in wireless_clients:
+                    mac = wc.get('mac')
+                    if mac:
+                        name = wc.get('description') or wc.get('manufacturer')
+                        if name:
+                            client_names[mac] = name
+            except:
+                pass
+            
             response = f"# 📊 Clients Connection Stats\n\n"
             
             if isinstance(result, list):
                 response += f"**Total Clients**: {len(result)}\n\n"
                 
                 for client in result[:5]:  # Show first 5
-                    response += f"## Client: {client.get('mac')}\n"
+                    client_mac = client.get('mac', 'Unknown')
+                    client_name = client_names.get(client_mac)
+                    
+                    if client_name:
+                        response += f"## Client: **{client_name}**\n"
+                        response += f"   MAC: {client_mac}\n"
+                    else:
+                        response += f"## Client: {client_mac}\n"
                     response += f"- Connection: {client.get('connectionStats', {}).get('assoc', 0)} associations\n"
                     response += f"- Auth: {client.get('connectionStats', {}).get('auth', 0)} authentications\n"
                     response += f"- DHCP: {client.get('connectionStats', {}).get('dhcp', 0)} attempts\n"
@@ -321,6 +343,21 @@ def register_client_specific_stats_tools():
                 network_id, **kwargs
             )
             
+            # Try to get client names
+            client_names = {}
+            try:
+                wireless_clients = meraki_client.dashboard.wireless.getNetworkWirelessClients(
+                    network_id, timespan=max(86400, timespan or 86400)
+                )
+                for wc in wireless_clients:
+                    mac = wc.get('mac')
+                    if mac:
+                        name = wc.get('description') or wc.get('manufacturer')
+                        if name:
+                            client_names[mac] = name
+            except:
+                pass
+            
             response = f"# 📊 Clients Latency Stats\n\n"
             
             if isinstance(result, list):
@@ -333,7 +370,13 @@ def register_client_specific_stats_tools():
                 
                 response += "## Clients with Highest Latency\n"
                 for client in sorted_clients[:5]:
-                    response += f"- **{client.get('mac')}**\n"
+                    client_mac = client.get('mac', 'Unknown')
+                    client_name = client_names.get(client_mac)
+                    
+                    if client_name:
+                        response += f"- **{client_name}** ({client_mac})\n"
+                    else:
+                        response += f"- **{client_mac}**\n"
                     stats = client.get('latencyStats', {})
                     response += f"  - Background: {stats.get('backgroundTraffic', {}).get('avg', 0):.1f} ms\n"
                     response += f"  - Best Effort: {stats.get('bestEffortTraffic', {}).get('avg', 0):.1f} ms\n"
@@ -649,35 +692,19 @@ def register_specialized_features_tools():
         network_id: str,
         per_page: Optional[int] = 1000
     ):
-        """Get RF profile assignments by device."""
-        try:
-            result = meraki_client.dashboard.wireless.getNetworkWirelessRfProfilesAssignmentsByDevice(
-                network_id,
-                perPage=per_page
-            )
-            
-            response = f"# 📻 RF Profile Assignments by Device\n\n"
-            
-            if isinstance(result, list):
-                response += f"**Total Devices**: {len(result)}\n\n"
-                
-                # Group by profile
-                profiles = {}
-                for device in result:
-                    profile_id = device.get('rfProfile', {}).get('id', 'None')
-                    if profile_id not in profiles:
-                        profiles[profile_id] = []
-                    profiles[profile_id].append(device)
-                
-                response += f"## Profiles ({len(profiles)})\n"
-                for profile_id, devices in profiles.items():
-                    profile_name = devices[0].get('rfProfile', {}).get('name', 'Default') if devices else 'Unknown'
-                    response += f"- **{profile_name}**: {len(devices)} devices\n"
-            
-            return response
-            
-        except Exception as e:
-            return f"❌ Error getting RF profile assignments: {str(e)}"
+        """This API doesn't exist at network level - redirect to org level."""
+        return ("❌ This network-level API doesn't exist in the Meraki SDK.\n\n"
+                "✅ **Use the organization-level tool instead:**\n"
+                "Tool name: `get_organization_wireless_rf_profiles_assignments_by_device`\n\n"
+                "**Example usage:**\n"
+                "```\n"
+                "get_organization_wireless_rf_profiles_assignments_by_device(\n"
+                "    organization_id='686470',\n"
+                f"    network_ids='{network_id}'  # Filter for specific network\n"
+                ")\n"
+                "```\n\n"
+                "This tool provides RF profile assignments for all devices in the organization,\n"
+                "and you can filter by specific networks using the network_ids parameter.")
     
     @app.tool(
         name="get_organization_wireless_devices_ethernet_statuses",
@@ -812,10 +839,37 @@ def register_specialized_features_tools():
                 if rogue:
                     response += f"## Top Rogue SSIDs\n"
                     for ssid in rogue[:5]:
-                        response += f"- **{ssid.get('ssid')}**\n"
-                        response += f"  - BSSID: {ssid.get('bssid')}\n"
-                        response += f"  - Channel: {ssid.get('channel')}\n"
-                        response += f"  - RSSI: {ssid.get('rssi')} dBm\n"
+                        ssid_name = ssid.get('ssid', '(Hidden)')
+                        response += f"- **{ssid_name if ssid_name else '(Empty SSID)'}**\n"
+                        
+                        # Get channels at SSID level
+                        channels = ssid.get('channels', [])
+                        if channels:
+                            response += f"  - Channels: {', '.join(map(str, channels[:5]))}\n"
+                        
+                        # Get BSSIDs and their details
+                        bssids = ssid.get('bssids', [])
+                        if bssids:
+                            # Show first BSSID with best RSSI
+                            best_bssid = None
+                            best_rssi = -200
+                            
+                            for bssid_info in bssids[:3]:  # Check first 3 BSSIDs
+                                bssid_mac = bssid_info.get('bssid')
+                                detected_by = bssid_info.get('detectedBy', [])
+                                
+                                for detector in detected_by:
+                                    rssi = detector.get('rssi', -200)
+                                    if rssi > best_rssi:
+                                        best_rssi = rssi
+                                        best_bssid = bssid_mac
+                            
+                            if best_bssid:
+                                response += f"  - BSSID: {best_bssid}\n"
+                                if best_rssi > -200:
+                                    response += f"  - Best RSSI: {best_rssi} dBm\n"
+                            
+                            response += f"  - Total BSSIDs: {len(bssids)}\n"
             
             return response
             

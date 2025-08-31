@@ -46,6 +46,14 @@ python test_100_sdk_coverage.py
 python test_api_fixes.py
 ```
 
+### IMPORTANT: Never Remove or Simplify Tools!
+**When testing or debugging issues:**
+- **NEVER remove existing tools** - they are all needed for full SDK coverage
+- **NEVER simplify tool implementations** - complexity is there for a reason
+- **ADD error handling, don't delete functionality**
+- **If a tool seems broken, FIX it, don't remove it**
+- All 500+ tools are required for complete Meraki API functionality
+
 ### Testing as an MCP Client
 
 When fixing API issues or testing tools, **always test as an MCP client would use them**, not directly against the API. This ensures the fixes work correctly in real-world usage (like Claude Desktop).
@@ -204,10 +212,10 @@ MCP_READ_ONLY_MODE=false  # Set to true for safe testing
 
 ### Common Test Values
 ```python
-TEST_ORG_ID = "1374235"
-TEST_NETWORK_ID = "L_709951935762302054"  # Reserve St
+TEST_ORG_ID = "686470"  # Skycomm
+TEST_NETWORK_ID = "L_726205439913500692"  # Reserve St
 TEST_SSID_NUMBER = "0"  # Apple SSID
-TEST_AP_SERIAL = "Q2BV-K9A9-C3AZ"
+TEST_AP_SERIAL = "Q2PD-JL52-H3B2"  # Office AP
 ```
 
 ### Debugging Tips

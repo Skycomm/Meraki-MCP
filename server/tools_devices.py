@@ -1,6 +1,10 @@
 """
-Device-related tools for the Cisco Meraki MCP Server - Modern implementation.
+Device-related tools for the Cisco Meraki MCP Server - Complete SDK coverage.
+Organized to match the official Meraki Dashboard API structure.
 """
+
+import json
+from typing import Optional, List, Dict, Any
 
 # Global variables to store app and meraki client
 app = None
@@ -444,3 +448,684 @@ The device is now unassigned and can be:
                 return f"❌ Bad request: {error_msg}\n\nDevice might not be in this network."
             else:
                 return f"❌ Failed to unclaim device {serial}: {error_msg}"
+    
+    # ========== MANAGEMENT INTERFACE SDK METHODS ==========
+    @app.tool(
+        name="get_device_management_interface",
+        description="🔧 Get management interface settings for a device"
+    )
+    def get_device_management_interface(serial: str):
+        """
+        Get management interface settings for a device.
+        
+        Args:
+            serial: Device serial number
+            
+        Returns:
+            Management interface configuration
+        """
+        try:
+            interface = meraki_client.get_device_management_interface(serial)
+            
+            result = f"# 🔧 Management Interface for {serial}\n\n"
+            
+            # WAN configuration
+            if interface.get('wan1'):
+                wan1 = interface['wan1']
+                result += "## WAN1 Configuration\n"
+                result += f"- **Using DHCP**: {'✅' if wan1.get('usingStaticIp') == False else '❌'}\n"
+                if wan1.get('staticIp'):
+                    result += f"- **Static IP**: {wan1['staticIp']}\n"
+                if wan1.get('staticSubnetMask'):
+                    result += f"- **Subnet Mask**: {wan1['staticSubnetMask']}\n"
+                if wan1.get('staticGatewayIp'):
+                    result += f"- **Gateway**: {wan1['staticGatewayIp']}\n"
+                if wan1.get('staticDns'):
+                    result += f"- **DNS Servers**: {', '.join(wan1['staticDns'])}\n"
+                if wan1.get('vlan'):
+                    result += f"- **VLAN**: {wan1['vlan']}\n"
+                    
+            if interface.get('wan2'):
+                wan2 = interface['wan2']
+                result += "\n## WAN2 Configuration\n"
+                result += f"- **Using DHCP**: {'✅' if wan2.get('usingStaticIp') == False else '❌'}\n"
+                if wan2.get('staticIp'):
+                    result += f"- **Static IP**: {wan2['staticIp']}\n"
+                if wan2.get('staticSubnetMask'):
+                    result += f"- **Subnet Mask**: {wan2['staticSubnetMask']}\n"
+                if wan2.get('staticGatewayIp'):
+                    result += f"- **Gateway**: {wan2['staticGatewayIp']}\n"
+                if wan2.get('staticDns'):
+                    result += f"- **DNS Servers**: {', '.join(wan2['staticDns'])}\n"
+                if wan2.get('vlan'):
+                    result += f"- **VLAN**: {wan2['vlan']}\n"
+                    
+            return result
+            
+        except Exception as e:
+            return f"Error retrieving management interface: {str(e)}"
+    
+    @app.tool(
+        name="update_device_management_interface",
+        description="🔧 Update management interface settings for a device"
+    )
+    def update_device_management_interface(
+        serial: str,
+        wan1_settings: Optional[str] = None,
+        wan2_settings: Optional[str] = None
+    ):
+        """
+        Update management interface settings for a device.
+        
+        Args:
+            serial: Device serial number
+            wan1_settings: JSON WAN1 settings {usingStaticIp: bool, staticIp: "...", ...}
+            wan2_settings: JSON WAN2 settings {usingStaticIp: bool, staticIp: "...", ...}
+            
+        Returns:
+            Updated management interface settings
+        """
+        try:
+            kwargs = {}
+            if wan1_settings:
+                kwargs['wan1'] = json.loads(wan1_settings)
+            if wan2_settings:
+                kwargs['wan2'] = json.loads(wan2_settings)
+                
+            result = meraki_client.update_device_management_interface(serial, **kwargs)
+            return "✅ Management interface updated successfully"
+            
+        except Exception as e:
+            return f"Error updating management interface: {str(e)}"
+    
+    # ========== LOSS AND LATENCY SDK METHODS ==========
+    @app.tool(
+        name="get_device_loss_and_latency_history",
+        description="📊 Get historical loss and latency data for a device"
+    )
+    def get_device_loss_and_latency_history(
+        serial: str,
+        ip: str,
+        timespan: Optional[int] = 86400,
+        resolution: Optional[int] = 60,
+        uplink: Optional[str] = None
+    ):
+        """
+        Get loss and latency history for a device.
+        
+        Args:
+            serial: Device serial number
+            ip: Target IP to test connectivity to
+            timespan: Time span in seconds (default: 24 hours)
+            resolution: Resolution in seconds (60, 600, 3600, 86400)
+            uplink: Uplink to test (wan1, wan2, cellular)
+            
+        Returns:
+            Historical loss and latency data
+        """
+        try:
+            kwargs = {
+                'ip': ip,
+                'timespan': timespan,
+                'resolution': resolution
+            }
+            if uplink:
+                kwargs['uplink'] = uplink
+                
+            history = meraki_client.dashboard.devices.getDeviceLossAndLatencyHistory(serial, **kwargs)
+            
+            if not history:
+                return f"No loss/latency data available for {ip}"
+                
+            result = f"# 📊 Loss & Latency History to {ip}\n\n"
+            result += f"**Device**: {serial}\n"
+            result += f"**Time Span**: {timespan} seconds\n"
+            if uplink:
+                result += f"**Uplink**: {uplink}\n"
+            result += "\n"
+            
+            # Show recent data points
+            for data_point in history[-10:]:  # Last 10 data points
+                result += f"## {data_point.get('startTs', 'Unknown')}\n"
+                result += f"- **Loss**: {data_point.get('lossPercent', 0)}%\n"
+                result += f"- **Latency**: {data_point.get('latencyMs', 0)} ms\n\n"
+                
+            if len(history) > 10:
+                result += f"*Showing last 10 of {len(history)} data points*\n"
+                
+            return result
+            
+        except Exception as e:
+            error_msg = str(e)
+            if "only supports MX, MG and Z devices" in error_msg:
+                return f"⚠️ Loss/latency history is only available for MX (security appliances), MG (cellular gateways), and Z (teleworker gateways) devices.\n\nDevice {serial} appears to be a different type (e.g., MR wireless AP or MS switch).\n\nFor wireless APs, use 'get_network_wireless_latency_stats' instead."
+            return f"Error retrieving loss/latency history: {error_msg}"
+    
+    # ========== LLDP/CDP SDK METHODS ==========
+    @app.tool(
+        name="get_device_lldp_cdp",
+        description="🔗 Get LLDP and CDP neighbor information for a device"
+    )
+    def get_device_lldp_cdp(serial: str):
+        """
+        Get LLDP and CDP neighbor information for a device.
+        
+        Args:
+            serial: Device serial number
+            
+        Returns:
+            LLDP/CDP neighbor details
+        """
+        try:
+            neighbors = meraki_client.get_device_lldp_cdp(serial)
+            
+            if not neighbors:
+                return f"No LLDP/CDP neighbors found for device {serial}"
+                
+            result = f"# 🔗 LLDP/CDP Neighbors for {serial}\n\n"
+            
+            # CDP neighbors
+            if neighbors.get('cdp'):
+                result += "## CDP Neighbors\n"
+                for neighbor in neighbors['cdp']:
+                    result += f"- **{neighbor.get('deviceId', 'Unknown')}**\n"
+                    result += f"  - Port: {neighbor.get('portId', 'Unknown')}\n"
+                    result += f"  - Address: {neighbor.get('address', 'N/A')}\n"
+                    result += f"  - Platform: {neighbor.get('platform', 'N/A')}\n\n"
+                    
+            # LLDP neighbors
+            if neighbors.get('lldp'):
+                result += "## LLDP Neighbors\n"
+                for neighbor in neighbors['lldp']:
+                    result += f"- **{neighbor.get('systemName', 'Unknown')}**\n"
+                    result += f"  - Port: {neighbor.get('portId', 'Unknown')}\n"
+                    result += f"  - Description: {neighbor.get('portDescription', 'N/A')}\n"
+                    result += f"  - Chassis ID: {neighbor.get('chassisId', 'N/A')}\n\n"
+                    
+            return result
+            
+        except Exception as e:
+            return f"Error retrieving LLDP/CDP info: {str(e)}"
+    
+    # ========== CELLULAR SIMS SDK METHODS ==========
+    @app.tool(
+        name="get_device_cellular_sims",
+        description="📱 Get SIM card information for a cellular device"
+    )
+    def get_device_cellular_sims(serial: str):
+        """
+        Get SIM card information for a cellular device.
+        
+        Args:
+            serial: Device serial number
+            
+        Returns:
+            SIM card details
+        """
+        try:
+            sims = meraki_client.get_device_cellular_sims(serial)
+            
+            result = f"# 📱 Cellular SIM Information\n\n"
+            
+            for sim in sims.get('sims', []):
+                slot = sim.get('slot', 'Unknown')
+                result += f"## SIM Slot {slot}\n"
+                result += f"- **Status**: {sim.get('status', 'Unknown')}\n"
+                result += f"- **ICCID**: {sim.get('iccid', 'N/A')}\n"
+                result += f"- **Carrier**: {sim.get('carrier', 'N/A')}\n"
+                result += f"- **APN**: {sim.get('apn', 'N/A')}\n"
+                
+                if sim.get('isPrimary'):
+                    result += "- **Primary SIM**: ✅\n"
+                    
+                result += "\n"
+                
+            return result
+            
+        except Exception as e:
+            return f"Error retrieving SIM information: {str(e)}"
+    
+    @app.tool(
+        name="update_device_cellular_sims",
+        description="📱 Update SIM card settings for a cellular device"
+    )
+    def update_device_cellular_sims(
+        serial: str,
+        sims: str,
+        sim_failover: Optional[str] = None,
+        sim_failover_timeout: Optional[int] = None
+    ):
+        """
+        Update SIM card settings for a cellular device.
+        
+        Args:
+            serial: Device serial number
+            sims: JSON array of SIM configurations [{slot: "sim1", isPrimary: true, apn: "..."}]
+            sim_failover: Failover settings JSON
+            sim_failover_timeout: Failover timeout in seconds
+            
+        Returns:
+            Updated SIM settings
+        """
+        try:
+            kwargs = {
+                'sims': json.loads(sims)
+            }
+            if sim_failover:
+                kwargs['simFailover'] = json.loads(sim_failover)
+            if sim_failover_timeout:
+                kwargs['simFailoverTimeout'] = sim_failover_timeout
+                
+            result = meraki_client.update_device_cellular_sims(serial, **kwargs)
+            return "✅ SIM settings updated successfully"
+            
+        except Exception as e:
+            return f"Error updating SIM settings: {str(e)}"
+    
+    # ========== LED BLINKING SDK METHOD ==========
+    @app.tool(
+        name="blink_device_leds",
+        description="💡 Blink LEDs on a device for identification"
+    )
+    def blink_device_leds(
+        serial: str,
+        duration: Optional[int] = 20,
+        duty: Optional[int] = 50,
+        period: Optional[int] = 100
+    ):
+        """
+        Blink LEDs on a device for identification.
+        
+        Args:
+            serial: Device serial number
+            duration: Duration in seconds (default: 20)
+            duty: Duty cycle percentage (default: 50)
+            period: Period in milliseconds (default: 100)
+            
+        Returns:
+            LED blink status
+        """
+        try:
+            result = meraki_client.blink_device_leds(
+                serial,
+                duration=duration,
+                duty=duty,
+                period=period
+            )
+            
+            return f"""✅ LED Blink Initiated
+
+**Device**: {serial}
+**Duration**: {duration} seconds
+**Pattern**: {duty}% on, {100-duty}% off
+**Period**: {period} ms
+
+The device LEDs are now blinking to help identify it physically."""
+            
+        except Exception as e:
+            return f"Error blinking LEDs: {str(e)}"
+    
+    # ========== SENSOR SDK METHODS ==========
+    @app.tool(
+        name="get_device_sensor_relationships",
+        description="📊 Get sensor relationships for a device"
+    )
+    def get_device_sensor_relationships(serial: str):
+        """
+        Get sensor relationships for a device.
+        
+        Args:
+            serial: Device serial number
+            
+        Returns:
+            Sensor relationship information
+        """
+        try:
+            result = meraki_client.dashboard.devices.getDeviceSensorRelationships(serial)
+            
+            if not result:
+                return "No sensor relationships found for this device."
+                
+            formatted = "# 📊 Sensor Relationships\n\n"
+            
+            if 'livestream' in result:
+                formatted += "## Livestream\n"
+                for item in result['livestream'].get('relatedDevices', []):
+                    formatted += f"- {item.get('serial', 'Unknown')}: {item.get('productType', 'Unknown')}\n"
+                    
+            return formatted
+            
+        except Exception as e:
+            return f"Error retrieving sensor relationships: {str(e)}"
+    
+    @app.tool(
+        name="update_device_sensor_relationships",
+        description="📊 Update sensor relationships for a device"
+    )
+    def update_device_sensor_relationships(
+        serial: str,
+        livestream: Optional[str] = None
+    ):
+        """
+        Update sensor relationships for a device.
+        
+        Args:
+            serial: Device serial number
+            livestream: JSON object with relatedDevices array
+            
+        Returns:
+            Updated sensor relationships
+        """
+        try:
+            kwargs = {}
+            if livestream:
+                kwargs['livestream'] = json.loads(livestream)
+                
+            result = meraki_client.dashboard.devices.updateDeviceSensorRelationships(
+                serial, **kwargs
+            )
+            return "✅ Sensor relationships updated successfully"
+            
+        except Exception as e:
+            return f"Error updating sensor relationships: {str(e)}"
+    
+    # ========== SWITCH PORT SDK METHODS ==========
+    @app.tool(
+        name="cycle_device_switch_ports",
+        description="🔄 Cycle (restart) switch ports on a device - REQUIRES CONFIRMATION"
+    )
+    def cycle_device_switch_ports(
+        serial: str,
+        ports: str,
+        confirmed: bool = False
+    ):
+        """
+        Cycle (restart) switch ports on a device.
+        
+        ⚠️ WARNING: This will disconnect devices on these ports!
+        
+        Args:
+            serial: Device serial number
+            ports: JSON array of port IDs to cycle ["1", "2", "3"]
+            confirmed: Must be True to execute this operation
+            
+        Returns:
+            Port cycling status
+        """
+        if not confirmed:
+            return "⚠️ Port cycling requires confirmation. Set confirmed=true to proceed."
+            
+        try:
+            ports_list = json.loads(ports)
+            result = meraki_client.dashboard.devices.cycleDeviceSwitchPorts(
+                serial,
+                ports=ports_list
+            )
+            
+            return f"✅ Successfully initiated port cycling for ports: {', '.join(ports_list)}"
+            
+        except Exception as e:
+            return f"Error cycling ports: {str(e)}"
+    
+    # ========== PING SDK METHODS ==========
+    @app.tool(
+        name="create_device_live_tools_ping",
+        description="🏓 Create a ping test from a device"
+    )
+    def create_device_live_tools_ping(
+        serial: str,
+        target: str,
+        count: Optional[int] = 5
+    ):
+        """
+        Create a ping test from a device.
+        
+        Args:
+            serial: Device serial number
+            target: IP address or hostname to ping
+            count: Number of pings to send (default: 5)
+            
+        Returns:
+            Ping test ID and status
+        """
+        try:
+            result = meraki_client.dashboard.devices.createDeviceLiveToolsPing(
+                serial,
+                target=target,
+                count=count
+            )
+            
+            return f"""✅ Ping Test Initiated
+
+**Test ID**: {result.get('id', 'Unknown')}
+**Target**: {target}
+**Count**: {count}
+**Status**: {result.get('status', 'Unknown')}
+
+Use get_device_live_tools_ping with the test ID to check results."""
+            
+        except Exception as e:
+            return f"Error creating ping test: {str(e)}"
+    
+    @app.tool(
+        name="get_device_live_tools_ping",
+        description="🏓 Get results of a ping test"
+    )
+    def get_device_live_tools_ping(serial: str, id: str):
+        """
+        Get results of a ping test.
+        
+        Args:
+            serial: Device serial number
+            id: Ping test ID
+            
+        Returns:
+            Ping test results
+        """
+        try:
+            result = meraki_client.dashboard.devices.getDeviceLiveToolsPing(serial, id)
+            
+            formatted = f"# 🏓 Ping Test Results\n\n"
+            formatted += f"**Status**: {result.get('status', 'Unknown')}\n"
+            formatted += f"**Target**: {result.get('target', 'Unknown')}\n\n"
+            
+            if 'results' in result:
+                formatted += "## Results\n"
+                stats = result['results']
+                formatted += f"- **Sent**: {stats.get('sent', 0)}\n"
+                formatted += f"- **Received**: {stats.get('received', 0)}\n"
+                formatted += f"- **Loss**: {stats.get('loss', 0)}%\n"
+                
+                if 'latencies' in stats:
+                    lat = stats['latencies']
+                    formatted += f"- **Min Latency**: {lat.get('minimum', 0)} ms\n"
+                    formatted += f"- **Avg Latency**: {lat.get('average', 0)} ms\n"
+                    formatted += f"- **Max Latency**: {lat.get('maximum', 0)} ms\n"
+                    
+            return formatted
+            
+        except Exception as e:
+            return f"Error retrieving ping results: {str(e)}"
+
+    
+    # ========== CABLE TEST SDK METHODS ==========
+    @app.tool(
+        name="create_device_live_tools_cable_test",
+        description="🔌 Create a cable test on switch ports"
+    )
+    def create_device_live_tools_cable_test(
+        serial: str,
+        ports: str
+    ):
+        """
+        Create a cable test on switch ports.
+        
+        Args:
+            serial: Device serial number
+            ports: JSON array of port IDs to test ["1", "2", "3"]
+            
+        Returns:
+            Cable test ID and status
+        """
+        try:
+            ports_list = json.loads(ports)
+            result = meraki_client.dashboard.devices.createDeviceLiveToolsCableTest(
+                serial,
+                ports=ports_list
+            )
+            
+            return f"""✅ Cable Test Initiated
+
+**Test ID**: {result.get("id", "Unknown")}
+**Ports**: {", ".join(ports_list)}
+**Status**: {result.get("status", "Unknown")}
+
+Use get_device_live_tools_cable_test with the test ID to check results."""
+            
+        except Exception as e:
+            return f"Error creating cable test: {str(e)}"
+    
+    @app.tool(
+        name="get_device_live_tools_cable_test",
+        description="🔌 Get results of a cable test"
+    )
+    def get_device_live_tools_cable_test(serial: str, id: str):
+        """
+        Get results of a cable test.
+        
+        Args:
+            serial: Device serial number
+            id: Cable test ID
+            
+        Returns:
+            Cable test results
+        """
+        try:
+            result = meraki_client.dashboard.devices.getDeviceLiveToolsCableTest(serial, id)
+            
+            formatted = f"# 🔌 Cable Test Results\n\n"
+            formatted += f"**Status**: {result.get('status', 'Unknown')}\n\n"
+            
+            if "results" in result:
+                formatted += "## Port Results\n"
+                for port_result in result["results"]:
+                    port = port_result.get("port", "Unknown")
+                    status = port_result.get("status", "Unknown")
+                    formatted += f"\n### Port {port}\n"
+                    formatted += f"- **Status**: {status}\n"
+                    
+                    if "pairs" in port_result:
+                        for pair in port_result["pairs"]:
+                            formatted += f"- **Pair {pair.get('index', '?')}**: "
+                            formatted += f"{pair.get('status', 'Unknown')} "
+                            if "lengthMeters" in pair:
+                                formatted += f"({pair['lengthMeters']} meters)"
+                            formatted += "\n"
+                            
+            return formatted
+            
+        except Exception as e:
+            return f"Error retrieving cable test results: {str(e)}"
+    
+    # ========== WAKE ON LAN SDK METHOD ==========
+    @app.tool(
+        name="create_device_live_tools_wake_on_lan",
+        description="⏰ Send Wake-on-LAN packet to wake up a device"
+    )
+    def create_device_live_tools_wake_on_lan(
+        serial: str,
+        vlan_id: int,
+        mac: str
+    ):
+        """
+        Send Wake-on-LAN packet to wake up a device.
+        
+        Args:
+            serial: Device serial number (switch/AP to send from)
+            vlan_id: VLAN ID to send the packet on
+            mac: MAC address of the device to wake
+            
+        Returns:
+            Wake-on-LAN status
+        """
+        try:
+            result = meraki_client.dashboard.devices.createDeviceLiveToolsWakeOnLan(
+                serial,
+                vlanId=vlan_id,
+                mac=mac
+            )
+            
+            return f"""✅ Wake-on-LAN Sent
+
+**Target MAC**: {mac}
+**VLAN**: {vlan_id}
+**Status**: {result.get("status", "Unknown")}
+
+The magic packet has been sent to wake the device."""
+            
+        except Exception as e:
+            return f"Error sending Wake-on-LAN: {str(e)}"
+    
+    # ========== THROUGHPUT TEST SDK METHODS ==========
+    @app.tool(
+        name="create_device_live_tools_throughput_test",
+        description="📊 Create a throughput test from a device"
+    )
+    def create_device_live_tools_throughput_test(serial: str):
+        """
+        Create a throughput test from a device.
+        
+        Args:
+            serial: Device serial number
+            
+        Returns:
+            Throughput test ID and status
+        """
+        try:
+            result = meraki_client.dashboard.devices.createDeviceLiveToolsThroughputTest(serial)
+            
+            return f"""✅ Throughput Test Initiated
+
+**Test ID**: {result.get("id", "Unknown")}
+**Status**: {result.get("status", "Unknown")}
+
+Use get_device_live_tools_throughput_test with the test ID to check results."""
+            
+        except Exception as e:
+            return f"Error creating throughput test: {str(e)}"
+    
+    @app.tool(
+        name="get_device_live_tools_throughput_test",
+        description="📊 Get results of a throughput test"
+    )
+    def get_device_live_tools_throughput_test(serial: str, id: str):
+        """
+        Get results of a throughput test.
+        
+        Args:
+            serial: Device serial number
+            id: Throughput test ID
+            
+        Returns:
+            Throughput test results
+        """
+        try:
+            result = meraki_client.dashboard.devices.getDeviceLiveToolsThroughputTest(serial, id)
+            
+            formatted = f"# 📊 Throughput Test Results\n\n"
+            formatted += f"**Status**: {result.get('status', 'Unknown')}\n\n"
+            
+            if "results" in result:
+                results = result["results"]
+                formatted += "## Test Results\n"
+                
+                if "speeds" in results:
+                    speeds = results["speeds"]
+                    formatted += f"- **Download**: {speeds.get('downstream', 0)} Mbps\n"
+                    formatted += f"- **Upload**: {speeds.get('upstream', 0)} Mbps\n"
+                    
+            return formatted
+            
+        except Exception as e:
+            return f"Error retrieving throughput test results: {str(e)}"
+

@@ -2,6 +2,9 @@
 Security Appliance management tools for the Cisco Meraki MCP Server - ONLY REAL API METHODS.
 """
 
+from typing import Optional
+import json
+
 # Global variables to store app and meraki client
 app = None
 meraki_client = None
@@ -2877,3 +2880,396 @@ update_network_appliance_vlan(
                 return f"❌ Invalid route configuration: {error_msg}"
             else:
                 return f"❌ Error creating static route: {error_msg}"
+    
+    # ========== MISSING APPLIANCE SDK METHODS ==========
+    
+    @app.tool(
+        name="get_network_appliance_warm_spare_config",
+        description="🔄 Get warm spare configuration details for an MX appliance"
+    )
+    def get_network_appliance_warm_spare_config(network_id: str):
+        """
+        Get warm spare configuration for an MX appliance.
+        
+        Args:
+            network_id: Network ID
+            
+        Returns:
+            Warm spare configuration details
+        """
+        try:
+            config = meraki_client.dashboard.appliance.getNetworkApplianceWarmSpare(network_id)
+            
+            result = f"# 🔄 Warm Spare Configuration\\n\\n"
+            result += f"**Enabled**: {'✅' if config.get('enabled') else '❌'}\\n"
+            
+            if config.get('primarySerial'):
+                result += f"**Primary MX**: {config.get('primarySerial')}\n"
+            
+            if config.get('spareSerial'):
+                result += f"**Spare MX**: {config.get('spareSerial')}\n"
+                
+            if config.get('uplinkMode'):
+                result += f"**Uplink Mode**: {config.get('uplinkMode')}\n"
+                
+            if config.get('wan1'):
+                result += f"\n## WAN 1 Configuration\n"
+                wan1 = config.get('wan1')
+                result += f"- **IP**: {wan1.get('ip', 'N/A')}\n"
+                result += f"- **Subnet**: {wan1.get('subnet', 'N/A')}\n"
+                
+            if config.get('wan2'):
+                result += f"\n## WAN 2 Configuration\n"
+                wan2 = config.get('wan2')
+                result += f"- **IP**: {wan2.get('ip', 'N/A')}\n"
+                result += f"- **Subnet**: {wan2.get('subnet', 'N/A')}\n"
+                
+            return result
+            
+        except Exception as e:
+            return f"Error retrieving warm spare config: {str(e)}"
+    
+    @app.tool(
+        name="update_network_appliance_warm_spare",
+        description="🔄 Update warm spare configuration for an MX appliance"
+    )
+    def update_network_appliance_warm_spare(
+        network_id: str,
+        enabled: bool,
+        spare_serial: Optional[str] = None,
+        uplink_mode: Optional[str] = None,
+        virtual_ip1: Optional[str] = None,
+        virtual_ip2: Optional[str] = None
+    ):
+        """
+        Update warm spare configuration for an MX appliance.
+        
+        Args:
+            network_id: Network ID
+            enabled: Enable/disable warm spare
+            spare_serial: Serial number of spare MX
+            uplink_mode: Uplink mode (virtual or public)
+            virtual_ip1: Virtual IP for WAN1
+            virtual_ip2: Virtual IP for WAN2
+            
+        Returns:
+            Updated configuration
+        """
+        try:
+            kwargs = {"enabled": enabled}
+            
+            if spare_serial:
+                kwargs["spareSerial"] = spare_serial
+            if uplink_mode:
+                kwargs["uplinkMode"] = uplink_mode
+            if virtual_ip1:
+                kwargs["virtualIp1"] = virtual_ip1
+            if virtual_ip2:
+                kwargs["virtualIp2"] = virtual_ip2
+                
+            result = meraki_client.dashboard.appliance.updateNetworkApplianceWarmSpare(
+                network_id, **kwargs
+            )
+            
+            return "✅ Warm spare configuration updated successfully"
+            
+        except Exception as e:
+            return f"Error updating warm spare: {str(e)}"
+    
+    @app.tool(
+        name="swap_network_appliance_warm_spare",
+        description="🔄 Swap warm spare appliance to become primary - REQUIRES CONFIRMATION"
+    )
+    def swap_network_appliance_warm_spare(
+        network_id: str,
+        confirmed: bool = False
+    ):
+        """
+        Swap warm spare appliance to become primary.
+        
+        ⚠️ WARNING: This will cause a network failover!
+        
+        Args:
+            network_id: Network ID
+            confirmed: Must be True to execute this operation
+            
+        Returns:
+            Swap status
+        """
+        if not confirmed:
+            return "⚠️ Warm spare swap requires confirmation. Set confirmed=true to proceed."
+            
+        try:
+            result = meraki_client.dashboard.appliance.swapNetworkApplianceWarmSpare(network_id)
+            return "✅ Warm spare swap initiated successfully"
+            
+        except Exception as e:
+            return f"Error swapping warm spare: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_prefixes_delegated_statics",
+        description="🌐 Get IPv6 delegated static prefixes for an appliance"
+    )
+    def get_network_appliance_prefixes_delegated_statics(network_id: str):
+        """
+        Get IPv6 delegated static prefixes for an appliance.
+        
+        Args:
+            network_id: Network ID
+            
+        Returns:
+            Delegated static prefixes
+        """
+        try:
+            prefixes = meraki_client.dashboard.appliance.getNetworkAppliancePrefixesDelegatedStatics(network_id)
+            
+            if not prefixes:
+                return "No delegated static prefixes configured"
+                
+            result = f"# 🌐 IPv6 Delegated Static Prefixes\\n\\n"
+            
+            for prefix in prefixes:
+                result += f"## {prefix.get('description', 'Unnamed')}\\n"
+                result += f"- **Prefix**: {prefix.get('prefix')}\n"
+                result += f"- **Origin**: {prefix.get('origin', {}).get('type', 'Unknown')}\n"
+                
+                if prefix.get("origin", {}).get("interfaces"):
+                    result += f"- **Interfaces**: {', '.join(prefix['origin']['interfaces'])}\\n"
+                    
+                result += "\\n"
+                
+            return result
+            
+        except Exception as e:
+            return f"Error retrieving delegated prefixes: {str(e)}"
+    
+    @app.tool(
+        name="create_network_appliance_prefixes_delegated_static",
+        description="🌐 Create an IPv6 delegated static prefix"
+    )
+    def create_network_appliance_prefixes_delegated_static(
+        network_id: str,
+        prefix: str,
+        origin_type: str,
+        origin_interfaces: str,
+        description: Optional[str] = None
+    ):
+        """
+        Create an IPv6 delegated static prefix.
+        
+        Args:
+            network_id: Network ID
+            prefix: IPv6 prefix
+            origin_type: Origin type (e.g., "internet")
+            origin_interfaces: Comma-separated interface list
+            description: Description for the prefix
+            
+        Returns:
+            Created prefix details
+        """
+        try:
+            kwargs = {
+                "prefix": prefix,
+                "origin": {
+                    "type": origin_type,
+                    "interfaces": origin_interfaces.split(",")
+                }
+            }
+            
+            if description:
+                kwargs["description"] = description
+                
+            result = meraki_client.dashboard.appliance.createNetworkAppliancePrefixesDelegatedStatic(
+                network_id, **kwargs
+            )
+            
+            return f"✅ Created delegated static prefix: {prefix}"
+            
+        except Exception as e:
+            return f"Error creating delegated prefix: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_rf_profiles",
+        description="📡 Get RF profiles for MG (cellular gateway) appliances"
+    )
+    def get_network_appliance_rf_profiles(network_id: str):
+        """
+        Get RF profiles for MG (cellular gateway) appliances.
+        
+        Args:
+            network_id: Network ID
+            
+        Returns:
+            RF profile settings
+        """
+        try:
+            profiles = meraki_client.dashboard.appliance.getNetworkApplianceRfProfiles(network_id)
+            
+            result = f"# 📡 RF Profiles\\n\\n"
+            
+            if profiles.get("assigned"):
+                result += f"**Assigned Profile**: {profiles.get('assigned')}\\n\\n"
+                
+            if profiles.get("profiles"):
+                result += "## Available Profiles\\n"
+                for profile_id, profile in profiles.get("profiles", {}).items():
+                    result += f"\n### {profile_id}\n"
+                    result += f"- **Name**: {profile.get('name', 'Unnamed')}\n"
+                    
+                    if profile.get("twoFourGhzSettings"):
+                        settings = profile["twoFourGhzSettings"]
+                        result += f"- **2.4 GHz Min Bitrate**: {settings.get('minBitrate')} Mbps\n"
+                        result += f"- **2.4 GHz Ax Enabled**: {settings.get('axEnabled', False)}\n"
+                        
+                    if profile.get("fiveGhzSettings"):
+                        settings = profile["fiveGhzSettings"]
+                        result += f"- **5 GHz Min Bitrate**: {settings.get('minBitrate')} Mbps\n"
+                        result += f"- **5 GHz Ax Enabled**: {settings.get('axEnabled', False)}\n"
+                        
+            return result
+            
+        except Exception as e:
+            return f"Error retrieving RF profiles: {str(e)}"
+    
+    @app.tool(
+        name="update_network_appliance_rf_profile",
+        description="📡 Update RF profile settings for MG appliances"
+    )
+    def update_network_appliance_rf_profile(
+        network_id: str,
+        rf_profile_id: str,
+        name: Optional[str] = None,
+        two_four_ghz_min_bitrate: Optional[int] = None,
+        five_ghz_min_bitrate: Optional[int] = None
+    ):
+        """
+        Update RF profile settings for MG appliances.
+        
+        Args:
+            network_id: Network ID
+            rf_profile_id: RF profile ID
+            name: Profile name
+            two_four_ghz_min_bitrate: 2.4 GHz minimum bitrate
+            five_ghz_min_bitrate: 5 GHz minimum bitrate
+            
+        Returns:
+            Updated profile
+        """
+        try:
+            kwargs = {}
+            
+            if name:
+                kwargs["name"] = name
+                
+            two_four_settings = {}
+            if two_four_ghz_min_bitrate:
+                two_four_settings["minBitrate"] = two_four_ghz_min_bitrate
+            if two_four_settings:
+                kwargs["twoFourGhzSettings"] = two_four_settings
+                
+            five_settings = {}
+            if five_ghz_min_bitrate:
+                five_settings["minBitrate"] = five_ghz_min_bitrate
+            if five_settings:
+                kwargs["fiveGhzSettings"] = five_settings
+                
+            result = meraki_client.dashboard.appliance.updateNetworkApplianceRfProfile(
+                network_id, rf_profile_id, **kwargs
+            )
+            
+            return "✅ RF profile updated successfully"
+            
+        except Exception as e:
+            return f"Error updating RF profile: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_traffic_shaping_uplink_selection",
+        description="🌐 Get uplink selection settings for traffic shaping"
+    )
+    def get_network_appliance_traffic_shaping_uplink_selection(network_id: str):
+        """
+        Get uplink selection settings for traffic shaping.
+        
+        Args:
+            network_id: Network ID
+            
+        Returns:
+            Uplink selection configuration
+        """
+        try:
+            config = meraki_client.dashboard.appliance.getNetworkApplianceTrafficShapingUplinkSelection(network_id)
+            
+            result = f"# 🌐 Uplink Selection Settings\\n\\n"
+            
+            if config.get("activeActiveAutoVpnEnabled") is not None:
+                result += f"**Active-Active Auto VPN**: {'✅' if config.get('activeActiveAutoVpnEnabled') else '❌'}\n"
+                
+            if config.get("defaultUplink"):
+                result += f"**Default Uplink**: {config.get('defaultUplink')}\n"
+                
+            if config.get("loadBalancingEnabled") is not None:
+                result += f"**Load Balancing**: {'✅' if config.get('loadBalancingEnabled') else '❌'}\n"
+                
+            if config.get("wanTrafficUplinkPreferences"):
+                result += f"\\n## WAN Traffic Preferences\\n"
+                for pref in config.get("wanTrafficUplinkPreferences", []):
+                    result += f"\n### {pref.get('trafficFilters', [{}])[0].get('type', 'Custom')} Rule\n"
+                    result += f"- **Preferred Uplink**: {pref.get('preferredUplink')}\n"
+                    
+                    for filter in pref.get("trafficFilters", []):
+                        if filter.get("value"):
+                            result += f"- **Filter**: {filter.get('value')}\n"
+                            
+            if config.get("vpnTrafficUplinkPreferences"):
+                result += f"\\n## VPN Traffic Preferences\\n"
+                for pref in config.get("vpnTrafficUplinkPreferences", []):
+                    result += f"\n### {pref.get('trafficFilters', [{}])[0].get('type', 'Custom')} Rule\n"
+                    result += f"- **Preferred Uplink**: {pref.get('preferredUplink')}\n"
+                    result += f"- **Failover Criterion**: {pref.get('failOverCriterion', 'N/A')}\\n"
+                    
+            return result
+            
+        except Exception as e:
+            return f"Error retrieving uplink selection: {str(e)}"
+    
+    @app.tool(
+        name="update_network_appliance_traffic_shaping_uplink_selection",
+        description="🌐 Update uplink selection settings for traffic shaping"
+    )
+    def update_network_appliance_traffic_shaping_uplink_selection(
+        network_id: str,
+        active_active_auto_vpn: Optional[bool] = None,
+        default_uplink: Optional[str] = None,
+        load_balancing_enabled: Optional[bool] = None
+    ):
+        """
+        Update uplink selection settings for traffic shaping.
+        
+        Args:
+            network_id: Network ID
+            active_active_auto_vpn: Enable active-active Auto VPN
+            default_uplink: Default uplink (wan1 or wan2)
+            load_balancing_enabled: Enable load balancing
+            
+        Returns:
+            Updated configuration
+        """
+        try:
+            kwargs = {}
+            
+            if active_active_auto_vpn is not None:
+                kwargs["activeActiveAutoVpnEnabled"] = active_active_auto_vpn
+            if default_uplink:
+                kwargs["defaultUplink"] = default_uplink
+            if load_balancing_enabled is not None:
+                kwargs["loadBalancingEnabled"] = load_balancing_enabled
+                
+            result = meraki_client.dashboard.appliance.updateNetworkApplianceTrafficShapingUplinkSelection(
+                network_id, **kwargs
+            )
+            
+            return "✅ Uplink selection settings updated successfully"
+            
+        except Exception as e:
+            return f"Error updating uplink selection: {str(e)}"
+

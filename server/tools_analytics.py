@@ -28,12 +28,12 @@ def register_analytics_tool_handlers():
         name="get_organization_uplinks_loss_and_latency", 
         description="🚨 Monitor packet loss & latency - detect DDoS attacks, ISP issues, network degradation across all sites"
     )
-    def get_organization_uplinks_loss_and_latency(org_id: str, timespan: int = 300):
+    def get_organization_uplinks_loss_and_latency(organization_id: str, timespan: int = 300):
         """
         Get REAL packet loss and latency data for all uplinks in organization.
         
         Args:
-            org_id: Organization ID
+            organization_id: Organization ID
             timespan: Timespan in seconds (default: 300 = 5 minutes, max: 300)
             
         Returns:
@@ -51,7 +51,7 @@ def register_analytics_tool_handlers():
                 timespan = 300
                 # Note: API limit is 300 seconds (5 minutes)
                 
-            loss_latency = meraki_client.get_organization_devices_uplinks_loss_and_latency(org_id, timespan)
+            loss_latency = meraki_client.get_organization_devices_uplinks_loss_and_latency(organization_id, timespan)
             
             if not loss_latency:
                 return f"No uplink loss/latency data found for organization {org_id}."
@@ -158,12 +158,12 @@ def register_analytics_tool_handlers():
         name="get_organization_appliance_uplink_statuses",
         description="🔗 Get REAL uplink status for all appliances in organization"
     )
-    def get_organization_appliance_uplink_statuses(org_id: str):
+    def get_organization_appliance_uplink_statuses(organization_id: str):
         """
         Get REAL uplink status for all appliances in organization.
         
         Args:
-            org_id: Organization ID
+            organization_id: Organization ID
             
         Returns:
             Formatted appliance uplink status data

@@ -621,3 +621,323 @@ def register_wireless_tool_handlers():
             
         except Exception as e:
             return f"❌ Error configuring bridge mode: {str(e)}"
+    
+    @app.tool(
+        name="get_composite_wireless_health",
+        description="Get comprehensive wireless health check for a network"
+    )
+    def get_composite_wireless_health(
+        network_id: str,
+        check_ssids: bool = True,
+        check_clients: bool = True,
+        check_aps: bool = True,
+        check_rf: bool = True
+    ):
+        """
+        Perform a comprehensive wireless health check.
+        
+        Args:
+            network_id: Network ID
+            check_ssids: Check SSID configurations
+            check_clients: Check client connections
+            check_aps: Check access point status
+            check_rf: Check RF health
+            
+        Returns:
+            Comprehensive health report
+        """
+        try:
+            result = "# 📊 Wireless Health Check Report\n\n"
+            
+            # Check SSIDs
+            if check_ssids:
+                try:
+                    ssids = meraki_client.dashboard.wireless.getNetworkWirelessSsids(network_id)
+                    enabled_ssids = [s for s in ssids if s.get('enabled')]
+                    result += f"## SSIDs\n"
+                    result += f"- Total SSIDs: {len(ssids)}\n"
+                    result += f"- Enabled SSIDs: {len(enabled_ssids)}\n"
+                    for ssid in enabled_ssids:
+                        result += f"  - **{ssid.get('name', 'Unnamed')}** (#{ssid.get('number')})\n"
+                except Exception as e:
+                    result += f"## SSIDs\n- ⚠️ Error checking SSIDs: {str(e)}\n"
+            
+            # Check Access Points
+            if check_aps:
+                try:
+                    devices = meraki_client.dashboard.networks.getNetworkDevices(network_id)
+                    aps = [d for d in devices if d.get('model', '').startswith('MR')]
+                    
+                    # Better status detection
+                    online_aps = []
+                    offline_aps = []
+                    unknown_aps = []
+                    
+                    for ap in aps:
+                        status = ap.get('status', 'unknown')
+                        if status == 'online' or (status == 'unknown' and ap.get('lanIp')):
+                            online_aps.append(ap)
+                        elif status == 'offline':
+                            offline_aps.append(ap)
+                        else:
+                            unknown_aps.append(ap)
+                    
+                    result += f"\n## Access Points\n"
+                    result += f"- Total APs: {len(aps)}\n"
+                    result += f"- Online APs: {len(online_aps)}\n"
+                    result += f"- Offline APs: {len(offline_aps)}\n"
+                    if unknown_aps:
+                        result += f"- Unknown Status: {len(unknown_aps)}\n"
+                    
+                    for ap in aps:
+                        status = ap.get('status', 'unknown')
+                        if status == 'online' or (status == 'unknown' and ap.get('lanIp')):
+                            status_icon = "✅"
+                        elif status == 'offline':
+                            status_icon = "❌"
+                        else:
+                            status_icon = "⚠️"
+                        
+                        ap_info = f"**{ap.get('name', ap.get('serial'))}** ({ap.get('model')})"
+                        if ap.get('lanIp'):
+                            ap_info += f" - IP: {ap.get('lanIp')}"
+                        result += f"  - {status_icon} {ap_info}\n"
+                except Exception as e:
+                    result += f"\n## Access Points\n- ⚠️ Error checking APs: {str(e)}\n"
+            
+            # Check Clients
+            if check_clients:
+                try:
+                    clients = meraki_client.dashboard.networks.getNetworkClients(
+                        network_id, 
+                        timespan=300,
+                        perPage=100
+                    )
+                    wireless_clients = [c for c in clients if c.get('ssid')]
+                    result += f"\n## Connected Clients\n"
+                    result += f"- Total wireless clients: {len(wireless_clients)}\n"
+                    if wireless_clients:
+                        ssid_counts = {}
+                        for client in wireless_clients:
+                            ssid = client.get('ssid', 'Unknown')
+                            ssid_counts[ssid] = ssid_counts.get(ssid, 0) + 1
+                        result += "- Clients per SSID:\n"
+                        for ssid, count in ssid_counts.items():
+                            result += f"  - {ssid}: {count} clients\n"
+                except Exception as e:
+                    result += f"\n## Connected Clients\n- ⚠️ Error checking clients: {str(e)}\n"
+            
+            # Check RF Health
+            if check_rf:
+                try:
+                    rf_profiles = meraki_client.dashboard.wireless.getNetworkWirelessRfProfiles(network_id)
+                    result += f"\n## RF Configuration\n"
+                    result += f"- RF Profiles configured: {len(rf_profiles)}\n"
+                    for profile in rf_profiles:
+                        result += f"  - **{profile.get('name')}** ({profile.get('bandSelectionType')})\n"
+                except Exception as e:
+                    result += f"\n## RF Configuration\n- ⚠️ Error checking RF: {str(e)}\n"
+            
+            result += "\n---\n✅ Health check complete!"
+            return result
+            
+        except Exception as e:
+            return f"❌ Error performing health check: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_access_points",
+        description="Get wireless access points in a network"
+    )
+    def get_network_wireless_access_points(network_id: str):
+        """
+        Get wireless access points in a network.
+        Maps to getNetworkDevices filtered for wireless APs.
+        
+        Args:
+            network_id: Network ID
+            
+        Returns:
+            List of wireless access points
+        """
+        try:
+            devices = meraki_client.dashboard.networks.getNetworkDevices(network_id)
+            
+            # Filter for wireless APs (models starting with MR)
+            aps = [d for d in devices if d.get('model', '').startswith('MR')]
+            
+            if not aps:
+                return f"No wireless access points found in network {network_id}"
+            
+            result = f"# Wireless Access Points\n\n"
+            for ap in aps:
+                # Determine status with fallback
+                status = ap.get('status', 'unknown')
+                if status == 'online':
+                    status_icon = "✅"
+                elif status == 'offline':
+                    status_icon = "❌"
+                else:
+                    status_icon = "⚠️"
+                    # If no status field, check other indicators
+                    if ap.get('lanIp'):
+                        status = 'online'
+                        status_icon = "✅"
+                
+                result += f"## {ap.get('name', ap.get('serial'))}\n"
+                result += f"- Model: {ap.get('model')}\n"
+                result += f"- Serial: {ap.get('serial')}\n"
+                result += f"- Status: {status_icon} {status}\n"
+                result += f"- MAC: {ap.get('mac')}\n"
+                if ap.get('lanIp'):
+                    result += f"- IP: {ap.get('lanIp')}\n"
+                if ap.get('tags'):
+                    result += f"- Tags: {', '.join(ap.get('tags'))}\n"
+                if ap.get('firmware'):
+                    result += f"- Firmware: {ap.get('firmware')}\n"
+                result += "\n"
+            
+            return result
+            
+        except Exception as e:
+            return f"Error getting access points: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_clients",
+        description="Get wireless clients connected to a network"
+    )
+    def get_network_wireless_clients(network_id: str, timespan: int = 300):
+        """
+        Get wireless clients connected to a network.
+        
+        Args:
+            network_id: Network ID
+            timespan: Time span in seconds (default 300 = 5 minutes)
+            
+        Returns:
+            List of wireless clients
+        """
+        try:
+            clients = meraki_client.dashboard.networks.getNetworkClients(
+                network_id,
+                timespan=timespan,
+                perPage=1000
+            )
+            
+            # Filter for wireless clients (those with SSID)
+            wireless_clients = [c for c in clients if c.get('ssid')]
+            
+            if not wireless_clients:
+                return f"No wireless clients found in network {network_id} (last {timespan} seconds)"
+            
+            result = f"# Wireless Clients (Last {timespan} seconds)\n\n"
+            result += f"Total wireless clients: {len(wireless_clients)}\n\n"
+            
+            # Group by SSID
+            by_ssid = {}
+            for client in wireless_clients:
+                ssid = client.get('ssid', 'Unknown')
+                if ssid not in by_ssid:
+                    by_ssid[ssid] = []
+                by_ssid[ssid].append(client)
+            
+            for ssid, ssid_clients in by_ssid.items():
+                result += f"## SSID: {ssid} ({len(ssid_clients)} clients)\n"
+                for client in ssid_clients[:10]:  # Show first 10 per SSID
+                    result += f"- {client.get('description', client.get('mac'))}\n"
+                    result += f"  - IP: {client.get('ip', 'N/A')}\n"
+                    result += f"  - MAC: {client.get('mac')}\n"
+                    result += f"  - Usage: {client.get('usage', {}).get('sent', 0)} sent, {client.get('usage', {}).get('recv', 0)} recv\n"
+                if len(ssid_clients) > 10:
+                    result += f"  ... and {len(ssid_clients) - 10} more\n"
+                result += "\n"
+            
+            return result
+            
+        except Exception as e:
+            return f"Error getting wireless clients: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_failed_connections", 
+        description="Get failed wireless connection attempts"
+    )
+    def get_network_wireless_failed_connections(network_id: str, timespan: int = 86400):
+        """
+        Get failed wireless connection attempts.
+        Wrapper for the SDK method in tools_wireless_advanced.
+        
+        Args:
+            network_id: Network ID
+            timespan: Time span in seconds (default 86400 = 24 hours)
+            
+        Returns:
+            Failed connection events
+        """
+        try:
+            # Call the SDK method
+            failures = meraki_client.dashboard.wireless.getNetworkWirelessFailedConnections(
+                network_id,
+                timespan=timespan
+            )
+            
+            if not failures:
+                return f"No failed connections in the last {timespan} seconds"
+            
+            result = f"# Failed Wireless Connections (Last {timespan} seconds)\n\n"
+            result += f"Total failures: {len(failures)}\n\n"
+            
+            # Get all unique client MACs for name resolution
+            all_client_macs = list(set(f.get('clientMac', '') for f in failures if f.get('clientMac')))
+            
+            # Try to fetch client details for name resolution
+            client_names = {}
+            try:
+                # Get current wireless clients to map MAC to names
+                # Use a longer timespan to catch clients that may have failed to connect
+                current_clients = meraki_client.dashboard.wireless.getNetworkWirelessClients(
+                    network_id, 
+                    timespan=max(86400, timespan)  # Look back at least 24 hours for client info
+                )
+                for client in current_clients:
+                    mac = client.get('mac')
+                    if mac:
+                        # Use description (device name) if available, otherwise manufacturer
+                        name = client.get('description')
+                        if not name:
+                            name = client.get('manufacturer')
+                        if name:
+                            client_names[mac] = name
+            except:
+                # If we can't get client names, continue without them
+                pass
+            
+            # Group by failure type
+            by_type = {}
+            for failure in failures:
+                fail_type = failure.get('failureStep', 'Unknown')
+                if fail_type not in by_type:
+                    by_type[fail_type] = []
+                by_type[fail_type].append(failure)
+            
+            for fail_type, type_failures in by_type.items():
+                result += f"## {fail_type} Failures ({len(type_failures)})\n"
+                for failure in type_failures[:5]:  # Show first 5 per type
+                    client_mac = failure.get('clientMac', 'Unknown')
+                    client_name = client_names.get(client_mac)
+                    
+                    # Show name with MAC in parentheses if we have a name
+                    if client_name:
+                        result += f"- Client: **{client_name}** ({client_mac})\n"
+                    else:
+                        result += f"- Client: {client_mac}\n"
+                    
+                    result += f"  - SSID: {failure.get('ssidNumber')}\n"
+                    result += f"  - Time: {failure.get('ts')}\n"
+                    result += f"  - Type: {failure.get('type')}\n"
+                if len(type_failures) > 5:
+                    result += f"  ... and {len(type_failures) - 5} more\n"
+                result += "\n"
+            
+            return result
+            
+        except Exception as e:
+            return f"Error getting failed connections: {str(e)}"

@@ -1100,7 +1100,25 @@ def register_history_tools():
         try:
             # API requires either device or client
             if not device_serial and not client_id:
-                return "❌ Error: Must specify either device_serial or client_id parameter"
+                return ("❌ Error: This tool requires either device_serial OR client_id parameter\n\n"
+                        "**Example for AP usage:**\n"
+                        "```\n"
+                        f"get_network_wireless_usage_history(\n"
+                        f"    network_id='{network_id}',\n"
+                        f"    device_serial='Q2PD-JL52-H3B2',  # AP serial\n"
+                        f"    timespan=3600\n"
+                        ")\n"
+                        "```\n\n"
+                        "**Example for Client usage:**\n"
+                        "```\n"
+                        f"get_network_wireless_usage_history(\n"
+                        f"    network_id='{network_id}',\n"
+                        f"    client_id='k74272e',  # Client ID\n"
+                        f"    timespan=3600\n"
+                        ")\n"
+                        "```\n\n"
+                        "💡 Use get_network_wireless_access_points to find AP serials\n"
+                        "💡 Use get_network_wireless_clients to find client IDs")
             
             kwargs = {'timespan': timespan}
             if device_serial: kwargs['deviceSerial'] = device_serial
@@ -1174,7 +1192,25 @@ def register_history_tools():
         try:
             # API requires either device or client
             if not device_serial and not client_id:
-                return "❌ Error: Must specify either device_serial or client_id parameter"
+                return ("❌ Error: This tool requires either device_serial OR client_id parameter\n\n"
+                        "**Example for AP signal quality:**\n"
+                        "```\n"
+                        f"get_network_wireless_signal_quality_history(\n"
+                        f"    network_id='{network_id}',\n"
+                        f"    device_serial='Q2PD-JL52-H3B2',  # AP serial\n"
+                        f"    timespan=3600\n"
+                        ")\n"
+                        "```\n\n"
+                        "**Example for Client signal quality:**\n"
+                        "```\n"
+                        f"get_network_wireless_signal_quality_history(\n"
+                        f"    network_id='{network_id}',\n"
+                        f"    client_id='k74272e',  # Client ID\n"
+                        f"    timespan=3600\n"
+                        ")\n"
+                        "```\n\n"
+                        "💡 Use get_network_wireless_access_points to find AP serials\n"
+                        "💡 Use get_network_wireless_clients to find client IDs")
             
             kwargs = {'timespan': timespan}
             if device_serial: kwargs['deviceSerial'] = device_serial

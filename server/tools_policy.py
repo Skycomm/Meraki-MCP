@@ -28,12 +28,12 @@ def register_policy_tool_handlers():
         name="get_organization_policy_objects",
         description="🛡️ List all policy objects in an organization"
     )
-    def get_organization_policy_objects(org_id: str):
+    def get_organization_policy_objects(organization_id: str):
         """
         List all policy objects for an organization.
         
         Args:
-            org_id: Organization ID
+            organization_id: Organization ID
             
         Returns:
             List of policy objects
@@ -42,9 +42,9 @@ def register_policy_tool_handlers():
             objects = meraki_client.get_organization_policy_objects(org_id)
             
             if not objects:
-                return f"No policy objects found for organization {org_id}."
+                return f"No policy objects found for organization {organization_id}."
                 
-            result = f"# 🛡️ Policy Objects - Organization {org_id}\n\n"
+            result = f"# 🛡️ Policy Objects - Organization {organization_id}\n\n"
             result += f"**Total Objects**: {len(objects)}\n\n"
             
             # Group by category
@@ -106,12 +106,12 @@ def register_policy_tool_handlers():
         name="create_organization_policy_object",
         description="🛡️ Create a new policy object"
     )
-    def create_organization_policy_object(org_id: str, name: str, category: str, type: str, cidr: str = None, fqdn: str = None, ip: str = None):
+    def create_organization_policy_object(organization_id: str, name: str, category: str, type: str, cidr: str = None, fqdn: str = None, ip: str = None):
         """
         Create a new policy object.
         
         Args:
-            org_id: Organization ID
+            organization_id: Organization ID
             name: Object name
             category: Category (e.g., 'network', 'application')
             type: Type (e.g., 'ipv4', 'fqdn', 'ipv4Range')
@@ -149,7 +149,7 @@ def register_policy_tool_handlers():
             else:
                 return f"Error: Missing required parameter for type {type}"
             
-            result = meraki_client.create_organization_policy_object(org_id, **kwargs)
+            result = meraki_client.create_organization_policy_object(organization_id, **kwargs)
             
             response = f"# 🛡️ Policy Object Created\n\n"
             response += f"**Name**: {result.get('name', name)}\n"
@@ -171,12 +171,12 @@ def register_policy_tool_handlers():
         name="update_organization_policy_object",
         description="📝 Update an existing policy object"
     )
-    def update_organization_policy_object(org_id: str, policy_object_id: str, name: str = None, cidr: str = None, fqdn: str = None):
+    def update_organization_policy_object(organization_id: str, policy_object_id: str, name: str = None, cidr: str = None, fqdn: str = None):
         """
         Update an existing policy object.
         
         Args:
-            org_id: Organization ID
+            organization_id: Organization ID
             policy_object_id: Policy object ID
             name: New name (optional)
             cidr: New CIDR for IP objects (optional)
@@ -194,7 +194,7 @@ def register_policy_tool_handlers():
             if fqdn:
                 kwargs['fqdn'] = fqdn
                 
-            result = meraki_client.update_organization_policy_object(org_id, policy_object_id, **kwargs)
+            result = meraki_client.update_organization_policy_object(organization_id, policy_object_id, **kwargs)
             
             response = f"# 📝 Policy Object Updated\n\n"
             response += f"**ID**: {policy_object_id}\n"
@@ -214,12 +214,12 @@ def register_policy_tool_handlers():
         name="delete_organization_policy_object",
         description="🗑️ Delete a policy object - REQUIRES CONFIRMATION"
     )
-    def delete_organization_policy_object(org_id: str, policy_object_id: str):
+    def delete_organization_policy_object(organization_id: str, policy_object_id: str):
         """
         Delete a policy object.
         
         Args:
-            org_id: Organization ID
+            organization_id: Organization ID
             policy_object_id: Policy object ID to delete
             
         Returns:
@@ -250,7 +250,7 @@ def register_policy_tool_handlers():
                 return "❌ Policy object deletion cancelled by user"
             
             # Perform deletion
-            meraki_client.delete_organization_policy_object(org_id, policy_object_id)
+            meraki_client.delete_organization_policy_object(organization_id, policy_object_id)
             
             return f"✅ Policy object '{policy_obj.get('name', policy_object_id)}' deleted successfully"
             
@@ -261,12 +261,12 @@ def register_policy_tool_handlers():
         name="get_organization_policy_objects_groups",
         description="📁 List all policy object groups"
     )
-    def get_organization_policy_objects_groups(org_id: str):
+    def get_organization_policy_objects_groups(organization_id: str):
         """
         List all policy object groups for an organization.
         
         Args:
-            org_id: Organization ID
+            organization_id: Organization ID
             
         Returns:
             List of policy object groups
@@ -275,9 +275,9 @@ def register_policy_tool_handlers():
             groups = meraki_client.get_organization_policy_objects_groups(org_id)
             
             if not groups:
-                return f"No policy object groups found for organization {org_id}."
+                return f"No policy object groups found for organization {organization_id}."
                 
-            result = f"# 📁 Policy Object Groups - Organization {org_id}\n\n"
+            result = f"# 📁 Policy Object Groups - Organization {organization_id}\n\n"
             result += f"**Total Groups**: {len(groups)}\n\n"
             
             for group in groups:
@@ -315,12 +315,12 @@ def register_policy_tool_handlers():
         name="create_organization_policy_objects_group",
         description="📁 Create a new policy object group"
     )
-    def create_organization_policy_objects_group(org_id: str, name: str, category: str, object_ids: str = None):
+    def create_organization_policy_objects_group(organization_id: str, name: str, category: str, object_ids: str = None):
         """
         Create a new policy object group.
         
         Args:
-            org_id: Organization ID
+            organization_id: Organization ID
             name: Group name
             category: Category (must match objects' category)
             object_ids: Comma-separated policy object IDs to include
@@ -338,7 +338,7 @@ def register_policy_tool_handlers():
                 ids_list = [id.strip() for id in object_ids.split(',')]
                 kwargs['objectIds'] = ids_list
             
-            result = meraki_client.create_organization_policy_objects_group(org_id, **kwargs)
+            result = meraki_client.create_organization_policy_objects_group(organization_id, **kwargs)
             
             response = f"# 📁 Policy Object Group Created\n\n"
             response += f"**Name**: {result.get('name', name)}\n"

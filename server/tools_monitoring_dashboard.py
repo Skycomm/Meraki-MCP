@@ -947,7 +947,7 @@ def check_monitoring_prerequisites(network_id: str) -> str:
         features_to_check = [
             ("Device Status", lambda: meraki.dashboard.organizations.getOrganizationDevicesStatuses(network['organizationId'], networkIds=[network_id])),
             ("Client Stats", lambda: meraki.dashboard.networks.getNetworkClientsConnectionStats(network_id, timespan=300)),
-            ("Events", lambda: meraki.dashboard.networks.getNetworkEvents(network_id, perPage=1)),
+            ("Events", lambda: meraki.dashboard.networks.getNetworkEvents(network_id, perPage=3)),
         ]
         
         if 'MX' in device_types:

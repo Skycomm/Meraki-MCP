@@ -52,6 +52,45 @@ def register_organization_tool_handlers():
             return f"Failed to list organizations: {str(e)}"
     
     @app.tool(
+        name="search_organizations_by_name",
+        description="Search for Meraki organizations by name (case-insensitive)"
+    )
+    def search_organizations_by_name(name: str):
+        """
+        Search for Meraki organizations by name.
+        
+        Args:
+            name: Name to search for (case-insensitive partial match)
+            
+        Returns:
+            Formatted list of matching organizations
+        """
+        try:
+            organizations = meraki_client.get_organizations()
+            
+            # Filter organizations by name (case-insensitive)
+            search_term = name.lower()
+            matching_orgs = [
+                org for org in organizations 
+                if search_term in org['name'].lower()
+            ]
+            
+            if not matching_orgs:
+                return f"No organizations found matching '{name}'."
+                
+            # Format the output
+            result = f"# Organizations matching '{name}'\n\n"
+            for org in matching_orgs:
+                result += f"- **{org['name']}** (ID: `{org['id']}`)\n"
+                if org.get('url'):
+                    result += f"  - URL: {org['url']}\n"
+                    
+            return result
+            
+        except Exception as e:
+            return f"Failed to search organizations: {str(e)}"
+    
+    @app.tool(
         name="get_organization",
         description="Get details about a specific Meraki organization"
     )
@@ -71,24 +110,24 @@ def register_organization_tool_handlers():
         name="get_organization_networks",
         description="List networks in a Meraki organization"
     )
-    def get_organization_networks(org_id: str):
+    def get_organization_networks(organization_id: str):
         """
         List networks in a Meraki organization.
         
         Args:
-            org_id: ID of the organization
+            organization_id: ID of the organization
             
         Returns:
             Formatted list of networks
         """
         try:
-            networks = meraki_client.get_organization_networks(org_id)
+            networks = meraki_client.get_organization_networks(organization_id)
             
             if not networks:
-                return f"No networks found for organization {org_id}."
+                return f"No networks found for organization {organization_id}."
                 
             # Format the output for readability
-            result = f"# Networks in Organization ({org_id})\n\n"
+            result = f"# Networks in Organization ({organization_id})\n\n"
             for net in networks:
                 result += f"- **{net['name']}** (ID: `{net['id']}`)\n"
                 result += f"  - Type: {net.get('type', 'Unknown')}\n"
@@ -97,30 +136,30 @@ def register_organization_tool_handlers():
             return result
             
         except Exception as e:
-            return f"Failed to list networks for organization {org_id}: {str(e)}"
+            return f"Failed to list networks for organization {organization_id}: {str(e)}"
     
     @app.tool(
         name="get_organization_alerts",
         description="Get alert settings for a Meraki organization"
     )
-    def get_organization_alerts(org_id: str):
+    def get_organization_alerts(organization_id: str):
         """
         Get alert settings for a Meraki organization.
         
         Args:
-            org_id: ID of the organization
+            organization_id: ID of the organization
             
         Returns:
             Formatted alert settings
         """
         try:
-            alerts = meraki_client.get_organization_alerts(org_id)
+            alerts = meraki_client.get_organization_alerts(organization_id)
             
             if not alerts:
-                return f"No alert settings found for organization {org_id}."
+                return f"No alert settings found for organization {organization_id}."
                 
             # Format the output for readability
-            result = f"# Alert Settings for Organization ({org_id})\n\n"
+            result = f"# Alert Settings for Organization ({organization_id})\n\n"
             
             # Add default destinations if present
             if 'defaultDestinations' in alerts:
@@ -151,7 +190,7 @@ def register_organization_tool_handlers():
             return result
             
         except Exception as e:
-            return f"Failed to get alert settings for organization {org_id}: {str(e)}"
+            return f"Failed to get alert settings for organization {organization_id}: {str(e)}"
     
     @app.tool(
         name="create_organization",
@@ -258,24 +297,24 @@ def register_organization_tool_handlers():
         name="get_organization_firmware",
         description="Get firmware upgrades for a Meraki organization"
     )
-    def get_organization_firmware(org_id: str):
+    def get_organization_firmware(organization_id: str):
         """
         Get firmware upgrades for a Meraki organization.
         
         Args:
-            org_id: ID of the organization
+            organization_id: ID of the organization
             
         Returns:
             Formatted firmware upgrade information
         """
         try:
-            upgrades = meraki_client.get_organization_firmware_upgrades(org_id)
+            upgrades = meraki_client.get_organization_firmware_upgrades(organization_id)
             
             if not upgrades:
-                return f"No firmware upgrades found for organization {org_id}."
+                return f"No firmware upgrades found for organization {organization_id}."
                 
             # Format the output for readability
-            result = f"# Firmware Upgrades for Organization ({org_id})\n\n"
+            result = f"# Firmware Upgrades for Organization ({organization_id})\n\n"
             
             if isinstance(upgrades, list):
                 for upgrade in upgrades:
@@ -290,18 +329,18 @@ def register_organization_tool_handlers():
             return result
             
         except Exception as e:
-            return f"Failed to get firmware upgrades for organization {org_id}: {str(e)}"
+            return f"Failed to get firmware upgrades for organization {organization_id}: {str(e)}"
     
     @app.tool(
         name="get_organization_admins",
         description="Get dashboard administrators for a Meraki organization"
     )
-    def get_organization_admins(org_id: str, network_ids: str = None):
+    def get_organization_admins(organization_id: str, network_ids: str = None):
         """
         Get dashboard administrators for a Meraki organization.
         
         Args:
-            org_id: ID of the organization
+            organization_id: ID of the organization
             network_ids: Comma-separated list of network IDs to filter by (optional)
             
         Returns:
@@ -313,13 +352,13 @@ def register_organization_tool_handlers():
             if network_ids:
                 network_id_list = [id.strip() for id in network_ids.split(',')]
             
-            admins = meraki_client.get_organization_admins(org_id, network_id_list)
+            admins = meraki_client.get_organization_admins(organization_id, network_id_list)
             
             if not admins:
-                return f"No administrators found for organization {org_id}."
+                return f"No administrators found for organization {organization_id}."
                 
             # Format the output for readability
-            result = f"# Administrators for Organization ({org_id})\n\n"
+            result = f"# Administrators for Organization ({organization_id})\n\n"
             
             for admin in admins:
                 result += f"## {admin.get('name', 'Unknown')}\n"
@@ -352,18 +391,18 @@ def register_organization_tool_handlers():
             return result
             
         except Exception as e:
-            return f"Failed to get administrators for organization {org_id}: {str(e)}"
+            return f"Failed to get administrators for organization {organization_id}: {str(e)}"
     
     @app.tool(
         name="check_organization_comprehensive",
         description="Perform a comprehensive check of a Meraki organization including all settings, policies, webhooks, licenses, devices, and configurations"
     )
-    def check_organization_comprehensive(org_id: str, check_type: str = "all"):
+    def check_organization_comprehensive(organization_id: str, check_type: str = "all"):
         """
         Perform a comprehensive check of a Meraki organization.
         
         Args:
-            org_id: ID of the organization
+            organization_id: ID of the organization
             check_type: Type of check to perform - 'all', 'settings', 'devices', 'policies', 'webhooks', 'licenses' (default: 'all')
             
         Returns:
@@ -371,11 +410,11 @@ def register_organization_tool_handlers():
         """
         try:
             result = f"# Comprehensive Organization Check\n"
-            result += f"## Organization ID: {org_id}\n\n"
+            result += f"## Organization ID: {organization_id}\n\n"
             
             # Get basic organization info
             try:
-                org = meraki_client.get_organization(org_id)
+                org = meraki_client.get_organization(organization_id)
                 result += f"### Organization Details\n"
                 result += f"- Name: {org.get('name', 'Unknown')}\n"
                 result += f"- URL: {org.get('url', 'Unknown')}\n"
@@ -390,7 +429,7 @@ def register_organization_tool_handlers():
             if check_type in ['all', 'settings']:
                 result += "### Networks\n"
                 try:
-                    networks = meraki_client.get_organization_networks(org_id)
+                    networks = meraki_client.get_organization_networks(organization_id)
                     result += f"- Total Networks: {len(networks)}\n"
                     if networks:
                         result += "- Network List:\n"
@@ -408,7 +447,7 @@ def register_organization_tool_handlers():
             if check_type in ['all', 'devices']:
                 result += "### Devices\n"
                 try:
-                    devices = meraki_client.get_organization_devices(org_id)
+                    devices = meraki_client.get_organization_devices(organization_id)
                     result += f"- Total Devices: {len(devices)}\n"
                     if devices:
                         # Group by model
@@ -427,7 +466,7 @@ def register_organization_tool_handlers():
             if check_type in ['all', 'settings']:
                 result += "### Alert Settings\n"
                 try:
-                    alerts = meraki_client.get_organization_alerts(org_id)
+                    alerts = meraki_client.get_organization_alerts(organization_id)
                     if alerts and 'alerts' in alerts:
                         enabled_alerts = [a['type'] for a in alerts['alerts'] if a.get('enabled', False)]
                         result += f"- Enabled Alerts: {len(enabled_alerts)}\n"
@@ -446,7 +485,7 @@ def register_organization_tool_handlers():
             if check_type in ['all', 'webhooks']:
                 result += "### Webhooks\n"
                 try:
-                    webhooks = meraki_client.get_organization_webhooks(org_id)
+                    webhooks = meraki_client.get_organization_webhooks(organization_id)
                     if webhooks:
                         result += f"- Total Webhooks: {len(webhooks)}\n"
                         for webhook in webhooks[:3]:  # Show first 3
@@ -463,7 +502,7 @@ def register_organization_tool_handlers():
             if check_type in ['all', 'settings']:
                 result += "### Firmware Settings\n"
                 try:
-                    firmware = meraki_client.get_organization_firmware_upgrades(org_id)
+                    firmware = meraki_client.get_organization_firmware_upgrades(organization_id)
                     if firmware:
                         result += f"- Firmware upgrade information available\n"
                     else:
@@ -476,7 +515,7 @@ def register_organization_tool_handlers():
             if check_type in ['all', 'licenses']:
                 result += "### Licensing\n"
                 try:
-                    licenses = meraki_client.get_organization_licenses(org_id)
+                    licenses = meraki_client.get_organization_licenses(organization_id)
                     if licenses:
                         result += f"- Total Licenses: {len(licenses)}\n"
                         # Group by state
@@ -497,7 +536,7 @@ def register_organization_tool_handlers():
             if check_type in ['all', 'policies']:
                 result += "### Policy Objects\n"
                 try:
-                    policies = meraki_client.get_organization_policy_objects(org_id)
+                    policies = meraki_client.get_organization_policy_objects(organization_id)
                     if policies:
                         result += f"- Total Policy Objects: {len(policies)}\n"
                         # Group by category
@@ -515,7 +554,7 @@ def register_organization_tool_handlers():
                     
                 # Check policy groups
                 try:
-                    groups = meraki_client.get_organization_policy_objects_groups(org_id)
+                    groups = meraki_client.get_organization_policy_objects_groups(organization_id)
                     if groups:
                         result += f"- Policy Groups: {len(groups)}\n"
                 except Exception as e:
@@ -526,8 +565,8 @@ def register_organization_tool_handlers():
             if check_type in ['all', 'settings']:
                 result += "### Early Access Features\n"
                 try:
-                    features = meraki_client.get_organization_early_access_features(org_id)
-                    opt_ins = meraki_client.get_organization_early_access_features_opt_ins(org_id)
+                    features = meraki_client.get_organization_early_access_features(organization_id)
+                    opt_ins = meraki_client.get_organization_early_access_features_opt_ins(organization_id)
                     if opt_ins:
                         result += f"- Opted-in Features: {len(opt_ins)}\n"
                         for opt_in in opt_ins[:3]:
@@ -544,7 +583,7 @@ def register_organization_tool_handlers():
             if check_type in ['all', 'settings']:
                 result += "### Administrators\n"
                 try:
-                    admins = meraki_client.get_organization_admins(org_id)
+                    admins = meraki_client.get_organization_admins(organization_id)
                     result += f"- Total Admins: {len(admins)}\n"
                     if admins:
                         # Group by access level
@@ -564,7 +603,7 @@ def register_organization_tool_handlers():
                 result += "### API Usage\n"
                 try:
                     # Get recent API requests (last 5 minutes)
-                    api_requests = meraki_client.get_organization_api_requests(org_id, timespan=300)
+                    api_requests = meraki_client.get_organization_api_requests(organization_id, timespan=300)
                     if api_requests:
                         result += f"- Recent API Requests (last 5 min): {len(api_requests)}\n"
                     else:
@@ -578,8 +617,8 @@ def register_organization_tool_handlers():
             
             # Determine if it's a clone based on findings
             try:
-                networks = meraki_client.get_organization_networks(org_id)
-                devices = meraki_client.get_organization_devices(org_id)
+                networks = meraki_client.get_organization_networks(organization_id)
+                devices = meraki_client.get_organization_devices(organization_id)
                 
                 if not networks and not devices:
                     result += "**a clone or empty organization** with no networks or devices configured."
@@ -591,7 +630,7 @@ def register_organization_tool_handlers():
             return result
             
         except Exception as e:
-            return f"Failed to perform comprehensive check for organization {org_id}: {str(e)}"
+            return f"Failed to perform comprehensive check for organization {organization_id}: {str(e)}"
     
     @app.tool(
         name="compare_organizations",
