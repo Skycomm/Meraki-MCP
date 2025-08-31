@@ -1062,7 +1062,7 @@ def register_networks_complete_handlers():
     def get_network_health_alerts(network_id: str):
         """Get health alerts for a network."""
         try:
-            alerts = meraki_client.get_network_health_alerts(network_id)
+            alerts = meraki_client.dashboard.networks.getNetworkHealthAlerts(network_id)
             
             if not alerts:
                 return "No health alerts"

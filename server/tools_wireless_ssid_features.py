@@ -1070,16 +1070,37 @@ def register_location_scanning_tools():
     def get_network_wireless_location_scanning(network_id: str):
         """Get network location scanning settings."""
         try:
-            result = meraki_client.dashboard.wireless.getNetworkWirelessLocationScanning(
-                network_id
+            # Get network info to find org ID
+            network = meraki_client.dashboard.networks.getNetwork(network_id)
+            org_id = network.get('organizationId')
+            
+            # Use org-level method to get location scanning by network
+            result = meraki_client.dashboard.wireless.getOrganizationWirelessLocationScanningByNetwork(
+                org_id
             )
             
-            response = f"# 📡 Location Scanning Settings\n\n"
-            response += f"**Analytics Enabled**: {result.get('analyticsEnabled', False)}\n"
-            response += f"**Scanning API Enabled**: {result.get('scanningApiEnabled', False)}\n"
+            # Extract items from result (API returns dict with 'items' key)
+            all_networks = result.get('items', []) if isinstance(result, dict) else result
             
-            if result.get('scanningApiReceiverSecret'):
-                response += f"**Receiver Secret**: [CONFIGURED]\n"
+            # Find this network's settings
+            network_settings = None
+            for net in all_networks:
+                if net.get('networkId') == network_id:
+                    network_settings = net
+                    break
+            
+            if not network_settings:
+                return f"# 📡 Location Scanning Settings\n\nLocation scanning not configured for this network.\n\n💡 Use 'update_network_wireless_location_scanning' to enable."
+            
+            response = f"# 📡 Location Scanning Settings\n\n"
+            response += f"**Network**: {network_settings.get('name', network_id)}\n"
+            response += f"**Location Analytics Enabled**: {network_settings.get('enabled', False)}\n"
+            
+            api_settings = network_settings.get('api', {})
+            response += f"**Scanning API Enabled**: {api_settings.get('enabled', False)}\n"
+            
+            if api_settings.get('validator', {}).get('string'):
+                response += f"**Validator**: [CONFIGURED]\n"
             
             return response
             
