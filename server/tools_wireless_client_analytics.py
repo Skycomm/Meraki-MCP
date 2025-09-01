@@ -67,17 +67,17 @@ def register_identity_psk_crud_tools():
     
     # DUPLICATE: Commented out - also defined in tools_wireless_advanced.py
     '''
-    @app.tool(
-        name="create_network_wireless_ssid_identity_psk",
-        description="📡🔑 Create a new identity PSK"
-    )
-    def create_network_wireless_ssid_identity_psk(
-        network_id: str,
-        number: str,
-        name: str,
-        passphrase: Optional[str] = None,
-        group_policy_id: Optional[str] = None,
-        email: Optional[str] = None,
+    # @app.tool(
+    # name="create_network_wireless_ssid_identity_psk",
+    # description="📡🔑 Create a new identity PSK"
+    # )
+    # def create_network_wireless_ssid_identity_psk(
+    # network_id: str,
+    # number: str,
+    # name: str,
+    # passphrase: Optional[str] = None,
+    # group_policy_id: Optional[str] = None,
+    # email: Optional[str] = None,
         expires_at: Optional[str] = None
     ):
         """Create a new identity PSK."""
@@ -146,17 +146,17 @@ def register_identity_psk_crud_tools():
     
     # DUPLICATE: Commented out - also defined in tools_wireless_advanced.py
     '''
-    @app.tool(
-        name="delete_network_wireless_ssid_identity_psk",
-        description="📡🔑 Delete an identity PSK"
-    )
-    def delete_network_wireless_ssid_identity_psk(
-        network_id: str,
-        number: str,
-        identity_psk_id: str
-    ):
-        """Delete an identity PSK."""
-        try:
+    # @app.tool(
+    # name="delete_network_wireless_ssid_identity_psk",
+    # description="📡🔑 Delete an identity PSK"
+    # )
+    # def delete_network_wireless_ssid_identity_psk(
+    # network_id: str,
+    # number: str,
+    # identity_psk_id: str
+    # ):
+    # """Delete an identity PSK."""
+    # try:
             meraki_client.dashboard.wireless.deleteNetworkWirelessSsidIdentityPsk(
                 network_id, number, identity_psk_id
             )
@@ -473,17 +473,17 @@ def register_rf_profile_crud_tools():
     # DUPLICATE: Commented out - these tools are defined in tools_wireless_rf_profiles.py
     return  # Skip registration to avoid duplicates
     '''
-    @app.tool(
-        name="create_network_wireless_rf_profile",
-        description="📡📻 Create a new RF profile for network"
-    )
-    def create_network_wireless_rf_profile(
-        network_id: str,
-        name: str,
-        band_selection_type: str,
-        client_balancing_enabled: Optional[bool] = None,
-        min_bitrate_type: Optional[str] = None,
-        ap_band_settings: Optional[str] = None,
+    # @app.tool(
+    # name="create_network_wireless_rf_profile",
+    # description="📡📻 Create a new RF profile for network"
+    # )
+    # def create_network_wireless_rf_profile(
+    # network_id: str,
+    # name: str,
+    # band_selection_type: str,
+    # client_balancing_enabled: Optional[bool] = None,
+    # min_bitrate_type: Optional[str] = None,
+    # ap_band_settings: Optional[str] = None,
         two_four_ghz_settings: Optional[str] = None,
         five_ghz_settings: Optional[str] = None,
         six_ghz_settings: Optional[str] = None
@@ -554,17 +554,17 @@ def register_rf_profile_crud_tools():
         except Exception as e:
             return f"❌ Error updating RF profile: {str(e)}"
     
-    @app.tool(
-        name="delete_network_wireless_rf_profile",
-        description="📡📻 Delete an RF profile from network"
-    )
-    def delete_network_wireless_rf_profile(
-        network_id: str,
-        rf_profile_id: str
-    ):
-        """Delete an RF profile."""
-        try:
-            meraki_client.dashboard.wireless.deleteNetworkWirelessRfProfile(
+    # @app.tool(
+    # name="delete_network_wireless_rf_profile",
+    # description="📡📻 Delete an RF profile from network"
+    # )
+    # def delete_network_wireless_rf_profile(
+    # network_id: str,
+    # rf_profile_id: str
+    # ):
+    # """Delete an RF profile."""
+    # try:
+    # meraki_client.dashboard.wireless.deleteNetworkWirelessRfProfile(
                 network_id, rf_profile_id
             )
             

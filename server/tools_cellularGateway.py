@@ -955,11 +955,12 @@ def register_cellular_gateway_tools(mcp_app, meraki):
     
     # ========== MISSING CELLULAR GATEWAY SDK METHODS ==========
     
-    @app.tool(
-        name="get_device_cellular_gateway_lan",
-        description="🌐 Get LAN settings for a cellular gateway"
-    )
-    def get_device_cellular_gateway_lan(serial: str):
+        # DUPLICATE: Second occurrence commented out
+    # @app.tool(
+    #         name="get_device_cellular_gateway_lan",
+    #         description="🌐 Get LAN settings for a cellular gateway"
+    #     )
+    #     def get_device_cellular_gateway_lan(serial: str):
         """
         Get LAN settings for a cellular gateway.
         
@@ -1002,12 +1003,13 @@ def register_cellular_gateway_tools(mcp_app, meraki):
         except Exception as e:
             return f"Error retrieving LAN settings: {str(e)}"
     
-    @app.tool(
-        name="update_device_cellular_gateway_lan",
-        description="🌐 Update LAN settings for a cellular gateway"
-    )
-    def update_device_cellular_gateway_lan(
-        serial: str,
+        # DUPLICATE: Second occurrence commented out
+    # @app.tool(
+    #         name="update_device_cellular_gateway_lan",
+    #         description="🌐 Update LAN settings for a cellular gateway"
+    #     )
+    #     def update_device_cellular_gateway_lan(
+    #         serial: str,
         device_name: Optional[str] = None,
         device_subnet: Optional[str] = None,
         device_lan_ip: Optional[str] = None,
@@ -1122,11 +1124,12 @@ def register_cellular_gateway_tools(mcp_app, meraki):
         except Exception as e:
             return f"Error updating port forwarding rules: {str(e)}"
     
-    @app.tool(
-        name="get_network_cellular_gateway_subnet_pool",
-        description="🌐 Get subnet pool settings for cellular gateways in a network"
-    )
-    def get_network_cellular_gateway_subnet_pool(network_id: str):
+        # DUPLICATE: Second occurrence commented out
+    # @app.tool(
+    #         name="get_network_cellular_gateway_subnet_pool",
+    #         description="🌐 Get subnet pool settings for cellular gateways in a network"
+    #     )
+    #     def get_network_cellular_gateway_subnet_pool(network_id: str):
         """
         Get subnet pool settings for cellular gateways in a network.
         
@@ -1159,12 +1162,13 @@ def register_cellular_gateway_tools(mcp_app, meraki):
         except Exception as e:
             return f"Error retrieving subnet pool: {str(e)}"
     
-    @app.tool(
-        name="update_network_cellular_gateway_subnet_pool",
-        description="🌐 Update subnet pool settings for cellular gateways"
-    )
-    def update_network_cellular_gateway_subnet_pool(
-        network_id: str,
+        # DUPLICATE: Second occurrence commented out
+    # @app.tool(
+    #         name="update_network_cellular_gateway_subnet_pool",
+    #         description="🌐 Update subnet pool settings for cellular gateways"
+    #     )
+    #     def update_network_cellular_gateway_subnet_pool(
+    #         network_id: str,
         mask: int,
         cidr: str
     ):

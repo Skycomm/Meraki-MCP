@@ -236,47 +236,48 @@ def register_wireless_tool_handlers():
         except Exception as e:
             return f"❌ Failed to update SSID: {str(e)}"
     
-    @app.tool(
-        name="get_network_wireless_clients",
-        description="List wireless clients for a Meraki network"
-    )
-    def get_network_wireless_clients(network_id: str):
-        """
-        List wireless clients for a Meraki network.
-        
-        Args:
-            network_id: ID of the network
-            
-        Returns:
-            Formatted list of wireless clients
-        """
-        try:
-            clients = meraki_client.get_network_wireless_clients(network_id)
-            
-            if not clients:
-                return f"No wireless clients found for network {network_id}."
-                
-            # Format the output for readability
-            result = f"# Wireless Clients in Network ({network_id})\n\n"
-            for client in clients:
-                result += f"- **{client.get('description', 'Unknown Device')}**\n"
-                result += f"  - MAC: `{client.get('mac', 'Unknown')}`\n"
-                result += f"  - IP: `{client.get('ip', 'Unknown')}`\n"
-                result += f"  - SSID: {client.get('ssid', 'Unknown')}\n"
-                result += f"  - RSSI: {client.get('rssi', 'Unknown')} dBm\n"
-                result += f"  - Connection: {client.get('status', 'Unknown')}\n"
-                
-                # Add usage if available
-                usage = client.get('usage')
-                if usage:
-                    result += f"  - Usage: {usage.get('sent', 0)} sent, {usage.get('recv', 0)} received\n"
-                
-                result += "\n"
-                
-            return result
-            
-        except Exception as e:
-            return f"Failed to list wireless clients for network {network_id}: {str(e)}"
+    # DUPLICATE: Commented out - using version at line 805 which has timespan parameter
+    # @app.tool(
+    #     name="get_network_wireless_clients",
+    #     description="List wireless clients for a Meraki network"
+    # )
+    # def get_network_wireless_clients_old(network_id: str):
+    #     """
+    #     List wireless clients for a Meraki network.
+    #     
+    #     Args:
+    #         network_id: ID of the network
+    #         
+    #     Returns:
+    #         Formatted list of wireless clients
+    #     """
+    #     try:
+    #         clients = meraki_client.get_network_wireless_clients(network_id)
+    #         
+    #         if not clients:
+    #             return f"No wireless clients found for network {network_id}."
+    #             
+    #         # Format the output for readability
+    #         result = f"# Wireless Clients in Network ({network_id})\n\n"
+    #         for client in clients:
+    #             result += f"- **{client.get('description', 'Unknown Device')}**\n"
+    #             result += f"  - MAC: `{client.get('mac', 'Unknown')}`\n"
+    #             result += f"  - IP: `{client.get('ip', 'Unknown')}`\n"
+    #             result += f"  - SSID: {client.get('ssid', 'Unknown')}\n"
+    #             result += f"  - RSSI: {client.get('rssi', 'Unknown')} dBm\n"
+    #             result += f"  - Connection: {client.get('status', 'Unknown')}\n"
+    #             
+    #             # Add usage if available
+    #             usage = client.get('usage')
+    #             if usage:
+    #                 result += f"  - Usage: {usage.get('sent', 0)} sent, {usage.get('recv', 0)} received\n"
+    #             
+    #             result += "\n"
+    #             
+    #         return result
+    #         
+    #     except Exception as e:
+    #         return f"Failed to list wireless clients for network {network_id}: {str(e)}"
     
     @app.tool(
         name="get_network_wireless_client",
@@ -856,11 +857,12 @@ def register_wireless_tool_handlers():
         except Exception as e:
             return f"Error getting wireless clients: {str(e)}"
     
-    @app.tool(
-        name="get_network_wireless_failed_connections", 
-        description="Get failed wireless connection attempts"
-    )
-    def get_network_wireless_failed_connections(network_id: str, timespan: int = 86400):
+    # DUPLICATE: Commented out - using version in tools_wireless_advanced.py
+    # @app.tool(
+    #     name="get_network_wireless_failed_connections", 
+    #     description="Get failed wireless connection attempts"
+    # )
+    def get_network_wireless_failed_connections_redirect(network_id: str, timespan: int = 86400):
         """
         Get failed wireless connection attempts.
         Wrapper for the SDK method in tools_wireless_advanced.

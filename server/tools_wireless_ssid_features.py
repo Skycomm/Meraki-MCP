@@ -814,34 +814,34 @@ def register_air_marshal_tools():
         except Exception as e:
             return f"❌ Error getting Air Marshal rules: {str(e)}"
     
-    @app.tool(
-        name="create_network_wireless_air_marshal_rule",
-        description="📡🛡️ Create an Air Marshal rule for network"
-    )
-    def create_network_wireless_air_marshal_rule(
-        network_id: str,
-        type: str,
-        match_string: Optional[str] = None,
-        match_type: Optional[str] = None
-    ):
-        """Create network Air Marshal rule."""
-        try:
-            kwargs = {'type': type}
-            
-            if match_string and match_type:
-                kwargs['match'] = {
-                    'string': match_string,
-                    'type': match_type
-                }
-            
-            result = meraki_client.dashboard.wireless.createNetworkWirelessAirMarshalRule(
-                network_id, **kwargs
-            )
-            
-            return f"✅ Created Air Marshal rule - Type: {result.get('type')}"
-            
-        except Exception as e:
-            return f"❌ Error creating Air Marshal rule: {str(e)}"
+    # @app.tool(
+    # name="create_network_wireless_air_marshal_rule",
+    # description="📡🛡️ Create an Air Marshal rule for network"
+    # )
+    # def create_network_wireless_air_marshal_rule(
+    # network_id: str,
+    # type: str,
+    # match_string: Optional[str] = None,
+    # match_type: Optional[str] = None
+    # ):
+    # """Create network Air Marshal rule."""
+    #     try:
+    #         kwargs = {'type': type}
+    #         
+    #         if match_string and match_type:
+    #             kwargs['match'] = {
+    #                 'string': match_string,
+    #                 'type': match_type
+    #             }
+    #         
+    #         result = meraki_client.dashboard.wireless.createNetworkWirelessAirMarshalRule(
+    #             network_id, **kwargs
+    #         )
+    #         
+    #         return f"✅ Created Air Marshal rule - Type: {result.get('type')}"
+    #         
+    #     except Exception as e:
+    #         return f"❌ Error creating Air Marshal rule: {str(e)}"
     
     @app.tool(
         name="update_network_wireless_air_marshal_rule",
@@ -876,24 +876,24 @@ def register_air_marshal_tools():
         except Exception as e:
             return f"❌ Error updating Air Marshal rule: {str(e)}"
     
-    @app.tool(
-        name="delete_network_wireless_air_marshal_rule",
-        description="📡🛡️ Delete an Air Marshal rule from network"
-    )
-    def delete_network_wireless_air_marshal_rule(
-        network_id: str,
-        rule_id: str
-    ):
-        """Delete network Air Marshal rule."""
-        try:
-            meraki_client.dashboard.wireless.deleteNetworkWirelessAirMarshalRule(
-                network_id, rule_id
-            )
-            
-            return f"✅ Deleted Air Marshal rule {rule_id}"
-            
-        except Exception as e:
-            return f"❌ Error deleting Air Marshal rule: {str(e)}"
+    # @app.tool(
+    # name="delete_network_wireless_air_marshal_rule",
+    # description="📡🛡️ Delete an Air Marshal rule from network"
+    # )
+    # def delete_network_wireless_air_marshal_rule(
+    # network_id: str,
+    # rule_id: str
+    # ):
+    # """Delete network Air Marshal rule."""
+    # try:
+    #     meraki_client.dashboard.wireless.deleteNetworkWirelessAirMarshalRule(
+    #         network_id, rule_id
+    #     )
+    #     
+    #     return f"✅ Deleted Air Marshal rule {rule_id}"
+    #     
+    # except Exception as e:
+    #     return f"❌ Error deleting Air Marshal rule: {str(e)}"
     
     @app.tool(
         name="update_network_wireless_air_marshal_settings",

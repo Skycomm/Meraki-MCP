@@ -1798,17 +1798,17 @@ def register_appliance_tool_handlers():
             else:
                 return f"❌ Error getting VLANs: {error_msg}"
     
-    @app.tool(
-        name="create_network_appliance_vlan",
-        description="🏷️ Create a NEW VLAN that doesn't exist yet (use update_network_appliance_vlan to modify existing VLANs)"
-    )
-    def create_network_appliance_vlan(
-        network_id: str,
-        vlan_id: int,
-        name: str,
-        subnet: str,
-        appliance_ip: str = None
-    ):
+    # @app.tool(
+    # name="create_network_appliance_vlan",
+    # description="🏷️ Create a NEW VLAN that doesn't exist yet (use update_network_appliance_vlan to modify existing VLANs)"
+    # )
+    # def create_network_appliance_vlan(
+    # network_id: str,
+    # vlan_id: int,
+    # name: str,
+    # subnet: str,
+    # appliance_ip: str = None
+    # ):
         """
         Create a new VLAN on the MX appliance.
         
@@ -2014,17 +2014,16 @@ update_network_appliance_vlan(
             else:
                 return f"❌ Error updating VLAN: {error_msg}"
     
-    @app.tool(
-        name="delete_network_appliance_vlan",
-        description="🏷️ Delete a VLAN from the MX appliance"
-    )
-    def delete_network_appliance_vlan(network_id: str, vlan_id: int):
-        """
-        Delete a VLAN from the MX appliance.
-        WARNING: This will remove all devices from this VLAN!
-        
-        Args:
-            network_id: Network ID
+    # @app.tool(
+    # name="delete_network_appliance_vlan",
+    # description="🏷️ Delete a VLAN from the MX appliance"
+    # )
+    # def delete_network_appliance_vlan(network_id: str, vlan_id: int):
+    # """
+    # Delete a VLAN from the MX appliance.
+    # WARNING: This will remove all devices from this VLAN!
+    #     # Args:
+    # network_id: Network ID
             vlan_id: VLAN ID to delete
             
         Returns:
@@ -2561,17 +2560,17 @@ update_network_appliance_vlan(
             else:
                 return f"❌ Error getting warm spare config: {error_msg}"
     
-    @app.tool(
-        name="update_network_appliance_warm_spare",
-        description="🔥 Update MX warm spare configuration"
-    )
-    def update_network_appliance_warm_spare(
-        network_id: str,
-        enabled: bool,
-        spare_serial: str = None,
-        uplink_mode: str = None,
-        virtual_ip1: str = None,
-        virtual_ip2: str = None
+    # @app.tool(
+    # name="update_network_appliance_warm_spare",
+    # description="🔥 Update MX warm spare configuration"
+    # )
+    # def update_network_appliance_warm_spare(
+    # network_id: str,
+    # enabled: bool,
+    # spare_serial: str = None,
+    # uplink_mode: str = None,
+    # virtual_ip1: str = None,
+    # virtual_ip2: str = None
     ):
         """
         Update warm spare configuration for MX high availability.
@@ -2621,17 +2620,16 @@ update_network_appliance_vlan(
         except Exception as e:
             return f"❌ Error updating warm spare: {str(e)}"
     
-    @app.tool(
-        name="swap_network_appliance_warm_spare",
-        description="🔄 Swap primary and spare MX appliances"
-    )
-    def swap_network_appliance_warm_spare(network_id: str):
-        """
-        Swap the primary and warm spare MX appliances.
-        This makes the current spare become the primary.
-        
-        Args:
-            network_id: Network ID
+    # @app.tool(
+    # name="swap_network_appliance_warm_spare",
+    # description="🔄 Swap primary and spare MX appliances"
+    # )
+    # def swap_network_appliance_warm_spare(network_id: str):
+    # """
+    # Swap the primary and warm spare MX appliances.
+    # This makes the current spare become the primary.
+    #     # Args:
+    # network_id: Network ID
             
         Returns:
             Swap confirmation
@@ -2835,17 +2833,17 @@ update_network_appliance_vlan(
         except Exception as e:
             return f"❌ Error getting static routes: {str(e)}"
     
-    @app.tool(
-        name="create_network_appliance_static_route",
-        description="🛤️ Create a new static route on the MX"
-    )
-    def create_network_appliance_static_route(
-        network_id: str,
-        name: str,
-        subnet: str,
-        gateway_ip: str
-    ):
-        """
+    # @app.tool(
+    # name="create_network_appliance_static_route",
+    # description="🛤️ Create a new static route on the MX"
+    # )
+    # def create_network_appliance_static_route(
+    # network_id: str,
+    # name: str,
+    # subnet: str,
+    # gateway_ip: str
+    # ):
+    # """
         Create a new static route on the MX appliance.
         
         Args:
@@ -2929,17 +2927,17 @@ update_network_appliance_vlan(
         except Exception as e:
             return f"Error retrieving warm spare config: {str(e)}"
     
-    @app.tool(
-        name="update_network_appliance_warm_spare",
-        description="🔄 Update warm spare configuration for an MX appliance"
-    )
-    def update_network_appliance_warm_spare(
-        network_id: str,
-        enabled: bool,
-        spare_serial: Optional[str] = None,
-        uplink_mode: Optional[str] = None,
-        virtual_ip1: Optional[str] = None,
-        virtual_ip2: Optional[str] = None
+    # @app.tool(
+    # name="update_network_appliance_warm_spare",
+    # description="🔄 Update warm spare configuration for an MX appliance"
+    # )
+    # def update_network_appliance_warm_spare(
+    # network_id: str,
+    # enabled: bool,
+    # spare_serial: Optional[str] = None,
+    # uplink_mode: Optional[str] = None,
+    # virtual_ip1: Optional[str] = None,
+    # virtual_ip2: Optional[str] = None
     ):
         """
         Update warm spare configuration for an MX appliance.
@@ -2976,18 +2974,17 @@ update_network_appliance_vlan(
         except Exception as e:
             return f"Error updating warm spare: {str(e)}"
     
-    @app.tool(
-        name="swap_network_appliance_warm_spare",
-        description="🔄 Swap warm spare appliance to become primary - REQUIRES CONFIRMATION"
-    )
-    def swap_network_appliance_warm_spare(
-        network_id: str,
-        confirmed: bool = False
-    ):
-        """
-        Swap warm spare appliance to become primary.
-        
-        ⚠️ WARNING: This will cause a network failover!
+    # @app.tool(
+    # name="swap_network_appliance_warm_spare",
+    # description="🔄 Swap warm spare appliance to become primary - REQUIRES CONFIRMATION"
+    # )
+    # def swap_network_appliance_warm_spare(
+    # network_id: str,
+    # confirmed: bool = False
+    # ):
+    # """
+    # Swap warm spare appliance to become primary.
+    #         ⚠️ WARNING: This will cause a network failover!
         
         Args:
             network_id: Network ID
@@ -3006,18 +3003,16 @@ update_network_appliance_vlan(
         except Exception as e:
             return f"Error swapping warm spare: {str(e)}"
     
-    @app.tool(
-        name="get_network_appliance_prefixes_delegated_statics",
-        description="🌐 Get IPv6 delegated static prefixes for an appliance"
-    )
-    def get_network_appliance_prefixes_delegated_statics(network_id: str):
-        """
-        Get IPv6 delegated static prefixes for an appliance.
-        
-        Args:
-            network_id: Network ID
-            
-        Returns:
+    # @app.tool(
+    # name="get_network_appliance_prefixes_delegated_statics",
+    # description="🌐 Get IPv6 delegated static prefixes for an appliance"
+    # )
+    # def get_network_appliance_prefixes_delegated_statics(network_id: str):
+    # """
+    # Get IPv6 delegated static prefixes for an appliance.
+    #     # Args:
+    # network_id: Network ID
+    #         Returns:
             Delegated static prefixes
         """
         try:
@@ -3043,17 +3038,17 @@ update_network_appliance_vlan(
         except Exception as e:
             return f"Error retrieving delegated prefixes: {str(e)}"
     
-    @app.tool(
-        name="create_network_appliance_prefixes_delegated_static",
-        description="🌐 Create an IPv6 delegated static prefix"
-    )
-    def create_network_appliance_prefixes_delegated_static(
-        network_id: str,
-        prefix: str,
-        origin_type: str,
-        origin_interfaces: str,
-        description: Optional[str] = None
-    ):
+    # @app.tool(
+    # name="create_network_appliance_prefixes_delegated_static",
+    # description="🌐 Create an IPv6 delegated static prefix"
+    # )
+    # def create_network_appliance_prefixes_delegated_static(
+    # network_id: str,
+    # prefix: str,
+    # origin_type: str,
+    # origin_interfaces: str,
+    # description: Optional[str] = None
+    # ):
         """
         Create an IPv6 delegated static prefix.
         
@@ -3088,18 +3083,16 @@ update_network_appliance_vlan(
         except Exception as e:
             return f"Error creating delegated prefix: {str(e)}"
     
-    @app.tool(
-        name="get_network_appliance_rf_profiles",
-        description="📡 Get RF profiles for MG (cellular gateway) appliances"
-    )
-    def get_network_appliance_rf_profiles(network_id: str):
-        """
-        Get RF profiles for MG (cellular gateway) appliances.
-        
-        Args:
-            network_id: Network ID
-            
-        Returns:
+    # @app.tool(
+    # name="get_network_appliance_rf_profiles",
+    # description="📡 Get RF profiles for MG (cellular gateway) appliances"
+    # )
+    # def get_network_appliance_rf_profiles(network_id: str):
+    # """
+    # Get RF profiles for MG (cellular gateway) appliances.
+    #     # Args:
+    # network_id: Network ID
+    #         Returns:
             RF profile settings
         """
         try:
@@ -3131,17 +3124,17 @@ update_network_appliance_vlan(
         except Exception as e:
             return f"Error retrieving RF profiles: {str(e)}"
     
-    @app.tool(
-        name="update_network_appliance_rf_profile",
-        description="📡 Update RF profile settings for MG appliances"
-    )
-    def update_network_appliance_rf_profile(
-        network_id: str,
-        rf_profile_id: str,
-        name: Optional[str] = None,
-        two_four_ghz_min_bitrate: Optional[int] = None,
-        five_ghz_min_bitrate: Optional[int] = None
-    ):
+    # @app.tool(
+    # name="update_network_appliance_rf_profile",
+    # description="📡 Update RF profile settings for MG appliances"
+    # )
+    # def update_network_appliance_rf_profile(
+    # network_id: str,
+    # rf_profile_id: str,
+    # name: Optional[str] = None,
+    # two_four_ghz_min_bitrate: Optional[int] = None,
+    # five_ghz_min_bitrate: Optional[int] = None
+    # ):
         """
         Update RF profile settings for MG appliances.
         

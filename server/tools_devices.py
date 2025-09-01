@@ -766,10 +766,11 @@ The device LEDs are now blinking to help identify it physically."""
             return f"Error blinking LEDs: {str(e)}"
     
     # ========== SENSOR SDK METHODS ==========
-    @app.tool(
-        name="get_device_sensor_relationships",
-        description="📊 Get sensor relationships for a device"
-    )
+    # DUPLICATE: Commented out - using version in tools_sensor.py
+    # @app.tool(
+    #     name="get_device_sensor_relationships",
+    #     description="📊 Get sensor relationships for a device"
+    # )
     def get_device_sensor_relationships(serial: str):
         """
         Get sensor relationships for a device.
@@ -798,10 +799,11 @@ The device LEDs are now blinking to help identify it physically."""
         except Exception as e:
             return f"Error retrieving sensor relationships: {str(e)}"
     
-    @app.tool(
-        name="update_device_sensor_relationships",
-        description="📊 Update sensor relationships for a device"
-    )
+    # DUPLICATE: Commented out - using version in tools_sensor.py
+    # @app.tool(
+    #     name="update_device_sensor_relationships",
+    #     description="📊 Update sensor relationships for a device"
+    # )
     def update_device_sensor_relationships(
         serial: str,
         livestream: Optional[str] = None
@@ -830,10 +832,11 @@ The device LEDs are now blinking to help identify it physically."""
             return f"Error updating sensor relationships: {str(e)}"
     
     # ========== SWITCH PORT SDK METHODS ==========
-    @app.tool(
-        name="cycle_device_switch_ports",
-        description="🔄 Cycle (restart) switch ports on a device - REQUIRES CONFIRMATION"
-    )
+    # DUPLICATE: Commented out - using version in tools_switch.py
+    # @app.tool(
+    #     name="cycle_device_switch_ports",
+    #     description="🔄 Cycle (restart) switch ports on a device - REQUIRES CONFIRMATION"
+    # )
     def cycle_device_switch_ports(
         serial: str,
         ports: str,
@@ -907,10 +910,11 @@ Use get_device_live_tools_ping with the test ID to check results."""
         except Exception as e:
             return f"Error creating ping test: {str(e)}"
     
-    @app.tool(
-        name="get_device_live_tools_ping",
-        description="🏓 Get results of a ping test"
-    )
+    # DUPLICATE: Commented out - using async version in tools_live.py
+    # @app.tool(
+    #     name="get_device_live_tools_ping",
+    #     description="🏓 Get results of a ping test"
+    # )
     def get_device_live_tools_ping(serial: str, id: str):
         """
         Get results of a ping test.
@@ -949,10 +953,11 @@ Use get_device_live_tools_ping with the test ID to check results."""
 
     
     # ========== CABLE TEST SDK METHODS ==========
-    @app.tool(
-        name="create_device_live_tools_cable_test",
-        description="🔌 Create a cable test on switch ports"
-    )
+    # DUPLICATE: Commented out - using async version in tools_live.py
+    # @app.tool(
+    #     name="create_device_live_tools_cable_test",
+    #     description="🔌 Create a cable test on switch ports"
+    # )
     def create_device_live_tools_cable_test(
         serial: str,
         ports: str
@@ -985,10 +990,11 @@ Use get_device_live_tools_cable_test with the test ID to check results."""
         except Exception as e:
             return f"Error creating cable test: {str(e)}"
     
-    @app.tool(
-        name="get_device_live_tools_cable_test",
-        description="🔌 Get results of a cable test"
-    )
+    # DUPLICATE: Commented out - using async version in tools_live.py
+    # @app.tool(
+    #     name="get_device_live_tools_cable_test",
+    #     description="🔌 Get results of a cable test"
+    # )
     def get_device_live_tools_cable_test(serial: str, id: str):
         """
         Get results of a cable test.
@@ -1028,10 +1034,11 @@ Use get_device_live_tools_cable_test with the test ID to check results."""
             return f"Error retrieving cable test results: {str(e)}"
     
     # ========== WAKE ON LAN SDK METHOD ==========
-    @app.tool(
-        name="create_device_live_tools_wake_on_lan",
-        description="⏰ Send Wake-on-LAN packet to wake up a device"
-    )
+    # DUPLICATE: Commented out - using async version in tools_live.py
+    # @app.tool(
+    #     name="create_device_live_tools_wake_on_lan",
+    #     description="⏰ Send Wake-on-LAN packet to wake up a device"
+    # )
     def create_device_live_tools_wake_on_lan(
         serial: str,
         vlan_id: int,
@@ -1067,10 +1074,11 @@ The magic packet has been sent to wake the device."""
             return f"Error sending Wake-on-LAN: {str(e)}"
     
     # ========== THROUGHPUT TEST SDK METHODS ==========
-    @app.tool(
-        name="create_device_live_tools_throughput_test",
-        description="📊 Create a throughput test from a device"
-    )
+    # DUPLICATE: Commented out - using async version in tools_live.py
+    # @app.tool(
+    #     name="create_device_live_tools_throughput_test",
+    #     description="📊 Create a throughput test from a device"
+    # )
     def create_device_live_tools_throughput_test(serial: str):
         """
         Create a throughput test from a device.
@@ -1094,10 +1102,11 @@ Use get_device_live_tools_throughput_test with the test ID to check results."""
         except Exception as e:
             return f"Error creating throughput test: {str(e)}"
     
-    @app.tool(
-        name="get_device_live_tools_throughput_test",
-        description="📊 Get results of a throughput test"
-    )
+    # DUPLICATE: Commented out - using async version in tools_live.py
+    # @app.tool(
+    #     name="get_device_live_tools_throughput_test",
+    #     description="📊 Get results of a throughput test"
+    # )
     def get_device_live_tools_throughput_test(serial: str, id: str):
         """
         Get results of a throughput test.
