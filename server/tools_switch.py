@@ -1336,6 +1336,42 @@ def register_switch_tool_handlers():
         except Exception as e:
             return f"❌ Error getting rendezvous points: {str(e)}"
     
+    @app.tool(
+        name="get_network_switch_routing_multicast_rendezvous_point",
+        description="📡 Get details of a specific multicast rendezvous point."
+    )
+    def get_network_switch_routing_multicast_rendezvous_point(
+        network_id: str,
+        rendezvous_point_id: str
+    ):
+        """
+        Get specific multicast rendezvous point details.
+        
+        Args:
+            network_id: Network ID
+            rendezvous_point_id: Rendezvous point ID
+        """
+        try:
+            result = meraki_client.dashboard.switch.getNetworkSwitchRoutingMulticastRendezvousPoint(
+                network_id, rendezvous_point_id
+            )
+            
+            response = f"# 📡 Multicast Rendezvous Point Details\n\n"
+            response += f"**RP ID**: {rendezvous_point_id}\n\n"
+            
+            if result:
+                response += f"## Configuration\n"
+                response += f"- **Interface Name**: {result.get('interfaceName', 'N/A')}\n"
+                response += f"- **Interface IP**: {result.get('interfaceIp', 'N/A')}\n"
+                response += f"- **Multicast Group**: {result.get('multicastGroup', 'N/A')}\n"
+                response += f"- **Serial**: {result.get('serial', 'N/A')}\n"
+            else:
+                response += "*Rendezvous point not found*\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting rendezvous point: {str(e)}"
+    
     # ==================== INTERFACE DHCP ====================
     
     @app.tool(
@@ -2579,3 +2615,2386 @@ def register_switch_tool_handlers():
         except Exception as e:
             return f"Error deleting routing interface: {str(e)}"
 
+    
+    # ==================== ACCESS CONTROL & QOS MANAGEMENT ====================
+    
+    @app.tool(
+        name="create_network_switch_access_policy",
+        description="➕ Create a new switch access policy for 802.1X authentication. Requires confirmation."
+    )
+    def create_network_switch_access_policy(
+        network_id: str,
+        name: str,
+        radius_servers: List[Dict[str, Any]],
+        radius_testing_enabled: bool = False,
+        radius_coa_support_enabled: bool = False,
+        radius_accounting_enabled: bool = False,
+        radius_accounting_servers: Optional[List[Dict[str, Any]]] = None,
+        radius_group_attribute: Optional[str] = None,
+        host_mode: str = "Single-Host",
+        access_policy_type: str = "Hybrid authentication",
+        increase_access_speed: bool = False,
+        guest_vlan_id: Optional[int] = None,
+        dot1x_control_direction: str = "both",
+        voice_vlan_clients: bool = True,
+        url_redirect_walled_garden_enabled: bool = False,
+        url_redirect_walled_garden_ranges: Optional[List[str]] = None,
+        confirmed: bool = False
+    ):
+        """
+        Create a new switch access policy.
+        
+        Args:
+            network_id: Network ID
+            name: Policy name
+            radius_servers: List of RADIUS server configs [{"host": "1.2.3.4", "port": 1812, "secret": "secret"}]
+            radius_testing_enabled: Enable periodic RADIUS server connectivity tests
+            radius_coa_support_enabled: Enable Change of Authorization (CoA) support
+            radius_accounting_enabled: Enable RADIUS accounting
+            radius_accounting_servers: RADIUS accounting servers (if different from auth)
+            radius_group_attribute: RADIUS attribute for group authorization
+            host_mode: "Single-Host" or "Multi-Domain" or "Multi-Host" or "Multi-Auth"
+            access_policy_type: "Hybrid authentication" or "802.1x"
+            increase_access_speed: Increase 802.1X access speed
+            guest_vlan_id: Guest VLAN ID for failed authentication
+            dot1x_control_direction: "both" or "inbound"
+            voice_vlan_clients: Allow voice VLAN clients
+            url_redirect_walled_garden_enabled: Enable walled garden for URL redirect
+            url_redirect_walled_garden_ranges: IP ranges for walled garden
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Creating access policy requires confirmed=true"
+        
+        try:
+            kwargs = {
+                "name": name,
+                "radiusServers": radius_servers,
+                "radiusTestingEnabled": radius_testing_enabled,
+                "radiusCoaSupportEnabled": radius_coa_support_enabled,
+                "radiusAccountingEnabled": radius_accounting_enabled,
+                "hostMode": host_mode,
+                "accessPolicyType": access_policy_type,
+                "increaseAccessSpeed": increase_access_speed,
+                "dot1xControlDirection": dot1x_control_direction,
+                "voiceVlanClients": voice_vlan_clients,
+                "urlRedirectWalledGardenEnabled": url_redirect_walled_garden_enabled
+            }
+            
+            if radius_accounting_servers:
+                kwargs["radiusAccountingServers"] = radius_accounting_servers
+            if radius_group_attribute:
+                kwargs["radiusGroupAttribute"] = radius_group_attribute
+            if guest_vlan_id:
+                kwargs["guestVlanId"] = guest_vlan_id
+            if url_redirect_walled_garden_ranges:
+                kwargs["urlRedirectWalledGardenRanges"] = url_redirect_walled_garden_ranges
+            
+            result = meraki_client.dashboard.switch.createNetworkSwitchAccessPolicy(
+                network_id, **kwargs
+            )
+            
+            return f"✅ Created access policy '{name}' with number {result.get('accessPolicyNumber')}"
+        except Exception as e:
+            return f"❌ Error creating access policy: {str(e)}"
+    
+    @app.tool(
+        name="update_network_switch_access_policy",
+        description="✏️ Update an existing switch access policy. Requires confirmation."
+    )
+    def update_network_switch_access_policy(
+        network_id: str,
+        access_policy_number: str,
+        name: Optional[str] = None,
+        radius_servers: Optional[List[Dict[str, Any]]] = None,
+        radius_testing_enabled: Optional[bool] = None,
+        radius_coa_support_enabled: Optional[bool] = None,
+        radius_accounting_enabled: Optional[bool] = None,
+        radius_accounting_servers: Optional[List[Dict[str, Any]]] = None,
+        radius_group_attribute: Optional[str] = None,
+        host_mode: Optional[str] = None,
+        access_policy_type: Optional[str] = None,
+        increase_access_speed: Optional[bool] = None,
+        guest_vlan_id: Optional[int] = None,
+        dot1x_control_direction: Optional[str] = None,
+        voice_vlan_clients: Optional[bool] = None,
+        url_redirect_walled_garden_enabled: Optional[bool] = None,
+        url_redirect_walled_garden_ranges: Optional[List[str]] = None,
+        confirmed: bool = False
+    ):
+        """
+        Update an existing switch access policy.
+        
+        Args:
+            network_id: Network ID
+            access_policy_number: Access policy number to update
+            name: Policy name
+            radius_servers: List of RADIUS server configs
+            radius_testing_enabled: Enable periodic RADIUS server connectivity tests
+            radius_coa_support_enabled: Enable Change of Authorization support
+            radius_accounting_enabled: Enable RADIUS accounting
+            radius_accounting_servers: RADIUS accounting servers
+            radius_group_attribute: RADIUS attribute for group authorization
+            host_mode: "Single-Host", "Multi-Domain", "Multi-Host", or "Multi-Auth"
+            access_policy_type: "Hybrid authentication" or "802.1x"
+            increase_access_speed: Increase 802.1X access speed
+            guest_vlan_id: Guest VLAN ID
+            dot1x_control_direction: "both" or "inbound"
+            voice_vlan_clients: Allow voice VLAN clients
+            url_redirect_walled_garden_enabled: Enable walled garden
+            url_redirect_walled_garden_ranges: IP ranges for walled garden
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Updating access policy requires confirmed=true"
+        
+        try:
+            kwargs = {}
+            if name is not None:
+                kwargs["name"] = name
+            if radius_servers is not None:
+                kwargs["radiusServers"] = radius_servers
+            if radius_testing_enabled is not None:
+                kwargs["radiusTestingEnabled"] = radius_testing_enabled
+            if radius_coa_support_enabled is not None:
+                kwargs["radiusCoaSupportEnabled"] = radius_coa_support_enabled
+            if radius_accounting_enabled is not None:
+                kwargs["radiusAccountingEnabled"] = radius_accounting_enabled
+            if radius_accounting_servers is not None:
+                kwargs["radiusAccountingServers"] = radius_accounting_servers
+            if radius_group_attribute is not None:
+                kwargs["radiusGroupAttribute"] = radius_group_attribute
+            if host_mode is not None:
+                kwargs["hostMode"] = host_mode
+            if access_policy_type is not None:
+                kwargs["accessPolicyType"] = access_policy_type
+            if increase_access_speed is not None:
+                kwargs["increaseAccessSpeed"] = increase_access_speed
+            if guest_vlan_id is not None:
+                kwargs["guestVlanId"] = guest_vlan_id
+            if dot1x_control_direction is not None:
+                kwargs["dot1xControlDirection"] = dot1x_control_direction
+            if voice_vlan_clients is not None:
+                kwargs["voiceVlanClients"] = voice_vlan_clients
+            if url_redirect_walled_garden_enabled is not None:
+                kwargs["urlRedirectWalledGardenEnabled"] = url_redirect_walled_garden_enabled
+            if url_redirect_walled_garden_ranges is not None:
+                kwargs["urlRedirectWalledGardenRanges"] = url_redirect_walled_garden_ranges
+            
+            result = meraki_client.dashboard.switch.updateNetworkSwitchAccessPolicy(
+                network_id, access_policy_number, **kwargs
+            )
+            
+            return f"✅ Updated access policy {access_policy_number}"
+        except Exception as e:
+            return f"❌ Error updating access policy: {str(e)}"
+    
+    @app.tool(
+        name="delete_network_switch_access_policy",
+        description="🗑️ Delete a switch access policy. Requires confirmation."
+    )
+    def delete_network_switch_access_policy(
+        network_id: str,
+        access_policy_number: str,
+        confirmed: bool = False
+    ):
+        """
+        Delete a switch access policy.
+        
+        Args:
+            network_id: Network ID
+            access_policy_number: Access policy number to delete
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Deleting access policy requires confirmed=true. This cannot be undone!"
+        
+        try:
+            meraki_client.dashboard.switch.deleteNetworkSwitchAccessPolicy(
+                network_id, access_policy_number
+            )
+            return f"✅ Deleted access policy {access_policy_number}"
+        except Exception as e:
+            return f"❌ Error deleting access policy: {str(e)}"
+    
+    @app.tool(
+        name="create_network_switch_qos_rule",
+        description="➕ Create a new QoS rule for traffic prioritization. Requires confirmation."
+    )
+    def create_network_switch_qos_rule(
+        network_id: str,
+        vlan: int,
+        protocol: Optional[str] = None,
+        src_port: Optional[int] = None,
+        src_port_range: Optional[str] = None,
+        dst_port: Optional[int] = None,
+        dst_port_range: Optional[str] = None,
+        dscp: Optional[int] = None,
+        confirmed: bool = False
+    ):
+        """
+        Create a new switch QoS rule.
+        
+        Args:
+            network_id: Network ID
+            vlan: VLAN ID (1-4095)
+            protocol: Protocol ("TCP", "UDP", "ANY")
+            src_port: Source port
+            src_port_range: Source port range (e.g., "1-65535")
+            dst_port: Destination port
+            dst_port_range: Destination port range
+            dscp: DSCP value (0-63)
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Creating QoS rule requires confirmed=true"
+        
+        try:
+            kwargs = {"vlan": vlan}
+            
+            if protocol:
+                kwargs["protocol"] = protocol
+            if src_port:
+                kwargs["srcPort"] = src_port
+            if src_port_range:
+                kwargs["srcPortRange"] = src_port_range
+            if dst_port:
+                kwargs["dstPort"] = dst_port
+            if dst_port_range:
+                kwargs["dstPortRange"] = dst_port_range
+            if dscp is not None:
+                kwargs["dscp"] = dscp
+            
+            result = meraki_client.dashboard.switch.createNetworkSwitchQosRule(
+                network_id, **kwargs
+            )
+            
+            return f"✅ Created QoS rule with ID {result.get('id')} for VLAN {vlan}"
+        except Exception as e:
+            return f"❌ Error creating QoS rule: {str(e)}"
+    
+    @app.tool(
+        name="update_network_switch_qos_rule",
+        description="✏️ Update an existing QoS rule. Requires confirmation."
+    )
+    def update_network_switch_qos_rule(
+        network_id: str,
+        qos_rule_id: str,
+        vlan: Optional[int] = None,
+        protocol: Optional[str] = None,
+        src_port: Optional[int] = None,
+        src_port_range: Optional[str] = None,
+        dst_port: Optional[int] = None,
+        dst_port_range: Optional[str] = None,
+        dscp: Optional[int] = None,
+        confirmed: bool = False
+    ):
+        """
+        Update a switch QoS rule.
+        
+        Args:
+            network_id: Network ID
+            qos_rule_id: QoS rule ID to update
+            vlan: VLAN ID (1-4095)
+            protocol: Protocol ("TCP", "UDP", "ANY")
+            src_port: Source port
+            src_port_range: Source port range
+            dst_port: Destination port
+            dst_port_range: Destination port range
+            dscp: DSCP value (0-63)
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Updating QoS rule requires confirmed=true"
+        
+        try:
+            kwargs = {}
+            
+            if vlan is not None:
+                kwargs["vlan"] = vlan
+            if protocol:
+                kwargs["protocol"] = protocol
+            if src_port:
+                kwargs["srcPort"] = src_port
+            if src_port_range:
+                kwargs["srcPortRange"] = src_port_range
+            if dst_port:
+                kwargs["dstPort"] = dst_port
+            if dst_port_range:
+                kwargs["dstPortRange"] = dst_port_range
+            if dscp is not None:
+                kwargs["dscp"] = dscp
+            
+            result = meraki_client.dashboard.switch.updateNetworkSwitchQosRule(
+                network_id, qos_rule_id, **kwargs
+            )
+            
+            return f"✅ Updated QoS rule {qos_rule_id}"
+        except Exception as e:
+            return f"❌ Error updating QoS rule: {str(e)}"
+    
+    @app.tool(
+        name="delete_network_switch_qos_rule",
+        description="🗑️ Delete a QoS rule. Requires confirmation."
+    )
+    def delete_network_switch_qos_rule(
+        network_id: str,
+        qos_rule_id: str,
+        confirmed: bool = False
+    ):
+        """
+        Delete a switch QoS rule.
+        
+        Args:
+            network_id: Network ID
+            qos_rule_id: QoS rule ID to delete
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Deleting QoS rule requires confirmed=true. This cannot be undone!"
+        
+        try:
+            meraki_client.dashboard.switch.deleteNetworkSwitchQosRule(
+                network_id, qos_rule_id
+            )
+            return f"✅ Deleted QoS rule {qos_rule_id}"
+        except Exception as e:
+            return f"❌ Error deleting QoS rule: {str(e)}"
+    
+    @app.tool(
+        name="get_network_switch_qos_rules_order",
+        description="📊 Get the order of QoS rules for a network."
+    )
+    def get_network_switch_qos_rules_order(
+        network_id: str
+    ):
+        """
+        Get the order of QoS rules.
+        
+        Args:
+            network_id: Network ID
+        """
+        try:
+            result = meraki_client.dashboard.switch.getNetworkSwitchQosRulesOrder(network_id)
+            
+            response = f"# 📊 QoS Rules Order\n\n"
+            response += f"**Network**: {network_id}\n\n"
+            
+            if result and 'ruleIds' in result:
+                rule_ids = result['ruleIds']
+                response += f"**Total Rules**: {len(rule_ids)}\n\n"
+                response += "## Rule Order (highest to lowest priority):\n"
+                for i, rule_id in enumerate(rule_ids, 1):
+                    response += f"{i}. Rule ID: {rule_id}\n"
+            else:
+                response += "*No QoS rules configured*\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting QoS rules order: {str(e)}"
+    
+    @app.tool(
+        name="update_network_switch_qos_rules_order",
+        description="✏️ Update the order of QoS rules (priority). Requires confirmation."
+    )
+    def update_network_switch_qos_rules_order(
+        network_id: str,
+        rule_ids: List[str],
+        confirmed: bool = False
+    ):
+        """
+        Update the order of QoS rules.
+        
+        Args:
+            network_id: Network ID
+            rule_ids: Ordered list of rule IDs (first = highest priority)
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Updating QoS rules order requires confirmed=true"
+        
+        try:
+            result = meraki_client.dashboard.switch.updateNetworkSwitchQosRulesOrder(
+                network_id, ruleIds=rule_ids
+            )
+            return f"✅ Updated QoS rules order. New order: {rule_ids}"
+        except Exception as e:
+            return f"❌ Error updating QoS rules order: {str(e)}"
+    
+    # ==================== PORT MANAGEMENT ====================
+    
+    @app.tool(
+        name="update_device_switch_port",
+        description="✏️ Update switch port configuration. Requires confirmation."
+    )
+    def update_device_switch_port(
+        serial: str,
+        port_id: str,
+        name: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        enabled: Optional[bool] = None,
+        port_schedule_id: Optional[str] = None,
+        udld: Optional[str] = None,
+        isolation_enabled: Optional[bool] = None,
+        rstp_enabled: Optional[bool] = None,
+        stp_guard: Optional[str] = None,
+        link_negotiation: Optional[str] = None,
+        access_policy_number: Optional[int] = None,
+        type: Optional[str] = None,
+        vlan: Optional[int] = None,
+        voice_vlan: Optional[int] = None,
+        allowed_vlans: Optional[str] = None,
+        poe_enabled: Optional[bool] = None,
+        confirmed: bool = False
+    ):
+        """
+        Update a switch port configuration.
+        
+        Args:
+            serial: Switch serial number
+            port_id: Port ID
+            name: Port name
+            tags: Port tags
+            enabled: Enable/disable port
+            port_schedule_id: Port schedule ID
+            udld: UDLD status ("Alert only", "Enforce")
+            isolation_enabled: Port isolation
+            rstp_enabled: RSTP enable
+            stp_guard: "disabled", "root guard", "bpdu guard", "loop guard"
+            link_negotiation: "Auto negotiate", "100 Megabit (auto)", "100 Megabit full duplex"
+            access_policy_number: Access policy number
+            type: "trunk" or "access"
+            vlan: Access VLAN
+            voice_vlan: Voice VLAN
+            allowed_vlans: Allowed VLANs for trunk ports
+            poe_enabled: Enable PoE
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Updating port configuration requires confirmed=true"
+        
+        try:
+            kwargs = {}
+            
+            if name is not None:
+                kwargs["name"] = name
+            if tags is not None:
+                kwargs["tags"] = tags
+            if enabled is not None:
+                kwargs["enabled"] = enabled
+            if port_schedule_id is not None:
+                kwargs["portScheduleId"] = port_schedule_id
+            if udld is not None:
+                kwargs["udld"] = udld
+            if isolation_enabled is not None:
+                kwargs["isolationEnabled"] = isolation_enabled
+            if rstp_enabled is not None:
+                kwargs["rstpEnabled"] = rstp_enabled
+            if stp_guard is not None:
+                kwargs["stpGuard"] = stp_guard
+            if link_negotiation is not None:
+                kwargs["linkNegotiation"] = link_negotiation
+            if access_policy_number is not None:
+                kwargs["accessPolicyNumber"] = access_policy_number
+            if type is not None:
+                kwargs["type"] = type
+            if vlan is not None:
+                kwargs["vlan"] = vlan
+            if voice_vlan is not None:
+                kwargs["voiceVlan"] = voice_vlan
+            if allowed_vlans is not None:
+                kwargs["allowedVlans"] = allowed_vlans
+            if poe_enabled is not None:
+                kwargs["poeEnabled"] = poe_enabled
+            
+            result = meraki_client.dashboard.switch.updateDeviceSwitchPort(
+                serial, port_id, **kwargs
+            )
+            
+            return f"✅ Updated port {port_id} on switch {serial}"
+        except Exception as e:
+            return f"❌ Error updating port: {str(e)}"
+    
+    @app.tool(
+        name="create_network_switch_port_schedule",
+        description="➕ Create a port schedule for time-based port control. Requires confirmation."
+    )
+    def create_network_switch_port_schedule(
+        network_id: str,
+        name: str,
+        port_schedule: Dict[str, Any],
+        confirmed: bool = False
+    ):
+        """
+        Create a switch port schedule.
+        
+        Args:
+            network_id: Network ID
+            name: Schedule name
+            port_schedule: Schedule config {"monday": {"active": true, "from": "00:00", "to": "24:00"}, ...}
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Creating port schedule requires confirmed=true"
+        
+        try:
+            result = meraki_client.dashboard.switch.createNetworkSwitchPortSchedule(
+                network_id, name=name, portSchedule=port_schedule
+            )
+            
+            return f"✅ Created port schedule '{name}' with ID {result.get('id')}"
+        except Exception as e:
+            return f"❌ Error creating port schedule: {str(e)}"
+    
+    @app.tool(
+        name="update_network_switch_port_schedule",
+        description="✏️ Update a port schedule. Requires confirmation."
+    )
+    def update_network_switch_port_schedule(
+        network_id: str,
+        port_schedule_id: str,
+        name: Optional[str] = None,
+        port_schedule: Optional[Dict[str, Any]] = None,
+        confirmed: bool = False
+    ):
+        """
+        Update a switch port schedule.
+        
+        Args:
+            network_id: Network ID
+            port_schedule_id: Port schedule ID
+            name: Schedule name
+            port_schedule: Schedule config
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Updating port schedule requires confirmed=true"
+        
+        try:
+            kwargs = {}
+            if name is not None:
+                kwargs["name"] = name
+            if port_schedule is not None:
+                kwargs["portSchedule"] = port_schedule
+            
+            result = meraki_client.dashboard.switch.updateNetworkSwitchPortSchedule(
+                network_id, port_schedule_id, **kwargs
+            )
+            
+            return f"✅ Updated port schedule {port_schedule_id}"
+        except Exception as e:
+            return f"❌ Error updating port schedule: {str(e)}"
+    
+    @app.tool(
+        name="delete_network_switch_port_schedule",
+        description="🗑️ Delete a port schedule. Requires confirmation."
+    )
+    def delete_network_switch_port_schedule(
+        network_id: str,
+        port_schedule_id: str,
+        confirmed: bool = False
+    ):
+        """
+        Delete a switch port schedule.
+        
+        Args:
+            network_id: Network ID
+            port_schedule_id: Port schedule ID
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Deleting port schedule requires confirmed=true. This cannot be undone!"
+        
+        try:
+            meraki_client.dashboard.switch.deleteNetworkSwitchPortSchedule(
+                network_id, port_schedule_id
+            )
+            return f"✅ Deleted port schedule {port_schedule_id}"
+        except Exception as e:
+            return f"❌ Error deleting port schedule: {str(e)}"
+    
+    # ==================== LINK AGGREGATION ====================
+    
+    @app.tool(
+        name="create_network_switch_link_aggregation",
+        description="➕ Create a link aggregation group (LAG). Requires confirmation."
+    )
+    def create_network_switch_link_aggregation(
+        network_id: str,
+        switch_ports: List[Dict[str, Any]],
+        switch_profile_ports: Optional[List[Dict[str, Any]]] = None,
+        confirmed: bool = False
+    ):
+        """
+        Create a link aggregation group.
+        
+        Args:
+            network_id: Network ID
+            switch_ports: List of switch ports [{"serial": "XXXX", "portId": "1"}]
+            switch_profile_ports: List of switch profile ports for templates
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Creating link aggregation requires confirmed=true"
+        
+        try:
+            kwargs = {"switchPorts": switch_ports}
+            if switch_profile_ports:
+                kwargs["switchProfilePorts"] = switch_profile_ports
+            
+            result = meraki_client.dashboard.switch.createNetworkSwitchLinkAggregation(
+                network_id, **kwargs
+            )
+            
+            return f"✅ Created link aggregation with ID {result.get('id')}"
+        except Exception as e:
+            return f"❌ Error creating link aggregation: {str(e)}"
+    
+    @app.tool(
+        name="update_network_switch_link_aggregation",
+        description="✏️ Update a link aggregation group. Requires confirmation."
+    )
+    def update_network_switch_link_aggregation(
+        network_id: str,
+        link_aggregation_id: str,
+        switch_ports: Optional[List[Dict[str, Any]]] = None,
+        switch_profile_ports: Optional[List[Dict[str, Any]]] = None,
+        confirmed: bool = False
+    ):
+        """
+        Update a link aggregation group.
+        
+        Args:
+            network_id: Network ID
+            link_aggregation_id: Link aggregation ID
+            switch_ports: List of switch ports
+            switch_profile_ports: List of switch profile ports
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Updating link aggregation requires confirmed=true"
+        
+        try:
+            kwargs = {}
+            if switch_ports is not None:
+                kwargs["switchPorts"] = switch_ports
+            if switch_profile_ports is not None:
+                kwargs["switchProfilePorts"] = switch_profile_ports
+            
+            result = meraki_client.dashboard.switch.updateNetworkSwitchLinkAggregation(
+                network_id, link_aggregation_id, **kwargs
+            )
+            
+            return f"✅ Updated link aggregation {link_aggregation_id}"
+        except Exception as e:
+            return f"❌ Error updating link aggregation: {str(e)}"
+    
+    @app.tool(
+        name="delete_network_switch_link_aggregation",
+        description="🗑️ Delete a link aggregation group. Requires confirmation."
+    )
+    def delete_network_switch_link_aggregation(
+        network_id: str,
+        link_aggregation_id: str,
+        confirmed: bool = False
+    ):
+        """
+        Delete a link aggregation group.
+        
+        Args:
+            network_id: Network ID
+            link_aggregation_id: Link aggregation ID
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Deleting link aggregation requires confirmed=true. This cannot be undone!"
+        
+        try:
+            meraki_client.dashboard.switch.deleteNetworkSwitchLinkAggregation(
+                network_id, link_aggregation_id
+            )
+            return f"✅ Deleted link aggregation {link_aggregation_id}"
+        except Exception as e:
+            return f"❌ Error deleting link aggregation: {str(e)}"
+    
+    # ==================== LAYER 3 ROUTING ====================
+    
+    @app.tool(
+        name="create_device_switch_routing_interface",
+        description="➕ Create a Layer 3 interface on a switch. Requires confirmation."
+    )
+    def create_device_switch_routing_interface(
+        serial: str,
+        name: str,
+        subnet: str,
+        interface_ip: str,
+        multicast_routing: str = "disabled",
+        vlan_id: int = 1,
+        default_gateway: Optional[str] = None,
+        ospf_settings: Optional[Dict[str, Any]] = None,
+        ospf_v3: Optional[Dict[str, Any]] = None,
+        ipv6: Optional[Dict[str, Any]] = None,
+        confirmed: bool = False
+    ):
+        """
+        Create a Layer 3 interface.
+        
+        Args:
+            serial: Switch serial number
+            name: Interface name
+            subnet: Subnet (e.g., "192.168.1.0/24")
+            interface_ip: Interface IP address
+            multicast_routing: "disabled", "enabled", "IGMP snooping querier"
+            vlan_id: VLAN ID
+            default_gateway: Default gateway IP
+            ospf_settings: OSPF configuration
+            ospf_v3: OSPFv3 configuration
+            ipv6: IPv6 configuration
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Creating routing interface requires confirmed=true"
+        
+        try:
+            kwargs = {
+                "name": name,
+                "subnet": subnet,
+                "interfaceIp": interface_ip,
+                "multicastRouting": multicast_routing,
+                "vlanId": vlan_id
+            }
+            
+            if default_gateway:
+                kwargs["defaultGateway"] = default_gateway
+            if ospf_settings:
+                kwargs["ospfSettings"] = ospf_settings
+            if ospf_v3:
+                kwargs["ospfV3"] = ospf_v3
+            if ipv6:
+                kwargs["ipv6"] = ipv6
+            
+            result = meraki_client.dashboard.switch.createDeviceSwitchRoutingInterface(
+                serial, **kwargs
+            )
+            
+            return f"✅ Created routing interface '{name}' with ID {result.get('interfaceId')}"
+        except Exception as e:
+            return f"❌ Error creating routing interface: {str(e)}"
+    
+    @app.tool(
+        name="update_device_switch_routing_interface",
+        description="✏️ Update a Layer 3 interface. Requires confirmation."
+    )
+    def update_device_switch_routing_interface(
+        serial: str,
+        interface_id: str,
+        name: Optional[str] = None,
+        subnet: Optional[str] = None,
+        interface_ip: Optional[str] = None,
+        multicast_routing: Optional[str] = None,
+        vlan_id: Optional[int] = None,
+        default_gateway: Optional[str] = None,
+        ospf_settings: Optional[Dict[str, Any]] = None,
+        ospf_v3: Optional[Dict[str, Any]] = None,
+        ipv6: Optional[Dict[str, Any]] = None,
+        confirmed: bool = False
+    ):
+        """
+        Update a Layer 3 interface.
+        
+        Args:
+            serial: Switch serial number
+            interface_id: Interface ID
+            name: Interface name
+            subnet: Subnet
+            interface_ip: Interface IP
+            multicast_routing: Multicast routing mode
+            vlan_id: VLAN ID
+            default_gateway: Default gateway
+            ospf_settings: OSPF configuration
+            ospf_v3: OSPFv3 configuration
+            ipv6: IPv6 configuration
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Updating routing interface requires confirmed=true"
+        
+        try:
+            kwargs = {}
+            
+            if name is not None:
+                kwargs["name"] = name
+            if subnet is not None:
+                kwargs["subnet"] = subnet
+            if interface_ip is not None:
+                kwargs["interfaceIp"] = interface_ip
+            if multicast_routing is not None:
+                kwargs["multicastRouting"] = multicast_routing
+            if vlan_id is not None:
+                kwargs["vlanId"] = vlan_id
+            if default_gateway is not None:
+                kwargs["defaultGateway"] = default_gateway
+            if ospf_settings is not None:
+                kwargs["ospfSettings"] = ospf_settings
+            if ospf_v3 is not None:
+                kwargs["ospfV3"] = ospf_v3
+            if ipv6 is not None:
+                kwargs["ipv6"] = ipv6
+            
+            result = meraki_client.dashboard.switch.updateDeviceSwitchRoutingInterface(
+                serial, interface_id, **kwargs
+            )
+            
+            return f"✅ Updated routing interface {interface_id}"
+        except Exception as e:
+            return f"❌ Error updating routing interface: {str(e)}"
+    
+    @app.tool(
+        name="update_device_switch_routing_interface_dhcp",
+        description="✏️ Update DHCP settings for a Layer 3 interface. Requires confirmation."
+    )
+    def update_device_switch_routing_interface_dhcp(
+        serial: str,
+        interface_id: str,
+        dhcp_mode: str,
+        dhcp_relay_server_ips: Optional[List[str]] = None,
+        dhcp_lease_time: Optional[str] = None,
+        dns_nameservers_option: Optional[str] = None,
+        dns_custom_nameservers: Optional[List[str]] = None,
+        boot_options_enabled: Optional[bool] = None,
+        boot_next_server: Optional[str] = None,
+        boot_filename: Optional[str] = None,
+        dhcp_options: Optional[List[Dict[str, Any]]] = None,
+        reserved_ip_ranges: Optional[List[Dict[str, str]]] = None,
+        fixed_ip_assignments: Optional[Dict[str, Dict[str, str]]] = None,
+        confirmed: bool = False
+    ):
+        """
+        Update DHCP settings for a Layer 3 interface.
+        
+        Args:
+            serial: Switch serial number
+            interface_id: Interface ID
+            dhcp_mode: "dhcpDisabled", "dhcpRelay", or "dhcpServer"
+            dhcp_relay_server_ips: DHCP relay server IPs
+            dhcp_lease_time: Lease time ("30 minutes", "1 hour", "4 hours", "12 hours", "1 day", "1 week")
+            dns_nameservers_option: "googlePublicDns", "openDns", "custom"
+            dns_custom_nameservers: Custom DNS servers
+            boot_options_enabled: Enable boot options
+            boot_next_server: Boot server IP
+            boot_filename: Boot filename
+            dhcp_options: DHCP options
+            reserved_ip_ranges: Reserved IP ranges
+            fixed_ip_assignments: Fixed IP assignments
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Updating DHCP settings requires confirmed=true"
+        
+        try:
+            kwargs = {"dhcpMode": dhcp_mode}
+            
+            if dhcp_relay_server_ips is not None:
+                kwargs["dhcpRelayServerIps"] = dhcp_relay_server_ips
+            if dhcp_lease_time is not None:
+                kwargs["dhcpLeaseTime"] = dhcp_lease_time
+            if dns_nameservers_option is not None:
+                kwargs["dnsNameserversOption"] = dns_nameservers_option
+            if dns_custom_nameservers is not None:
+                kwargs["dnsCustomNameservers"] = dns_custom_nameservers
+            if boot_options_enabled is not None:
+                kwargs["bootOptionsEnabled"] = boot_options_enabled
+            if boot_next_server is not None:
+                kwargs["bootNextServer"] = boot_next_server
+            if boot_filename is not None:
+                kwargs["bootFilename"] = boot_filename
+            if dhcp_options is not None:
+                kwargs["dhcpOptions"] = dhcp_options
+            if reserved_ip_ranges is not None:
+                kwargs["reservedIpRanges"] = reserved_ip_ranges
+            if fixed_ip_assignments is not None:
+                kwargs["fixedIpAssignments"] = fixed_ip_assignments
+            
+            result = meraki_client.dashboard.switch.updateDeviceSwitchRoutingInterfaceDhcp(
+                serial, interface_id, **kwargs
+            )
+            
+            return f"✅ Updated DHCP settings for interface {interface_id}"
+        except Exception as e:
+            return f"❌ Error updating DHCP settings: {str(e)}"
+    
+    @app.tool(
+        name="create_device_switch_routing_static_route",
+        description="➕ Create a static route on a Layer 3 switch. Requires confirmation."
+    )
+    def create_device_switch_routing_static_route(
+        serial: str,
+        subnet: str,
+        next_hop_ip: str,
+        name: Optional[str] = None,
+        advertise_via_ospf_enabled: bool = False,
+        prefer_over_ospf_routes_enabled: bool = False,
+        confirmed: bool = False
+    ):
+        """
+        Create a static route.
+        
+        Args:
+            serial: Switch serial number
+            subnet: Destination subnet (e.g., "192.168.2.0/24")
+            next_hop_ip: Next hop IP address
+            name: Route name
+            advertise_via_ospf_enabled: Advertise via OSPF
+            prefer_over_ospf_routes_enabled: Prefer over OSPF routes
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Creating static route requires confirmed=true"
+        
+        try:
+            kwargs = {
+                "subnet": subnet,
+                "nextHopIp": next_hop_ip,
+                "advertiseViaOspfEnabled": advertise_via_ospf_enabled,
+                "preferOverOspfRoutesEnabled": prefer_over_ospf_routes_enabled
+            }
+            
+            if name:
+                kwargs["name"] = name
+            
+            result = meraki_client.dashboard.switch.createDeviceSwitchRoutingStaticRoute(
+                serial, **kwargs
+            )
+            
+            return f"✅ Created static route to {subnet} via {next_hop_ip}"
+        except Exception as e:
+            return f"❌ Error creating static route: {str(e)}"
+    
+    @app.tool(
+        name="update_device_switch_routing_static_route",
+        description="✏️ Update a static route. Requires confirmation."
+    )
+    def update_device_switch_routing_static_route(
+        serial: str,
+        static_route_id: str,
+        subnet: Optional[str] = None,
+        next_hop_ip: Optional[str] = None,
+        name: Optional[str] = None,
+        advertise_via_ospf_enabled: Optional[bool] = None,
+        prefer_over_ospf_routes_enabled: Optional[bool] = None,
+        confirmed: bool = False
+    ):
+        """
+        Update a static route.
+        
+        Args:
+            serial: Switch serial number
+            static_route_id: Static route ID
+            subnet: Destination subnet
+            next_hop_ip: Next hop IP
+            name: Route name
+            advertise_via_ospf_enabled: Advertise via OSPF
+            prefer_over_ospf_routes_enabled: Prefer over OSPF routes
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Updating static route requires confirmed=true"
+        
+        try:
+            kwargs = {}
+            
+            if subnet is not None:
+                kwargs["subnet"] = subnet
+            if next_hop_ip is not None:
+                kwargs["nextHopIp"] = next_hop_ip
+            if name is not None:
+                kwargs["name"] = name
+            if advertise_via_ospf_enabled is not None:
+                kwargs["advertiseViaOspfEnabled"] = advertise_via_ospf_enabled
+            if prefer_over_ospf_routes_enabled is not None:
+                kwargs["preferOverOspfRoutesEnabled"] = prefer_over_ospf_routes_enabled
+            
+            result = meraki_client.dashboard.switch.updateDeviceSwitchRoutingStaticRoute(
+                serial, static_route_id, **kwargs
+            )
+            
+            return f"✅ Updated static route {static_route_id}"
+        except Exception as e:
+            return f"❌ Error updating static route: {str(e)}"
+    
+    @app.tool(
+        name="delete_device_switch_routing_static_route",
+        description="🗑️ Delete a static route. Requires confirmation."
+    )
+    def delete_device_switch_routing_static_route(
+        serial: str,
+        static_route_id: str,
+        confirmed: bool = False
+    ):
+        """
+        Delete a static route.
+        
+        Args:
+            serial: Switch serial number
+            static_route_id: Static route ID
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Deleting static route requires confirmed=true. This cannot be undone!"
+        
+        try:
+            meraki_client.dashboard.switch.deleteDeviceSwitchRoutingStaticRoute(
+                serial, static_route_id
+            )
+            return f"✅ Deleted static route {static_route_id}"
+        except Exception as e:
+            return f"❌ Error deleting static route: {str(e)}"
+    
+    @app.tool(
+        name="create_network_switch_routing_multicast_rendezvous",
+        description="➕ Create a multicast rendezvous point. Requires confirmation."
+    )
+    def create_network_switch_routing_multicast_rendezvous(
+        network_id: str,
+        interface_ip: str,
+        multicast_group: str,
+        confirmed: bool = False
+    ):
+        """
+        Create a multicast rendezvous point.
+        
+        Args:
+            network_id: Network ID
+            interface_ip: Interface IP address
+            multicast_group: Multicast group (e.g., "239.0.0.0/8")
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Creating rendezvous point requires confirmed=true"
+        
+        try:
+            result = meraki_client.dashboard.switch.createNetworkSwitchRoutingMulticastRendezvousPoint(
+                network_id, interfaceIp=interface_ip, multicastGroup=multicast_group
+            )
+            
+            return f"✅ Created rendezvous point at {interface_ip} for group {multicast_group}"
+        except Exception as e:
+            return f"❌ Error creating rendezvous point: {str(e)}"
+    
+    @app.tool(
+        name="update_network_switch_routing_multicast",
+        description="✏️ Update multicast routing settings. Requires confirmation."
+    )
+    def update_network_switch_routing_multicast(
+        network_id: str,
+        default_settings: Optional[Dict[str, Any]] = None,
+        overrides: Optional[List[Dict[str, Any]]] = None,
+        confirmed: bool = False
+    ):
+        """
+        Update multicast routing settings.
+        
+        Args:
+            network_id: Network ID
+            default_settings: Default multicast settings
+            overrides: Override settings for specific switches
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Updating multicast routing requires confirmed=true"
+        
+        try:
+            kwargs = {}
+            
+            if default_settings is not None:
+                kwargs["defaultSettings"] = default_settings
+            if overrides is not None:
+                kwargs["overrides"] = overrides
+            
+            result = meraki_client.dashboard.switch.updateNetworkSwitchRoutingMulticast(
+                network_id, **kwargs
+            )
+            
+            return f"✅ Updated multicast routing settings"
+        except Exception as e:
+            return f"❌ Error updating multicast routing: {str(e)}"
+    
+    @app.tool(
+        name="update_network_switch_routing_multicast_rendezvous",
+        description="✏️ Update a multicast rendezvous point. Requires confirmation."
+    )
+    def update_network_switch_routing_multicast_rendezvous(
+        network_id: str,
+        rendezvous_point_id: str,
+        interface_ip: Optional[str] = None,
+        multicast_group: Optional[str] = None,
+        confirmed: bool = False
+    ):
+        """
+        Update a multicast rendezvous point.
+        
+        Args:
+            network_id: Network ID
+            rendezvous_point_id: Rendezvous point ID
+            interface_ip: Interface IP address
+            multicast_group: Multicast group
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Updating rendezvous point requires confirmed=true"
+        
+        try:
+            kwargs = {}
+            
+            if interface_ip is not None:
+                kwargs["interfaceIp"] = interface_ip
+            if multicast_group is not None:
+                kwargs["multicastGroup"] = multicast_group
+            
+            result = meraki_client.dashboard.switch.updateNetworkSwitchRoutingMulticastRendezvousPoint(
+                network_id, rendezvous_point_id, **kwargs
+            )
+            
+            return f"✅ Updated rendezvous point {rendezvous_point_id}"
+        except Exception as e:
+            return f"❌ Error updating rendezvous point: {str(e)}"
+    
+    @app.tool(
+        name="delete_network_switch_routing_multicast_rendezvous",
+        description="🗑️ Delete a multicast rendezvous point. Requires confirmation."
+    )
+    def delete_network_switch_routing_multicast_rendezvous(
+        network_id: str,
+        rendezvous_point_id: str,
+        confirmed: bool = False
+    ):
+        """
+        Delete a multicast rendezvous point.
+        
+        Args:
+            network_id: Network ID
+            rendezvous_point_id: Rendezvous point ID
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Deleting rendezvous point requires confirmed=true. This cannot be undone!"
+        
+        try:
+            meraki_client.dashboard.switch.deleteNetworkSwitchRoutingMulticastRendezvousPoint(
+                network_id, rendezvous_point_id
+            )
+            return f"✅ Deleted rendezvous point {rendezvous_point_id}"
+        except Exception as e:
+            return f"❌ Error deleting rendezvous point: {str(e)}"
+    
+    @app.tool(
+        name="update_network_switch_routing_ospf",
+        description="✏️ Update OSPF routing settings. Requires confirmation."
+    )
+    def update_network_switch_routing_ospf(
+        network_id: str,
+        enabled: Optional[bool] = None,
+        hello_timer_in_seconds: Optional[int] = None,
+        dead_timer_in_seconds: Optional[int] = None,
+        areas: Optional[List[Dict[str, Any]]] = None,
+        v3: Optional[Dict[str, Any]] = None,
+        md5_authentication_enabled: Optional[bool] = None,
+        md5_authentication_key: Optional[Dict[str, Any]] = None,
+        confirmed: bool = False
+    ):
+        """
+        Update OSPF routing settings.
+        
+        Args:
+            network_id: Network ID
+            enabled: Enable OSPF
+            hello_timer_in_seconds: Hello timer (1-255)
+            dead_timer_in_seconds: Dead timer (1-65535)
+            areas: OSPF areas configuration
+            v3: OSPFv3 configuration
+            md5_authentication_enabled: Enable MD5 authentication
+            md5_authentication_key: MD5 authentication key
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Updating OSPF settings requires confirmed=true"
+        
+        try:
+            kwargs = {}
+            
+            if enabled is not None:
+                kwargs["enabled"] = enabled
+            if hello_timer_in_seconds is not None:
+                kwargs["helloTimerInSeconds"] = hello_timer_in_seconds
+            if dead_timer_in_seconds is not None:
+                kwargs["deadTimerInSeconds"] = dead_timer_in_seconds
+            if areas is not None:
+                kwargs["areas"] = areas
+            if v3 is not None:
+                kwargs["v3"] = v3
+            if md5_authentication_enabled is not None:
+                kwargs["md5AuthenticationEnabled"] = md5_authentication_enabled
+            if md5_authentication_key is not None:
+                kwargs["md5AuthenticationKey"] = md5_authentication_key
+            
+            result = meraki_client.dashboard.switch.updateNetworkSwitchRoutingOspf(
+                network_id, **kwargs
+            )
+            
+            return f"✅ Updated OSPF routing settings"
+        except Exception as e:
+            return f"❌ Error updating OSPF settings: {str(e)}"
+    
+    # ==================== SWITCH STACKS ====================
+    
+    @app.tool(
+        name="create_network_switch_stack",
+        description="➕ Create a switch stack. Requires confirmation."
+    )
+    def create_network_switch_stack(
+        network_id: str,
+        name: str,
+        serials: List[str],
+        confirmed: bool = False
+    ):
+        """
+        Create a switch stack.
+        
+        Args:
+            network_id: Network ID
+            name: Stack name
+            serials: List of switch serial numbers to stack
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Creating switch stack requires confirmed=true"
+        
+        try:
+            result = meraki_client.dashboard.switch.createNetworkSwitchStack(
+                network_id, name=name, serials=serials
+            )
+            
+            return f"✅ Created switch stack '{name}' with ID {result.get('id')}"
+        except Exception as e:
+            return f"❌ Error creating switch stack: {str(e)}"
+    
+    @app.tool(
+        name="delete_network_switch_stack",
+        description="🗑️ Delete a switch stack. Requires confirmation."
+    )
+    def delete_network_switch_stack(
+        network_id: str,
+        switch_stack_id: str,
+        confirmed: bool = False
+    ):
+        """
+        Delete a switch stack.
+        
+        Args:
+            network_id: Network ID
+            switch_stack_id: Switch stack ID
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Deleting switch stack requires confirmed=true. This cannot be undone!"
+        
+        try:
+            meraki_client.dashboard.switch.deleteNetworkSwitchStack(
+                network_id, switch_stack_id
+            )
+            return f"✅ Deleted switch stack {switch_stack_id}"
+        except Exception as e:
+            return f"❌ Error deleting switch stack: {str(e)}"
+    
+    @app.tool(
+        name="add_network_switch_stack",
+        description="➕ Add a switch to an existing stack. Requires confirmation."
+    )
+    def add_network_switch_stack(
+        network_id: str,
+        switch_stack_id: str,
+        serial: str,
+        confirmed: bool = False
+    ):
+        """
+        Add a switch to an existing stack.
+        
+        Args:
+            network_id: Network ID
+            switch_stack_id: Switch stack ID
+            serial: Serial number of switch to add
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Adding switch to stack requires confirmed=true"
+        
+        try:
+            result = meraki_client.dashboard.switch.addNetworkSwitchStack(
+                network_id, switch_stack_id, serial=serial
+            )
+            return f"✅ Added switch {serial} to stack {switch_stack_id}"
+        except Exception as e:
+            return f"❌ Error adding switch to stack: {str(e)}"
+    
+    @app.tool(
+        name="remove_network_switch_stack",
+        description="🗑️ Remove a switch from a stack. Requires confirmation."
+    )
+    def remove_network_switch_stack(
+        network_id: str,
+        switch_stack_id: str,
+        serial: str,
+        confirmed: bool = False
+    ):
+        """
+        Remove a switch from a stack.
+        
+        Args:
+            network_id: Network ID
+            switch_stack_id: Switch stack ID
+            serial: Serial number of switch to remove
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Removing switch from stack requires confirmed=true"
+        
+        try:
+            result = meraki_client.dashboard.switch.removeNetworkSwitchStack(
+                network_id, switch_stack_id, serial=serial
+            )
+            return f"✅ Removed switch {serial} from stack {switch_stack_id}"
+        except Exception as e:
+            return f"❌ Error removing switch from stack: {str(e)}"
+    
+    @app.tool(
+        name="create_network_switch_stack_routing_interface",
+        description="➕ Create a Layer 3 interface on a switch stack. Requires confirmation."
+    )
+    def create_network_switch_stack_routing_interface(
+        network_id: str,
+        switch_stack_id: str,
+        name: str,
+        subnet: str,
+        interface_ip: str,
+        multicast_routing: str = "disabled",
+        vlan_id: int = 1,
+        default_gateway: Optional[str] = None,
+        ospf_settings: Optional[Dict[str, Any]] = None,
+        ospf_v3: Optional[Dict[str, Any]] = None,
+        ipv6: Optional[Dict[str, Any]] = None,
+        confirmed: bool = False
+    ):
+        """
+        Create a Layer 3 interface on a switch stack.
+        
+        Args:
+            network_id: Network ID
+            switch_stack_id: Switch stack ID
+            name: Interface name
+            subnet: Subnet (e.g., "192.168.1.0/24")
+            interface_ip: Interface IP address
+            multicast_routing: "disabled", "enabled", "IGMP snooping querier"
+            vlan_id: VLAN ID
+            default_gateway: Default gateway IP
+            ospf_settings: OSPF configuration
+            ospf_v3: OSPFv3 configuration
+            ipv6: IPv6 configuration
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Creating stack routing interface requires confirmed=true"
+        
+        try:
+            kwargs = {
+                "name": name,
+                "subnet": subnet,
+                "interfaceIp": interface_ip,
+                "multicastRouting": multicast_routing,
+                "vlanId": vlan_id
+            }
+            
+            if default_gateway:
+                kwargs["defaultGateway"] = default_gateway
+            if ospf_settings:
+                kwargs["ospfSettings"] = ospf_settings
+            if ospf_v3:
+                kwargs["ospfV3"] = ospf_v3
+            if ipv6:
+                kwargs["ipv6"] = ipv6
+            
+            result = meraki_client.dashboard.switch.createNetworkSwitchStackRoutingInterface(
+                network_id, switch_stack_id, **kwargs
+            )
+            
+            return f"✅ Created stack routing interface '{name}' with ID {result.get('interfaceId')}"
+        except Exception as e:
+            return f"❌ Error creating stack routing interface: {str(e)}"
+    
+    @app.tool(
+        name="update_network_switch_stack_routing_interface",
+        description="✏️ Update a Layer 3 interface on a switch stack. Requires confirmation."
+    )
+    def update_network_switch_stack_routing_interface(
+        network_id: str,
+        switch_stack_id: str,
+        interface_id: str,
+        name: Optional[str] = None,
+        subnet: Optional[str] = None,
+        interface_ip: Optional[str] = None,
+        multicast_routing: Optional[str] = None,
+        vlan_id: Optional[int] = None,
+        default_gateway: Optional[str] = None,
+        ospf_settings: Optional[Dict[str, Any]] = None,
+        ospf_v3: Optional[Dict[str, Any]] = None,
+        ipv6: Optional[Dict[str, Any]] = None,
+        confirmed: bool = False
+    ):
+        """
+        Update a Layer 3 interface on a switch stack.
+        
+        Args:
+            network_id: Network ID
+            switch_stack_id: Switch stack ID
+            interface_id: Interface ID
+            name: Interface name
+            subnet: Subnet
+            interface_ip: Interface IP
+            multicast_routing: Multicast routing mode
+            vlan_id: VLAN ID
+            default_gateway: Default gateway
+            ospf_settings: OSPF configuration
+            ospf_v3: OSPFv3 configuration
+            ipv6: IPv6 configuration
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Updating stack routing interface requires confirmed=true"
+        
+        try:
+            kwargs = {}
+            
+            if name is not None:
+                kwargs["name"] = name
+            if subnet is not None:
+                kwargs["subnet"] = subnet
+            if interface_ip is not None:
+                kwargs["interfaceIp"] = interface_ip
+            if multicast_routing is not None:
+                kwargs["multicastRouting"] = multicast_routing
+            if vlan_id is not None:
+                kwargs["vlanId"] = vlan_id
+            if default_gateway is not None:
+                kwargs["defaultGateway"] = default_gateway
+            if ospf_settings is not None:
+                kwargs["ospfSettings"] = ospf_settings
+            if ospf_v3 is not None:
+                kwargs["ospfV3"] = ospf_v3
+            if ipv6 is not None:
+                kwargs["ipv6"] = ipv6
+            
+            result = meraki_client.dashboard.switch.updateNetworkSwitchStackRoutingInterface(
+                network_id, switch_stack_id, interface_id, **kwargs
+            )
+            
+            return f"✅ Updated stack routing interface {interface_id}"
+        except Exception as e:
+            return f"❌ Error updating stack routing interface: {str(e)}"
+    
+    @app.tool(
+        name="get_network_switch_stack_routing_interface_dhcp",
+        description="🖥️ Get DHCP configuration for a stack layer 3 interface."
+    )
+    def get_network_switch_stack_routing_interface_dhcp(
+        network_id: str,
+        switch_stack_id: str,
+        interface_id: str
+    ):
+        """
+        Get DHCP configuration for a stack interface.
+        
+        Args:
+            network_id: Network ID
+            switch_stack_id: Switch stack ID
+            interface_id: Interface ID
+        """
+        try:
+            result = meraki_client.dashboard.switch.getNetworkSwitchStackRoutingInterfaceDhcp(
+                network_id, switch_stack_id, interface_id
+            )
+            
+            response = f"# 🖥️ Stack Interface DHCP Configuration\n\n"
+            response += f"**Stack ID**: {switch_stack_id}\n"
+            response += f"**Interface ID**: {interface_id}\n\n"
+            
+            if result:
+                response += f"## DHCP Settings\n"
+                response += f"- **DHCP Mode**: {result.get('dhcpMode', 'N/A')}\n"
+                
+                # DHCP relay settings
+                if result.get('dhcpRelayServerIps'):
+                    response += f"- **DHCP Relay Servers**: {', '.join(result['dhcpRelayServerIps'])}\n"
+                
+                # DHCP server settings
+                if result.get('dhcpMode') == 'dhcpServer':
+                    response += f"- **Lease Time**: {result.get('dhcpLeaseTime', 'N/A')}\n"
+                    response += f"- **DNS Nameservers**: {result.get('dnsNameserversOption', 'N/A')}\n"
+                    
+                    if result.get('dnsCustomNameservers'):
+                        response += f"- **Custom DNS**: {', '.join(result['dnsCustomNameservers'])}\n"
+                    
+                    # Boot options
+                    if result.get('bootOptionsEnabled'):
+                        response += f"\n## Boot Options\n"
+                        response += f"- **Next Server**: {result.get('bootNextServer', 'N/A')}\n"
+                        response += f"- **Boot Filename**: {result.get('bootFilename', 'N/A')}\n"
+                    
+                    # DHCP options
+                    if result.get('dhcpOptions'):
+                        response += f"\n## DHCP Options\n"
+                        for option in result['dhcpOptions']:
+                            response += f"- **Option {option.get('code')}**: {option.get('type', 'N/A')} = {option.get('value', 'N/A')}\n"
+                    
+                    # Reserved IP ranges
+                    if result.get('reservedIpRanges'):
+                        response += f"\n## Reserved IP Ranges\n"
+                        for range_item in result['reservedIpRanges']:
+                            response += f"- **{range_item.get('comment', 'Range')}**: {range_item.get('start')} - {range_item.get('end')}\n"
+                    
+                    # Fixed IP assignments
+                    if result.get('fixedIpAssignments'):
+                        response += f"\n## Fixed IP Assignments\n"
+                        for mac, assignment in result['fixedIpAssignments'].items():
+                            response += f"- **{mac}**: {assignment.get('ip')} ({assignment.get('name', 'Unnamed')})\n"
+            else:
+                response += "*No DHCP configuration found*\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting stack interface DHCP configuration: {str(e)}"
+    
+    @app.tool(
+        name="update_network_switch_stack_routing_interface_dhcp",
+        description="✏️ Update DHCP settings for a stack interface. Requires confirmation."
+    )
+    def update_network_switch_stack_routing_interface_dhcp(
+        network_id: str,
+        switch_stack_id: str,
+        interface_id: str,
+        dhcp_mode: str,
+        dhcp_relay_server_ips: Optional[List[str]] = None,
+        dhcp_lease_time: Optional[str] = None,
+        dns_nameservers_option: Optional[str] = None,
+        dns_custom_nameservers: Optional[List[str]] = None,
+        boot_options_enabled: Optional[bool] = None,
+        boot_next_server: Optional[str] = None,
+        boot_filename: Optional[str] = None,
+        dhcp_options: Optional[List[Dict[str, Any]]] = None,
+        reserved_ip_ranges: Optional[List[Dict[str, str]]] = None,
+        fixed_ip_assignments: Optional[Dict[str, Dict[str, str]]] = None,
+        confirmed: bool = False
+    ):
+        """
+        Update DHCP settings for a stack interface.
+        
+        Args:
+            network_id: Network ID
+            switch_stack_id: Switch stack ID
+            interface_id: Interface ID
+            dhcp_mode: "dhcpDisabled", "dhcpRelay", or "dhcpServer"
+            dhcp_relay_server_ips: DHCP relay server IPs
+            dhcp_lease_time: Lease time
+            dns_nameservers_option: DNS option
+            dns_custom_nameservers: Custom DNS servers
+            boot_options_enabled: Enable boot options
+            boot_next_server: Boot server IP
+            boot_filename: Boot filename
+            dhcp_options: DHCP options
+            reserved_ip_ranges: Reserved IP ranges
+            fixed_ip_assignments: Fixed IP assignments
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Updating stack DHCP settings requires confirmed=true"
+        
+        try:
+            kwargs = {"dhcpMode": dhcp_mode}
+            
+            if dhcp_relay_server_ips is not None:
+                kwargs["dhcpRelayServerIps"] = dhcp_relay_server_ips
+            if dhcp_lease_time is not None:
+                kwargs["dhcpLeaseTime"] = dhcp_lease_time
+            if dns_nameservers_option is not None:
+                kwargs["dnsNameserversOption"] = dns_nameservers_option
+            if dns_custom_nameservers is not None:
+                kwargs["dnsCustomNameservers"] = dns_custom_nameservers
+            if boot_options_enabled is not None:
+                kwargs["bootOptionsEnabled"] = boot_options_enabled
+            if boot_next_server is not None:
+                kwargs["bootNextServer"] = boot_next_server
+            if boot_filename is not None:
+                kwargs["bootFilename"] = boot_filename
+            if dhcp_options is not None:
+                kwargs["dhcpOptions"] = dhcp_options
+            if reserved_ip_ranges is not None:
+                kwargs["reservedIpRanges"] = reserved_ip_ranges
+            if fixed_ip_assignments is not None:
+                kwargs["fixedIpAssignments"] = fixed_ip_assignments
+            
+            result = meraki_client.dashboard.switch.updateNetworkSwitchStackRoutingInterfaceDhcp(
+                network_id, switch_stack_id, interface_id, **kwargs
+            )
+            
+            return f"✅ Updated DHCP settings for stack interface {interface_id}"
+        except Exception as e:
+            return f"❌ Error updating stack DHCP settings: {str(e)}"
+    
+    @app.tool(
+        name="delete_network_switch_stack_routing_interface",
+        description="🗑️ Delete a Layer 3 interface from a switch stack. Requires confirmation."
+    )
+    def delete_network_switch_stack_routing_interface(
+        network_id: str,
+        switch_stack_id: str,
+        interface_id: str,
+        confirmed: bool = False
+    ):
+        """
+        Delete a Layer 3 interface from a switch stack.
+        
+        Args:
+            network_id: Network ID
+            switch_stack_id: Switch stack ID
+            interface_id: Interface ID
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Deleting stack routing interface requires confirmed=true. This cannot be undone!"
+        
+        try:
+            meraki_client.dashboard.switch.deleteNetworkSwitchStackRoutingInterface(
+                network_id, switch_stack_id, interface_id
+            )
+            return f"✅ Deleted stack routing interface {interface_id}"
+        except Exception as e:
+            return f"❌ Error deleting stack routing interface: {str(e)}"
+    
+    @app.tool(
+        name="create_network_switch_stack_routing_static_route",
+        description="➕ Create a static route on a switch stack. Requires confirmation."
+    )
+    def create_network_switch_stack_routing_static_route(
+        network_id: str,
+        switch_stack_id: str,
+        subnet: str,
+        next_hop_ip: str,
+        name: Optional[str] = None,
+        advertise_via_ospf_enabled: bool = False,
+        prefer_over_ospf_routes_enabled: bool = False,
+        confirmed: bool = False
+    ):
+        """
+        Create a static route on a switch stack.
+        
+        Args:
+            network_id: Network ID
+            switch_stack_id: Switch stack ID
+            subnet: Destination subnet (e.g., "192.168.2.0/24")
+            next_hop_ip: Next hop IP address
+            name: Route name
+            advertise_via_ospf_enabled: Advertise via OSPF
+            prefer_over_ospf_routes_enabled: Prefer over OSPF routes
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Creating stack static route requires confirmed=true"
+        
+        try:
+            kwargs = {
+                "subnet": subnet,
+                "nextHopIp": next_hop_ip,
+                "advertiseViaOspfEnabled": advertise_via_ospf_enabled,
+                "preferOverOspfRoutesEnabled": prefer_over_ospf_routes_enabled
+            }
+            
+            if name:
+                kwargs["name"] = name
+            
+            result = meraki_client.dashboard.switch.createNetworkSwitchStackRoutingStaticRoute(
+                network_id, switch_stack_id, **kwargs
+            )
+            
+            return f"✅ Created stack static route to {subnet} via {next_hop_ip}"
+        except Exception as e:
+            return f"❌ Error creating stack static route: {str(e)}"
+    
+    @app.tool(
+        name="update_network_switch_stack_routing_static_route",
+        description="✏️ Update a static route on a switch stack. Requires confirmation."
+    )
+    def update_network_switch_stack_routing_static_route(
+        network_id: str,
+        switch_stack_id: str,
+        static_route_id: str,
+        subnet: Optional[str] = None,
+        next_hop_ip: Optional[str] = None,
+        name: Optional[str] = None,
+        advertise_via_ospf_enabled: Optional[bool] = None,
+        prefer_over_ospf_routes_enabled: Optional[bool] = None,
+        confirmed: bool = False
+    ):
+        """
+        Update a static route on a switch stack.
+        
+        Args:
+            network_id: Network ID
+            switch_stack_id: Switch stack ID
+            static_route_id: Static route ID
+            subnet: Destination subnet
+            next_hop_ip: Next hop IP
+            name: Route name
+            advertise_via_ospf_enabled: Advertise via OSPF
+            prefer_over_ospf_routes_enabled: Prefer over OSPF routes
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Updating stack static route requires confirmed=true"
+        
+        try:
+            kwargs = {}
+            
+            if subnet is not None:
+                kwargs["subnet"] = subnet
+            if next_hop_ip is not None:
+                kwargs["nextHopIp"] = next_hop_ip
+            if name is not None:
+                kwargs["name"] = name
+            if advertise_via_ospf_enabled is not None:
+                kwargs["advertiseViaOspfEnabled"] = advertise_via_ospf_enabled
+            if prefer_over_ospf_routes_enabled is not None:
+                kwargs["preferOverOspfRoutesEnabled"] = prefer_over_ospf_routes_enabled
+            
+            result = meraki_client.dashboard.switch.updateNetworkSwitchStackRoutingStaticRoute(
+                network_id, switch_stack_id, static_route_id, **kwargs
+            )
+            
+            return f"✅ Updated stack static route {static_route_id}"
+        except Exception as e:
+            return f"❌ Error updating stack static route: {str(e)}"
+    
+    @app.tool(
+        name="delete_network_switch_stack_routing_static_route",
+        description="🗑️ Delete a static route from a switch stack. Requires confirmation."
+    )
+    def delete_network_switch_stack_routing_static_route(
+        network_id: str,
+        switch_stack_id: str,
+        static_route_id: str,
+        confirmed: bool = False
+    ):
+        """
+        Delete a static route from a switch stack.
+        
+        Args:
+            network_id: Network ID
+            switch_stack_id: Switch stack ID
+            static_route_id: Static route ID
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Deleting stack static route requires confirmed=true. This cannot be undone!"
+        
+        try:
+            meraki_client.dashboard.switch.deleteNetworkSwitchStackRoutingStaticRoute(
+                network_id, switch_stack_id, static_route_id
+            )
+            return f"✅ Deleted stack static route {static_route_id}"
+        except Exception as e:
+            return f"❌ Error deleting stack static route: {str(e)}"
+    
+    # ==================== NETWORK SETTINGS ====================
+    
+    @app.tool(
+        name="update_network_switch_settings",
+        description="✏️ Update general switch network settings. Requires confirmation."
+    )
+    def update_network_switch_settings(
+        network_id: str,
+        vlan: Optional[int] = None,
+        use_combined_power: Optional[bool] = None,
+        power_exceptions: Optional[List[Dict[str, Any]]] = None,
+        uplink_client_sampling: Optional[Dict[str, Any]] = None,
+        mac_blocklist: Optional[Dict[str, Any]] = None,
+        confirmed: bool = False
+    ):
+        """
+        Update general switch network settings.
+        
+        Args:
+            network_id: Network ID
+            vlan: Management VLAN
+            use_combined_power: Use combined power for PoE
+            power_exceptions: Power exceptions for specific switches
+            uplink_client_sampling: Uplink client sampling configuration
+            mac_blocklist: MAC blocklist configuration
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Updating switch settings requires confirmed=true"
+        
+        try:
+            kwargs = {}
+            
+            if vlan is not None:
+                kwargs["vlan"] = vlan
+            if use_combined_power is not None:
+                kwargs["useCombinedPower"] = use_combined_power
+            if power_exceptions is not None:
+                kwargs["powerExceptions"] = power_exceptions
+            if uplink_client_sampling is not None:
+                kwargs["uplinkClientSampling"] = uplink_client_sampling
+            if mac_blocklist is not None:
+                kwargs["macBlocklist"] = mac_blocklist
+            
+            result = meraki_client.dashboard.switch.updateNetworkSwitchSettings(
+                network_id, **kwargs
+            )
+            
+            return f"✅ Updated switch network settings"
+        except Exception as e:
+            return f"❌ Error updating switch settings: {str(e)}"
+    
+    @app.tool(
+        name="update_network_switch_access_control_lists",
+        description="✏️ Update switch ACLs. Requires confirmation."
+    )
+    def update_network_switch_access_control_lists(
+        network_id: str,
+        rules: List[Dict[str, Any]],
+        confirmed: bool = False
+    ):
+        """
+        Update switch access control lists.
+        
+        Args:
+            network_id: Network ID
+            rules: List of ACL rules
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Updating ACLs requires confirmed=true"
+        
+        try:
+            result = meraki_client.dashboard.switch.updateNetworkSwitchAccessControlLists(
+                network_id, rules=rules
+            )
+            
+            return f"✅ Updated switch ACLs with {len(rules)} rules"
+        except Exception as e:
+            return f"❌ Error updating ACLs: {str(e)}"
+    
+    @app.tool(
+        name="update_network_switch_stp",
+        description="✏️ Update Spanning Tree Protocol settings. Requires confirmation."
+    )
+    def update_network_switch_stp(
+        network_id: str,
+        rstp_enabled: Optional[bool] = None,
+        stp_bridge_priority: Optional[List[Dict[str, Any]]] = None,
+        confirmed: bool = False
+    ):
+        """
+        Update STP settings.
+        
+        Args:
+            network_id: Network ID
+            rstp_enabled: Enable Rapid STP
+            stp_bridge_priority: Bridge priority settings per VLAN
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Updating STP settings requires confirmed=true"
+        
+        try:
+            kwargs = {}
+            
+            if rstp_enabled is not None:
+                kwargs["rstpEnabled"] = rstp_enabled
+            if stp_bridge_priority is not None:
+                kwargs["stpBridgePriority"] = stp_bridge_priority
+            
+            result = meraki_client.dashboard.switch.updateNetworkSwitchStp(
+                network_id, **kwargs
+            )
+            
+            return f"✅ Updated STP settings"
+        except Exception as e:
+            return f"❌ Error updating STP: {str(e)}"
+    
+    @app.tool(
+        name="update_network_switch_storm_control",
+        description="✏️ Update storm control settings. Requires confirmation."
+    )
+    def update_network_switch_storm_control(
+        network_id: str,
+        broadcast_threshold: Optional[int] = None,
+        multicast_threshold: Optional[int] = None,
+        unknown_unicast_threshold: Optional[int] = None,
+        confirmed: bool = False
+    ):
+        """
+        Update storm control settings.
+        
+        Args:
+            network_id: Network ID
+            broadcast_threshold: Broadcast threshold percentage (1-100)
+            multicast_threshold: Multicast threshold percentage (1-100)
+            unknown_unicast_threshold: Unknown unicast threshold percentage (1-100)
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Updating storm control requires confirmed=true"
+        
+        try:
+            kwargs = {}
+            
+            if broadcast_threshold is not None:
+                kwargs["broadcastThreshold"] = broadcast_threshold
+            if multicast_threshold is not None:
+                kwargs["multicastThreshold"] = multicast_threshold
+            if unknown_unicast_threshold is not None:
+                kwargs["unknownUnicastThreshold"] = unknown_unicast_threshold
+            
+            result = meraki_client.dashboard.switch.updateNetworkSwitchStormControl(
+                network_id, **kwargs
+            )
+            
+            return f"✅ Updated storm control settings"
+        except Exception as e:
+            return f"❌ Error updating storm control: {str(e)}"
+    
+    @app.tool(
+        name="update_network_switch_mtu",
+        description="✏️ Update MTU settings. Requires confirmation."
+    )
+    def update_network_switch_mtu(
+        network_id: str,
+        default_mtu_size: Optional[int] = None,
+        overrides: Optional[List[Dict[str, Any]]] = None,
+        confirmed: bool = False
+    ):
+        """
+        Update MTU settings.
+        
+        Args:
+            network_id: Network ID
+            default_mtu_size: Default MTU size (1500-9578)
+            overrides: MTU overrides for specific switches/ports
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Updating MTU settings requires confirmed=true"
+        
+        try:
+            kwargs = {}
+            
+            if default_mtu_size is not None:
+                kwargs["defaultMtuSize"] = default_mtu_size
+            if overrides is not None:
+                kwargs["overrides"] = overrides
+            
+            result = meraki_client.dashboard.switch.updateNetworkSwitchMtu(
+                network_id, **kwargs
+            )
+            
+            return f"✅ Updated MTU settings"
+        except Exception as e:
+            return f"❌ Error updating MTU: {str(e)}"
+    
+    @app.tool(
+        name="update_network_switch_alternate_management_interface",
+        description="✏️ Update alternate management interface. Requires confirmation."
+    )
+    def update_network_switch_alternate_management_interface(
+        network_id: str,
+        enabled: Optional[bool] = None,
+        vlan_id: Optional[int] = None,
+        protocols: Optional[List[str]] = None,
+        switches: Optional[List[Dict[str, Any]]] = None,
+        confirmed: bool = False
+    ):
+        """
+        Update alternate management interface settings.
+        
+        Args:
+            network_id: Network ID
+            enabled: Enable alternate management interface
+            vlan_id: VLAN ID for management
+            protocols: Management protocols (e.g., ["radius", "snmp", "syslog"])
+            switches: Switch-specific configurations
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Updating alternate management interface requires confirmed=true"
+        
+        try:
+            kwargs = {}
+            
+            if enabled is not None:
+                kwargs["enabled"] = enabled
+            if vlan_id is not None:
+                kwargs["vlanId"] = vlan_id
+            if protocols is not None:
+                kwargs["protocols"] = protocols
+            if switches is not None:
+                kwargs["switches"] = switches
+            
+            result = meraki_client.dashboard.switch.updateNetworkSwitchAlternateManagementInterface(
+                network_id, **kwargs
+            )
+            
+            return f"✅ Updated alternate management interface"
+        except Exception as e:
+            return f"❌ Error updating alternate management interface: {str(e)}"
+    
+    @app.tool(
+        name="update_network_switch_dscp_to_cos_mappings",
+        description="✏️ Update DSCP to CoS mappings. Requires confirmation."
+    )
+    def update_network_switch_dscp_to_cos_mappings(
+        network_id: str,
+        mappings: List[Dict[str, Any]],
+        confirmed: bool = False
+    ):
+        """
+        Update DSCP to CoS mappings.
+        
+        Args:
+            network_id: Network ID
+            mappings: List of DSCP to CoS mappings [{"dscp": 0, "cos": 0, "title": "Best effort"}]
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Updating DSCP to CoS mappings requires confirmed=true"
+        
+        try:
+            result = meraki_client.dashboard.switch.updateNetworkSwitchDscpToCosMappings(
+                network_id, mappings=mappings
+            )
+            
+            return f"✅ Updated DSCP to CoS mappings"
+        except Exception as e:
+            return f"❌ Error updating DSCP to CoS mappings: {str(e)}"
+    
+    @app.tool(
+        name="update_device_switch_warm_spare",
+        description="✏️ Update warm spare configuration. Requires confirmation."
+    )
+    def update_device_switch_warm_spare(
+        serial: str,
+        enabled: bool,
+        spare_serial: Optional[str] = None,
+        confirmed: bool = False
+    ):
+        """
+        Update warm spare configuration.
+        
+        Args:
+            serial: Primary switch serial number
+            enabled: Enable warm spare
+            spare_serial: Spare switch serial number
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Updating warm spare requires confirmed=true"
+        
+        try:
+            kwargs = {"enabled": enabled}
+            
+            if spare_serial:
+                kwargs["spareSerial"] = spare_serial
+            
+            result = meraki_client.dashboard.switch.updateDeviceSwitchWarmSpare(
+                serial, **kwargs
+            )
+            
+            return f"✅ Updated warm spare configuration"
+        except Exception as e:
+            return f"❌ Error updating warm spare: {str(e)}"
+    
+    # ==================== DHCP & ARP ====================
+    
+    @app.tool(
+        name="create_network_switch_dhcp_server_policy_arp_inspection",
+        description="➕ Create ARP inspection trusted server. Requires confirmation."
+    )
+    def create_network_switch_dhcp_server_policy_arp_inspection(
+        network_id: str,
+        mac: str,
+        vlan: int,
+        ipv4: Dict[str, str],
+        confirmed: bool = False
+    ):
+        """
+        Create ARP inspection trusted server.
+        
+        Args:
+            network_id: Network ID
+            mac: MAC address
+            vlan: VLAN ID
+            ipv4: IPv4 configuration {"address": "192.168.1.1"}
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Creating ARP inspection trusted server requires confirmed=true"
+        
+        try:
+            result = meraki_client.dashboard.switch.createNetworkSwitchDhcpServerPolicyArpInspectionTrustedServer(
+                network_id, mac=mac, vlan=vlan, ipv4=ipv4
+            )
+            
+            return f"✅ Created ARP inspection trusted server for {mac}"
+        except Exception as e:
+            return f"❌ Error creating ARP inspection trusted server: {str(e)}"
+    
+    @app.tool(
+        name="update_network_switch_dhcp_server_policy",
+        description="✏️ Update DHCP server policy. Requires confirmation."
+    )
+    def update_network_switch_dhcp_server_policy(
+        network_id: str,
+        default_policy: Optional[str] = None,
+        alerts: Optional[Dict[str, Any]] = None,
+        arp_inspection: Optional[Dict[str, Any]] = None,
+        allowed_servers: Optional[List[str]] = None,
+        blocked_servers: Optional[List[str]] = None,
+        confirmed: bool = False
+    ):
+        """
+        Update DHCP server policy.
+        
+        Args:
+            network_id: Network ID
+            default_policy: "allow" or "block"
+            alerts: Alert configuration
+            arp_inspection: ARP inspection configuration
+            allowed_servers: List of allowed DHCP server IPs
+            blocked_servers: List of blocked DHCP server IPs
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Updating DHCP server policy requires confirmed=true"
+        
+        try:
+            kwargs = {}
+            
+            if default_policy is not None:
+                kwargs["defaultPolicy"] = default_policy
+            if alerts is not None:
+                kwargs["alerts"] = alerts
+            if arp_inspection is not None:
+                kwargs["arpInspection"] = arp_inspection
+            if allowed_servers is not None:
+                kwargs["allowedServers"] = allowed_servers
+            if blocked_servers is not None:
+                kwargs["blockedServers"] = blocked_servers
+            
+            result = meraki_client.dashboard.switch.updateNetworkSwitchDhcpServerPolicy(
+                network_id, **kwargs
+            )
+            
+            return f"✅ Updated DHCP server policy"
+        except Exception as e:
+            return f"❌ Error updating DHCP server policy: {str(e)}"
+    
+    @app.tool(
+        name="update_network_switch_dhcp_server_policy_arp_inspection",
+        description="✏️ Update ARP inspection trusted server. Requires confirmation."
+    )
+    def update_network_switch_dhcp_server_policy_arp_inspection(
+        network_id: str,
+        trusted_server_id: str,
+        mac: Optional[str] = None,
+        vlan: Optional[int] = None,
+        ipv4: Optional[Dict[str, str]] = None,
+        confirmed: bool = False
+    ):
+        """
+        Update ARP inspection trusted server.
+        
+        Args:
+            network_id: Network ID
+            trusted_server_id: Trusted server ID
+            mac: MAC address
+            vlan: VLAN ID
+            ipv4: IPv4 configuration
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Updating ARP inspection trusted server requires confirmed=true"
+        
+        try:
+            kwargs = {}
+            
+            if mac is not None:
+                kwargs["mac"] = mac
+            if vlan is not None:
+                kwargs["vlan"] = vlan
+            if ipv4 is not None:
+                kwargs["ipv4"] = ipv4
+            
+            result = meraki_client.dashboard.switch.updateNetworkSwitchDhcpServerPolicyArpInspectionTrustedServer(
+                network_id, trusted_server_id, **kwargs
+            )
+            
+            return f"✅ Updated ARP inspection trusted server {trusted_server_id}"
+        except Exception as e:
+            return f"❌ Error updating ARP inspection trusted server: {str(e)}"
+    
+    @app.tool(
+        name="delete_network_switch_dhcp_server_policy_arp_inspection",
+        description="🗑️ Delete ARP inspection trusted server. Requires confirmation."
+    )
+    def delete_network_switch_dhcp_server_policy_arp_inspection(
+        network_id: str,
+        trusted_server_id: str,
+        confirmed: bool = False
+    ):
+        """
+        Delete ARP inspection trusted server.
+        
+        Args:
+            network_id: Network ID
+            trusted_server_id: Trusted server ID
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Deleting ARP inspection trusted server requires confirmed=true. This cannot be undone!"
+        
+        try:
+            meraki_client.dashboard.switch.deleteNetworkSwitchDhcpServerPolicyArpInspectionTrustedServer(
+                network_id, trusted_server_id
+            )
+            return f"✅ Deleted ARP inspection trusted server {trusted_server_id}"
+        except Exception as e:
+            return f"❌ Error deleting ARP inspection trusted server: {str(e)}"
+    
+    # ==================== TEMPLATES & OTHER ====================
+    
+    @app.tool(
+        name="update_organization_config_template_switch_profile_port",
+        description="✏️ Update a switch profile port in a config template. Requires confirmation."
+    )
+    def update_organization_config_template_switch_profile_port(
+        organization_id: str,
+        config_template_id: str,
+        profile_id: str,
+        port_id: str,
+        name: Optional[str] = None,
+        type: Optional[str] = None,
+        vlan: Optional[int] = None,
+        voice_vlan: Optional[int] = None,
+        allowed_vlans: Optional[str] = None,
+        isolation_enabled: Optional[bool] = None,
+        rstp_enabled: Optional[bool] = None,
+        stp_guard: Optional[str] = None,
+        access_policy_type: Optional[str] = None,
+        access_policy_number: Optional[int] = None,
+        link_negotiation: Optional[str] = None,
+        port_schedule_id: Optional[str] = None,
+        udld: Optional[str] = None,
+        confirmed: bool = False
+    ):
+        """
+        Update a switch profile port in a config template.
+        
+        Args:
+            organization_id: Organization ID
+            config_template_id: Config template ID
+            profile_id: Switch profile ID
+            port_id: Port ID
+            name: Port name
+            type: "trunk" or "access"
+            vlan: Access VLAN
+            voice_vlan: Voice VLAN
+            allowed_vlans: Allowed VLANs for trunk
+            isolation_enabled: Port isolation
+            rstp_enabled: RSTP enable
+            stp_guard: STP guard mode
+            access_policy_type: Access policy type
+            access_policy_number: Access policy number
+            link_negotiation: Link negotiation mode
+            port_schedule_id: Port schedule ID
+            udld: UDLD mode
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Updating template port requires confirmed=true"
+        
+        try:
+            kwargs = {}
+            
+            if name is not None:
+                kwargs["name"] = name
+            if type is not None:
+                kwargs["type"] = type
+            if vlan is not None:
+                kwargs["vlan"] = vlan
+            if voice_vlan is not None:
+                kwargs["voiceVlan"] = voice_vlan
+            if allowed_vlans is not None:
+                kwargs["allowedVlans"] = allowed_vlans
+            if isolation_enabled is not None:
+                kwargs["isolationEnabled"] = isolation_enabled
+            if rstp_enabled is not None:
+                kwargs["rstpEnabled"] = rstp_enabled
+            if stp_guard is not None:
+                kwargs["stpGuard"] = stp_guard
+            if access_policy_type is not None:
+                kwargs["accessPolicyType"] = access_policy_type
+            if access_policy_number is not None:
+                kwargs["accessPolicyNumber"] = access_policy_number
+            if link_negotiation is not None:
+                kwargs["linkNegotiation"] = link_negotiation
+            if port_schedule_id is not None:
+                kwargs["portScheduleId"] = port_schedule_id
+            if udld is not None:
+                kwargs["udld"] = udld
+            
+            result = meraki_client.dashboard.switch.updateOrganizationConfigTemplateSwitchProfilePort(
+                organization_id, config_template_id, profile_id, port_id, **kwargs
+            )
+            
+            return f"✅ Updated template port {port_id}"
+        except Exception as e:
+            return f"❌ Error updating template port: {str(e)}"
+    
+    @app.tool(
+        name="clone_organization_switch_devices",
+        description="🔄 Clone switch configuration to other switches. Requires confirmation."
+    )
+    def clone_organization_switch_devices(
+        organization_id: str,
+        source_serial: str,
+        target_serials: List[str],
+        confirmed: bool = False
+    ):
+        """
+        Clone switch configuration to other switches.
+        
+        Args:
+            organization_id: Organization ID
+            source_serial: Source switch serial number
+            target_serials: List of target switch serial numbers
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Cloning switch configuration requires confirmed=true"
+        
+        try:
+            result = meraki_client.dashboard.switch.cloneOrganizationSwitchDevices(
+                organization_id, sourceSerial=source_serial, targetSerials=target_serials
+            )
+            
+            return f"✅ Cloned configuration from {source_serial} to {len(target_serials)} switches"
+        except Exception as e:
+            return f"❌ Error cloning switch configuration: {str(e)}"
