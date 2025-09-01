@@ -43,6 +43,8 @@ from server.tools_insight import register_insight_tools
 from server.tools_organizations_earlyAccess import register_early_access_tools
 from server.tools_organizations_adaptive_policy import register_adaptive_policy_tools
 from server.tools_organizations_admin import register_admin_tools
+from server.tools_organizations_inventory import register_inventory_tools
+from server.tools_organizations_licensing import register_licensing_tools
 from server.tools_sensor import register_sensor_tools
 from server.tools_appliance_additional import register_appliance_extended_tools
 from server.tools_appliance_firewall import register_appliance_firewall_tools
@@ -84,6 +86,8 @@ register_insight_tools(app, meraki)
 register_early_access_tools(app, meraki)
 register_adaptive_policy_tools(app, meraki)
 register_admin_tools(app, meraki)
+register_inventory_tools(app, meraki)
+register_licensing_tools(app, meraki)
 register_sensor_tools(app, meraki)
 register_appliance_extended_tools(app, meraki)
 register_appliance_firewall_tools(app, meraki)

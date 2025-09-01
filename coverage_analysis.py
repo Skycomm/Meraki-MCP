@@ -114,7 +114,9 @@ def main():
             base_path + 'tools_organizations_earlyAccess.py',
             base_path + 'tools_organizations_core.py',
             base_path + 'tools_organizations_adaptive_policy.py',
-            base_path + 'tools_organizations_admin.py'
+            base_path + 'tools_organizations_admin.py',
+            base_path + 'tools_organizations_inventory.py',
+            base_path + 'tools_organizations_licensing.py'
         ],
         'devices': [
             base_path + 'tools_devices.py'
