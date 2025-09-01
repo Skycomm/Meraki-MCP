@@ -46,6 +46,7 @@ from server.tools_organizations_inventory import register_inventory_tools
 from server.tools_organizations_licensing import register_licensing_tools
 from server.tools_organizations_alerts import register_alerts_tools
 from server.tools_organizations_misc import register_misc_tools
+from server.tools_organizations_config import register_config_tools
 from server.tools_sensor import register_sensor_tools
 from server.tools_appliance_additional import register_appliance_extended_tools
 from server.tools_appliance_firewall import register_appliance_firewall_tools
@@ -89,6 +90,7 @@ register_inventory_tools(app, meraki)
 register_licensing_tools(app, meraki)
 register_alerts_tools(app, meraki)
 register_misc_tools(app, meraki)
+register_config_tools(app, meraki)
 register_sensor_tools(app, meraki)
 register_appliance_extended_tools(app, meraki)
 register_appliance_firewall_tools(app, meraki)

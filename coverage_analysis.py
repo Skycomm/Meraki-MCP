@@ -116,7 +116,8 @@ def main():
             base_path + 'tools_organizations_inventory.py',
             base_path + 'tools_organizations_licensing.py',
             base_path + 'tools_organizations_alerts.py',
-            base_path + 'tools_organizations_misc.py'
+            base_path + 'tools_organizations_misc.py',
+            base_path + 'tools_organizations_config.py'
         ],
         'devices': [
             base_path + 'tools_devices.py'
