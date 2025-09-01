@@ -810,11 +810,13 @@ def register_organizations_core_handlers():
             return f"❌ Error creating export event: {str(e)}"
     
     # ==================== DEVICE AVAILABILITY ====================
+    # Note: These methods have been moved to tools_organizations_inventory.py
     
-    @app.tool(
-        name="get_org_devices_availabilities_change_history",
-        description="📊 Get device availability change history."
-    )
+    # DUPLICATE - Commented out to avoid registration conflicts
+    # @app.tool(
+    #     name="get_org_devices_availabilities_change_history",
+    #     description="📊 Get device availability change history."
+    # )
     def get_org_devices_availabilities_change_history(
         organization_id: str,
         per_page: int = 1000,
@@ -899,10 +901,11 @@ def register_organizations_core_handlers():
         except Exception as e:
             return f"❌ Error getting availability history: {str(e)}"
     
-    @app.tool(
-        name="get_org_devices_statuses_overview",
-        description="📊 Get overview of device statuses across the organization."
-    )
+    # DUPLICATE - Commented out to avoid registration conflicts
+    # @app.tool(
+    #     name="get_org_devices_statuses_overview",
+    #     description="📊 Get overview of device statuses across the organization."
+    # )
     def get_org_devices_statuses_overview(
         organization_id: str,
         product_types: Optional[List[str]] = None,

@@ -59,7 +59,6 @@ from server.tools_adaptive_policy import register_adaptive_policy_tools
 
 # Register resources and tools
 register_resources(app, meraki)
-register_organization_tools(app, meraki)
 register_organizations_core_tools(app, meraki)
 register_network_tools(app, meraki)
 register_device_tools(app, meraki)
@@ -98,7 +97,6 @@ register_batch_tools(app, meraki)
 register_live_tools(app, meraki)
 register_helper_tools(app, meraki)
 register_search_tools(app, meraki)
-register_organizations_complete_tools(app, meraki)
 register_networks_complete_tools(app, meraki)
 register_adaptive_policy_tools(app, meraki)
 
