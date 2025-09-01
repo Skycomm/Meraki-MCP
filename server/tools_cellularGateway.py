@@ -961,47 +961,47 @@ def register_cellular_gateway_tools(mcp_app, meraki):
     #         description="🌐 Get LAN settings for a cellular gateway"
     #     )
     #     def get_device_cellular_gateway_lan(serial: str):
-        """
-        Get LAN settings for a cellular gateway.
+    # """
+    # Get LAN settings for a cellular gateway.
         
-        Args:
-            serial: Device serial number
+    # Args:
+    # serial: Device serial number
             
-        Returns:
-            LAN configuration
-        """
-        try:
-            lan = meraki_client.dashboard.cellularGateway.getDeviceCellularGatewayLan(serial)
+    # Returns:
+    # LAN configuration
+    # """
+    # try:
+    # lan = meraki_client.dashboard.cellularGateway.getDeviceCellularGatewayLan(serial)
             
-            result = f"# 🌐 LAN Settings\n\n"
+    # result = f"# 🌐 LAN Settings\n\n"
             
-            if lan.get("deviceName"):
-                result += f"**Device Name**: {lan.get('deviceName')}\n"
-            if lan.get("deviceSubnet"):
-                result += f"**Subnet**: {lan.get('deviceSubnet')}\n"
-            if lan.get("deviceLanIp"):
-                result += f"**LAN IP**: {lan.get('deviceLanIp')}\n\n"
+    # if lan.get("deviceName"):
+    # result += f"**Device Name**: {lan.get('deviceName')}\n"
+    # if lan.get("deviceSubnet"):
+    # result += f"**Subnet**: {lan.get('deviceSubnet')}\n"
+    # if lan.get("deviceLanIp"):
+    # result += f"**LAN IP**: {lan.get('deviceLanIp')}\n\n"
                 
             # Fixed IP assignments
-            if lan.get("fixedIpAssignments"):
-                result += "## Fixed IP Assignments\n"
-                for mac, ip in lan.get("fixedIpAssignments", {}).items():
-                    result += f"- **{mac}**: {ip}\n"
-                result += "\n"
+    # if lan.get("fixedIpAssignments"):
+    # result += "## Fixed IP Assignments\n"
+    # for mac, ip in lan.get("fixedIpAssignments", {}).items():
+    # result += f"- **{mac}**: {ip}\n"
+    # result += "\n"
                 
             # Reserved IP ranges
-            if lan.get("reservedIpRanges"):
-                result += "## Reserved IP Ranges\n"
-                for range_data in lan.get("reservedIpRanges", []):
-                    result += f"- {range_data.get('start')} - {range_data.get('end')}"
-                    if range_data.get("comment"):
-                        result += f" ({range_data.get('comment')})"
-                    result += "\n"
+    # if lan.get("reservedIpRanges"):
+    # result += "## Reserved IP Ranges\n"
+    # for range_data in lan.get("reservedIpRanges", []):
+    # result += f"- {range_data.get('start')} - {range_data.get('end')}"
+    # if range_data.get("comment"):
+    # result += f" ({range_data.get('comment')})"
+    # result += "\n"
                     
-            return result
+    # return result
             
-        except Exception as e:
-            return f"Error retrieving LAN settings: {str(e)}"
+    # except Exception as e:
+    # return f"Error retrieving LAN settings: {str(e)}"
     
         # DUPLICATE: Second occurrence commented out
     # @app.tool(
@@ -1010,48 +1010,48 @@ def register_cellular_gateway_tools(mcp_app, meraki):
     #     )
     #     def update_device_cellular_gateway_lan(
     #         serial: str,
-        device_name: Optional[str] = None,
-        device_subnet: Optional[str] = None,
-        device_lan_ip: Optional[str] = None,
-        fixed_ip_assignments: Optional[str] = None,
-        reserved_ip_ranges: Optional[str] = None
-    ):
-        """
-        Update LAN settings for a cellular gateway.
-        
-        Args:
-            serial: Device serial number
-            device_name: Device name
-            device_subnet: Subnet in CIDR notation
-            device_lan_ip: LAN IP address
-            fixed_ip_assignments: JSON object of MAC to IP mappings
-            reserved_ip_ranges: JSON array of IP ranges
+    #         device_name: Optional[str] = None,
+    #         device_subnet: Optional[str] = None,
+    #         device_lan_ip: Optional[str] = None,
+    #         fixed_ip_assignments: Optional[str] = None,
+    #         reserved_ip_ranges: Optional[str] = None
+    #     ):
+    #         """
+    #         Update LAN settings for a cellular gateway.
+    #         
+    #         Args:
+            # serial: Device serial number
+            # device_name: Device name
+            # device_subnet: Subnet in CIDR notation
+            # device_lan_ip: LAN IP address
+            # fixed_ip_assignments: JSON object of MAC to IP mappings
+            # reserved_ip_ranges: JSON array of IP ranges
             
-        Returns:
-            Updated LAN configuration
-        """
-        try:
-            kwargs = {}
+        # Returns:
+            # Updated LAN configuration
+        # """
+        # try:
+            # kwargs = {}
             
-            if device_name:
-                kwargs["deviceName"] = device_name
-            if device_subnet:
-                kwargs["deviceSubnet"] = device_subnet
-            if device_lan_ip:
-                kwargs["deviceLanIp"] = device_lan_ip
-            if fixed_ip_assignments:
-                kwargs["fixedIpAssignments"] = json.loads(fixed_ip_assignments)
-            if reserved_ip_ranges:
-                kwargs["reservedIpRanges"] = json.loads(reserved_ip_ranges)
+            # if device_name:
+                # kwargs["deviceName"] = device_name
+            # if device_subnet:
+                # kwargs["deviceSubnet"] = device_subnet
+            # if device_lan_ip:
+                # kwargs["deviceLanIp"] = device_lan_ip
+            # if fixed_ip_assignments:
+                # kwargs["fixedIpAssignments"] = json.loads(fixed_ip_assignments)
+            # if reserved_ip_ranges:
+                # kwargs["reservedIpRanges"] = json.loads(reserved_ip_ranges)
                 
-            result = meraki_client.dashboard.cellularGateway.updateDeviceCellularGatewayLan(
-                serial, **kwargs
-            )
+            # result = meraki_client.dashboard.cellularGateway.updateDeviceCellularGatewayLan(
+                # serial, **kwargs
+            # )
             
-            return "✅ LAN settings updated successfully"
+            # return "✅ LAN settings updated successfully"
             
-        except Exception as e:
-            return f"Error updating LAN settings: {str(e)}"
+        # except Exception as e:
+            # return f"Error updating LAN settings: {str(e)}"
     
     @app.tool(
         name="get_device_cellular_gateway_port_forwarding_rules",
@@ -1130,37 +1130,37 @@ def register_cellular_gateway_tools(mcp_app, meraki):
     #         description="🌐 Get subnet pool settings for cellular gateways in a network"
     #     )
     #     def get_network_cellular_gateway_subnet_pool(network_id: str):
-        """
-        Get subnet pool settings for cellular gateways in a network.
+    # """
+    # Get subnet pool settings for cellular gateways in a network.
         
-        Args:
-            network_id: Network ID
+    # Args:
+    # network_id: Network ID
             
-        Returns:
-            Subnet pool configuration
-        """
-        try:
-            pool = meraki_client.dashboard.cellularGateway.getNetworkCellularGatewaySubnetPool(network_id)
+    # Returns:
+    # Subnet pool configuration
+    # """
+    # try:
+    # pool = meraki_client.dashboard.cellularGateway.getNetworkCellularGatewaySubnetPool(network_id)
             
-            result = f"# 🌐 Subnet Pool Settings\n\n"
+    # result = f"# 🌐 Subnet Pool Settings\n\n"
             
-            if pool.get("mask"):
-                result += f"**Subnet Mask**: {pool.get('mask')}\n"
+    # if pool.get("mask"):
+    # result += f"**Subnet Mask**: {pool.get('mask')}\n"
                 
-            if pool.get("cidr"):
-                result += f"**CIDR**: {pool.get('cidr')}\n"
+    # if pool.get("cidr"):
+    # result += f"**CIDR**: {pool.get('cidr')}\n"
                 
-            if pool.get("subnets"):
-                result += f"\n## Assigned Subnets\n"
-                for subnet in pool.get("subnets", []):
-                    result += f"- **{subnet.get('serial')}**: {subnet.get('subnet')}\n"
-                    if subnet.get("name"):
-                        result += f"  Name: {subnet.get('name')}\n"
+    # if pool.get("subnets"):
+    # result += f"\n## Assigned Subnets\n"
+    # for subnet in pool.get("subnets", []):
+    # result += f"- **{subnet.get('serial')}**: {subnet.get('subnet')}\n"
+    # if subnet.get("name"):
+    # result += f"  Name: {subnet.get('name')}\n"
                         
-            return result
+    # return result
             
-        except Exception as e:
-            return f"Error retrieving subnet pool: {str(e)}"
+    # except Exception as e:
+    # return f"Error retrieving subnet pool: {str(e)}"
     
         # DUPLICATE: Second occurrence commented out
     # @app.tool(
@@ -1169,63 +1169,63 @@ def register_cellular_gateway_tools(mcp_app, meraki):
     #     )
     #     def update_network_cellular_gateway_subnet_pool(
     #         network_id: str,
-        mask: int,
-        cidr: str
-    ):
-        """
-        Update subnet pool settings for cellular gateways.
-        
-        Args:
-            network_id: Network ID
-            mask: Subnet mask bits (e.g., 24)
-            cidr: CIDR block (e.g., 192.168.0.0/16)
+    #         mask: int,
+    #         cidr: str
+    #     ):
+    #         """
+    #         Update subnet pool settings for cellular gateways.
+    #         
+    #         Args:
+            # network_id: Network ID
+            # mask: Subnet mask bits (e.g., 24)
+            # cidr: CIDR block (e.g., 192.168.0.0/16)
             
-        Returns:
-            Updated subnet pool configuration
-        """
-        try:
-            result = meraki_client.dashboard.cellularGateway.updateNetworkCellularGatewaySubnetPool(
-                network_id,
-                mask=mask,
-                cidr=cidr
-            )
+        # Returns:
+            # Updated subnet pool configuration
+        # """
+        # try:
+            # result = meraki_client.dashboard.cellularGateway.updateNetworkCellularGatewaySubnetPool(
+                # network_id,
+                # mask=mask,
+                # cidr=cidr
+            # )
             
-            return f"✅ Subnet pool updated: {cidr} with /{mask} subnets"
+            # return f"✅ Subnet pool updated: {cidr} with /{mask} subnets"
             
-        except Exception as e:
-            return f"Error updating subnet pool: {str(e)}"
+        # except Exception as e:
+            # return f"Error updating subnet pool: {str(e)}"
     
-    @app.tool(
-        name="get_network_cg_connectivity_monitoring_destinations",
-        description="🔍 Get connectivity monitoring destinations for cellular gateways"
-    )
-    def get_network_cg_connectivity_monitoring_destinations(network_id: str):
-        """
-        Get connectivity monitoring destinations for cellular gateways.
+    # @app.tool(
+        # name="get_network_cg_connectivity_monitoring_destinations",
+        # description="🔍 Get connectivity monitoring destinations for cellular gateways"
+    # )
+    # def get_network_cg_connectivity_monitoring_destinations(network_id: str):
+    # """
+    # Get connectivity monitoring destinations for cellular gateways.
         
-        Args:
-            network_id: Network ID
+    # Args:
+    # network_id: Network ID
             
-        Returns:
-            Monitoring destinations configuration
-        """
-        try:
-            destinations = meraki_client.dashboard.cellularGateway.getNetworkCellularGatewayConnectivityMonitoringDestinations(network_id)
+    # Returns:
+    # Monitoring destinations configuration
+    # """
+    # try:
+    # destinations = meraki_client.dashboard.cellularGateway.getNetworkCellularGatewayConnectivityMonitoringDestinations(network_id)
             
-            result = f"# 🔍 Connectivity Monitoring Destinations\n\n"
+    # result = f"# 🔍 Connectivity Monitoring Destinations\n\n"
             
-            if destinations.get("destinations"):
-                for dest in destinations.get("destinations", []):
-                    result += f"## {dest.get('description', 'Destination')}\n"
-                    result += f"- **IP**: {dest.get('ip')}\n"
-                    result += f"- **Default**: {'✅' if dest.get('default') else '❌'}\n\n"
-            else:
-                result += "No custom monitoring destinations configured\n"
+    # if destinations.get("destinations"):
+    # for dest in destinations.get("destinations", []):
+    # result += f"## {dest.get('description', 'Destination')}\n"
+    # result += f"- **IP**: {dest.get('ip')}\n"
+    # result += f"- **Default**: {'✅' if dest.get('default') else '❌'}\n\n"
+    # else:
+    # result += "No custom monitoring destinations configured\n"
                 
-            return result
+    # return result
             
-        except Exception as e:
-            return f"Error retrieving monitoring destinations: {str(e)}"
+    # except Exception as e:
+    # return f"Error retrieving monitoring destinations: {str(e)}"
     
     @app.tool(
         name="update_network_cg_connectivity_monitoring_destinations",

@@ -1822,7 +1822,7 @@ def register_networks_complete_handlers():
     def get_network_topology_link_layer(network_id: str):
         """Get link layer topology for a network."""
         try:
-            topology = meraki_client.get_network_topology_link_layer(network_id)
+            topology = meraki_client.dashboard.networks.getNetworkTopologyLinkLayer(network_id)
             
             result = f"# 🔗 Link Layer Topology\n\n"
             

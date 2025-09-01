@@ -617,7 +617,7 @@ The device is now unassigned and can be:
             LLDP/CDP neighbor details
         """
         try:
-            neighbors = meraki_client.get_device_lldp_cdp(serial)
+            neighbors = meraki_client.dashboard.devices.getDeviceLldpCdp(serial)
             
             if not neighbors:
                 return f"No LLDP/CDP neighbors found for device {serial}"
@@ -898,12 +898,15 @@ The device LEDs are now blinking to help identify it physically."""
                 count=count
             )
             
+            # Check for different possible ID field names
+            test_id = result.get('pingId') or result.get('id') or result.get('testId', 'Unknown')
+            
             return f"""✅ Ping Test Initiated
 
-**Test ID**: {result.get('id', 'Unknown')}
+**Test ID**: {test_id}
 **Target**: {target}
 **Count**: {count}
-**Status**: {result.get('status', 'Unknown')}
+**Status**: {result.get('status', 'new')}
 
 Use get_device_live_tools_ping with the test ID to check results."""
             

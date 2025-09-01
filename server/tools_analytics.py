@@ -169,12 +169,12 @@ def register_analytics_tool_handlers():
             Formatted appliance uplink status data
         """
         try:
-            uplink_statuses = meraki_client.get_organization_appliance_uplink_statuses(org_id)
+            uplink_statuses = meraki_client.dashboard.appliance.getOrganizationApplianceUplinkStatuses(organization_id)
             
             if not uplink_statuses:
-                return f"No appliance uplink status data found for organization {org_id}."
+                return f"No appliance uplink status data found for organization {organization_id}."
                 
-            result = f"# 🔗 APPLIANCE UPLINK STATUS - Organization {org_id}\n\n"
+            result = f"# 🔗 APPLIANCE UPLINK STATUS - Organization {organization_id}\n\n"
             
             # Group by network
             networks = {}

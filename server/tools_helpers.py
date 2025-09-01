@@ -220,7 +220,7 @@ def register_helper_tool_handlers():
             if 'appliance' in product_types:
                 try:
                     # Get organization uplink statuses
-                    uplink_statuses = meraki_client.get_organization_appliance_uplink_statuses(org_id)
+                    uplink_statuses = meraki_client.dashboard.appliance.getOrganizationApplianceUplinkStatuses(org_id)
                     network_uplinks = [u for u in uplink_statuses if u.get('networkId') == network_id]
                     
                     if network_uplinks:

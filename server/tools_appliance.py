@@ -1809,90 +1809,90 @@ def register_appliance_tool_handlers():
     # subnet: str,
     # appliance_ip: str = None
     # ):
-        """
-        Create a new VLAN on the MX appliance.
+        # """
+        # Create a new VLAN on the MX appliance.
         
-        Args:
-            network_id: Network ID
-            vlan_id: VLAN ID (1-4094)
-            name: VLAN name
-            subnet: Subnet in CIDR format (e.g., '192.168.10.0/24')
-            appliance_ip: MX IP address in this VLAN (defaults to first usable IP)
+        # Args:
+            # network_id: Network ID
+            # vlan_id: VLAN ID (1-4094)
+            # name: VLAN name
+            # subnet: Subnet in CIDR format (e.g., '192.168.10.0/24')
+            # appliance_ip: MX IP address in this VLAN (defaults to first usable IP)
             
-        Returns:
-            Created VLAN configuration
-        """
-        try:
+        # Returns:
+            # Created VLAN configuration
+        # """
+    # try:
             # Validate VLAN ID
-            if not 1 <= vlan_id <= 4094:
-                return f"❌ Invalid VLAN ID {vlan_id}. Must be between 1 and 4094."
+    # if not 1 <= vlan_id <= 4094:
+    # return f"❌ Invalid VLAN ID {vlan_id}. Must be between 1 and 4094."
             
             # Check if VLAN already exists
-            try:
-                existing_vlans = meraki_client.dashboard.appliance.getNetworkApplianceVlans(network_id)
-                for vlan in existing_vlans:
-                    if int(vlan.get('id', 0)) == vlan_id:
-                        return f"""⚠️ VLAN {vlan_id} already exists!
+    # try:
+    # existing_vlans = meraki_client.dashboard.appliance.getNetworkApplianceVlans(network_id)
+    # for vlan in existing_vlans:
+    # if int(vlan.get('id', 0)) == vlan_id:
+    # return f"""⚠️ VLAN {vlan_id} already exists!
 
-**Existing VLAN Details:**
-- Name: {vlan.get('name')}
-- Subnet: {vlan.get('subnet')}
-- MX IP: {vlan.get('applianceIp')}
+# **Existing VLAN Details:**
+# - Name: {vlan.get('name')}
+# - Subnet: {vlan.get('subnet')}
+# - MX IP: {vlan.get('applianceIp')}
 
-**To modify this VLAN, use:** `update_network_appliance_vlan` instead
-**To update DHCP ranges:** Include `reserved_ip_ranges` parameter
+# **To modify this VLAN, use:** `update_network_appliance_vlan` instead
+# **To update DHCP ranges:** Include `reserved_ip_ranges` parameter
 
-Example to exclude IPs from DHCP:
-```
-update_network_appliance_vlan(
-    network_id="{network_id}",
-    vlan_id={vlan_id},
-    reserved_ip_ranges='[{{"start": "X.X.X.1", "end": "X.X.X.99", "comment": "Reserved"}}]'
-)
-```"""
-            except:
-                # If we can't check, proceed with creation
-                pass
+# Example to exclude IPs from DHCP:
+# ```
+# update_network_appliance_vlan(
+#     network_id="{network_id}",
+#     vlan_id={vlan_id},
+#     reserved_ip_ranges='[{{"start": "X.X.X.1", "end": "X.X.X.99", "comment": "Reserved"}}]'
+# )
+# ```"""
+    #         except:
+    #             # If we can't check, proceed with creation
+    #             pass
+    #         
+    #         kwargs = {
+    #             'id': str(vlan_id),
+    #             'name': name,
+    #             'subnet': subnet
+    # }
             
-            kwargs = {
-                'id': str(vlan_id),
-                'name': name,
-                'subnet': subnet
-            }
-            
-            if appliance_ip:
-                kwargs['applianceIp'] = appliance_ip
-            else:
+    # if appliance_ip:
+    # kwargs['applianceIp'] = appliance_ip
+    # else:
                 # Default to first usable IP in subnet
-                import ipaddress
-                network = ipaddress.ip_network(subnet)
-                kwargs['applianceIp'] = str(list(network.hosts())[0])
+    # import ipaddress
+    # network = ipaddress.ip_network(subnet)
+    # kwargs['applianceIp'] = str(list(network.hosts())[0])
             
             # Create VLAN
-            result = meraki_client.dashboard.appliance.createNetworkApplianceVlan(network_id, **kwargs)
+    # result = meraki_client.dashboard.appliance.createNetworkApplianceVlan(network_id, **kwargs)
             
             # Format response
-            response = f"# ✅ Created VLAN {vlan_id}\n\n"
-            response += f"**Name**: {result.get('name')}\n"
-            response += f"**Subnet**: {result.get('subnet')}\n"
-            response += f"**MX IP**: {result.get('applianceIp')}\n"
-            response += f"**DHCP**: {result.get('dhcpHandling', 'Run a DHCP server')}\n"
+    # response = f"# ✅ Created VLAN {vlan_id}\n\n"
+    # response += f"**Name**: {result.get('name')}\n"
+    # response += f"**Subnet**: {result.get('subnet')}\n"
+    # response += f"**MX IP**: {result.get('applianceIp')}\n"
+    # response += f"**DHCP**: {result.get('dhcpHandling', 'Run a DHCP server')}\n"
             
-            response += "\n💡 **Next Steps**:\n"
-            response += "- Configure DHCP options if needed\n"
-            response += "- Assign ports to this VLAN\n"
-            response += "- Configure firewall rules between VLANs\n"
+    # response += "\n💡 **Next Steps**:\n"
+    # response += "- Configure DHCP options if needed\n"
+    # response += "- Assign ports to this VLAN\n"
+    # response += "- Configure firewall rules between VLANs\n"
             
-            return response
+    # return response
             
-        except Exception as e:
-            error_msg = str(e)
-            if "already exists" in error_msg.lower():
-                return f"❌ VLAN {vlan_id} already exists in this network."
-            elif "400" in error_msg:
-                return f"❌ Invalid configuration: {error_msg}"
-            else:
-                return f"❌ Error creating VLAN: {error_msg}"
+    # except Exception as e:
+    # error_msg = str(e)
+    # if "already exists" in error_msg.lower():
+    # return f"❌ VLAN {vlan_id} already exists in this network."
+    # elif "400" in error_msg:
+    # return f"❌ Invalid configuration: {error_msg}"
+    # else:
+    # return f"❌ Error creating VLAN: {error_msg}"
     
     @app.tool(
         name="update_network_appliance_vlan",
@@ -2019,16 +2019,19 @@ update_network_appliance_vlan(
     # description="🏷️ Delete a VLAN from the MX appliance"
     # )
     # def delete_network_appliance_vlan(network_id: str, vlan_id: int):
-    # """
-    # Delete a VLAN from the MX appliance.
-    # WARNING: This will remove all devices from this VLAN!
-    #     # Args:
-    # network_id: Network ID
-            vlan_id: VLAN ID to delete
-            
-        Returns:
-            Deletion confirmation
-        """
+    #     """
+    #     Delete a VLAN from the MX appliance.
+    #     WARNING: This will remove all devices from this VLAN!
+    #     
+    #     Args:
+    #         network_id: Network ID
+    #         vlan_id: VLAN ID to delete
+    #         
+    #     Returns:
+    #         Deletion confirmation
+    #     """
+    def delete_network_appliance_vlan_duplicate(network_id: str, vlan_id: int):
+        """Duplicate function - use tools_appliance_additional.py version"""
         try:
             # Cannot delete VLAN 1
             if vlan_id == 1:
@@ -2571,54 +2574,54 @@ update_network_appliance_vlan(
     # uplink_mode: str = None,
     # virtual_ip1: str = None,
     # virtual_ip2: str = None
-    ):
-        """
-        Update warm spare configuration for MX high availability.
-        
-        Args:
-            network_id: Network ID
-            enabled: Enable/disable warm spare
-            spare_serial: Serial number of spare MX
-            uplink_mode: 'virtual' or 'public'
-            virtual_ip1: Virtual IP for WAN 1 (if using virtual mode)
-            virtual_ip2: Virtual IP for WAN 2 (if using virtual mode)
-            
-        Returns:
-            Updated warm spare configuration
-        """
-        try:
-            kwargs = {'enabled': enabled}
-            
-            if spare_serial:
-                kwargs['spareSerial'] = spare_serial
-            if uplink_mode:
-                if uplink_mode not in ['virtual', 'public']:
-                    return "❌ Invalid uplink mode. Must be 'virtual' or 'public'"
-                kwargs['uplinkMode'] = uplink_mode
-            if virtual_ip1:
-                kwargs['virtualIp1'] = virtual_ip1
-            if virtual_ip2:
-                kwargs['virtualIp2'] = virtual_ip2
-            
-            result = meraki_client.dashboard.appliance.updateNetworkApplianceWarmSpare(
-                network_id, **kwargs
-            )
-            
-            response = f"# ✅ Updated Warm Spare Configuration\n\n"
-            response += f"**Status**: {'Enabled' if result.get('enabled') else 'Disabled'}\n"
-            
-            if result.get('enabled'):
-                response += f"**Spare Serial**: {result.get('spareSerial', 'Not set')}\n"
-                response += f"**Uplink Mode**: {result.get('uplinkMode', 'virtual')}\n"
-                
-                if result.get('uplinkMode') == 'virtual':
-                    response += f"**Virtual IP 1**: {result.get('virtualIp1', 'Not set')}\n"
-                    response += f"**Virtual IP 2**: {result.get('virtualIp2', 'Not set')}\n"
-            
-            return response
-            
-        except Exception as e:
-            return f"❌ Error updating warm spare: {str(e)}"
+    # ):
+    #     """
+    #     Update warm spare configuration for MX high availability.
+    #     
+    #     Args:
+    #         network_id: Network ID
+    #         enabled: Enable/disable warm spare
+    #         spare_serial: Serial number of spare MX
+    #         uplink_mode: 'virtual' or 'public'
+    #         virtual_ip1: Virtual IP for WAN 1 (if using virtual mode)
+    #         virtual_ip2: Virtual IP for WAN 2 (if using virtual mode)
+    #         
+    #     Returns:
+    #         Updated warm spare configuration
+    #     """
+    #     try:
+    #         kwargs = {'enabled': enabled}
+    #         
+    #         if spare_serial:
+    #             kwargs['spareSerial'] = spare_serial
+    #         if uplink_mode:
+    #             if uplink_mode not in ['virtual', 'public']:
+    #                 return "❌ Invalid uplink mode. Must be 'virtual' or 'public'"
+    #             kwargs['uplinkMode'] = uplink_mode
+    #         if virtual_ip1:
+    #             kwargs['virtualIp1'] = virtual_ip1
+    #         if virtual_ip2:
+    #             kwargs['virtualIp2'] = virtual_ip2
+    #         
+    #         result = meraki_client.dashboard.appliance.updateNetworkApplianceWarmSpare(
+    #             network_id, **kwargs
+    #         )
+    #         
+    #         response = f"# ✅ Updated Warm Spare Configuration\n\n"
+    #         response += f"**Status**: {'Enabled' if result.get('enabled') else 'Disabled'}\n"
+    #         
+    #         if result.get('enabled'):
+    #             response += f"**Spare Serial**: {result.get('spareSerial', 'Not set')}\n"
+    #             response += f"**Uplink Mode**: {result.get('uplinkMode', 'virtual')}\n"
+    #             
+    #             if result.get('uplinkMode') == 'virtual':
+    #                 response += f"**Virtual IP 1**: {result.get('virtualIp1', 'Not set')}\n"
+    #                 response += f"**Virtual IP 2**: {result.get('virtualIp2', 'Not set')}\n"
+    #         
+    #         return response
+    #         
+    #     except Exception as e:
+    #         return f"❌ Error updating warm spare: {str(e)}"
     
     # @app.tool(
     # name="swap_network_appliance_warm_spare",
@@ -2630,22 +2633,22 @@ update_network_appliance_vlan(
     # This makes the current spare become the primary.
     #     # Args:
     # network_id: Network ID
-            
-        Returns:
-            Swap confirmation
-        """
-        try:
-            result = meraki_client.dashboard.appliance.swapNetworkApplianceWarmSpare(network_id)
-            
-            response = f"# ✅ MX Appliances Swapped!\n\n"
-            response += f"**New Primary**: {result.get('primarySerial', 'Unknown')}\n"
-            response += f"**New Spare**: {result.get('spareSerial', 'Unknown')}\n\n"
-            response += "⚠️ **Note**: The swap may take a few minutes to complete.\n"
-            
-            return response
-            
-        except Exception as e:
-            return f"❌ Error swapping warm spare: {str(e)}"
+    #         
+    #     Returns:
+    #         Swap confirmation
+    #     """
+    #     try:
+    #         result = meraki_client.dashboard.appliance.swapNetworkApplianceWarmSpare(network_id)
+    #         
+    #         response = f"# ✅ MX Appliances Swapped!\n\n"
+    #         response += f"**New Primary**: {result.get('primarySerial', 'Unknown')}\n"
+    #         response += f"**New Spare**: {result.get('spareSerial', 'Unknown')}\n\n"
+    #         response += "⚠️ **Note**: The swap may take a few minutes to complete.\n"
+    #         
+    #         return response
+    #         
+    #     except Exception as e:
+    #         return f"❌ Error swapping warm spare: {str(e)}"
     
     @app.tool(
         name="update_network_appliance_vpn_site_to_site",
@@ -2844,40 +2847,40 @@ update_network_appliance_vlan(
     # gateway_ip: str
     # ):
     # """
-        Create a new static route on the MX appliance.
-        
-        Args:
-            network_id: Network ID
-            name: Name for the route
-            subnet: Destination subnet in CIDR format
-            gateway_ip: Next hop IP address
-            
-        Returns:
-            Created route details
-        """
-        try:
-            result = meraki_client.dashboard.appliance.createNetworkApplianceStaticRoute(
-                network_id,
-                name=name,
-                subnet=subnet,
-                gatewayIp=gateway_ip
-            )
-            
-            response = f"# ✅ Static Route Created\n\n"
-            response += f"**Name**: {result.get('name')}\n"
-            response += f"**ID**: {result.get('id')}\n"
-            response += f"**Subnet**: {result.get('subnet')}\n"
-            response += f"**Gateway**: {result.get('gatewayIp')}\n"
-            response += f"**Enabled**: {'✅' if result.get('enabled', True) else '❌'}\n"
-            
-            return response
-            
-        except Exception as e:
-            error_msg = str(e)
-            if "400" in error_msg:
-                return f"❌ Invalid route configuration: {error_msg}"
-            else:
-                return f"❌ Error creating static route: {error_msg}"
+    #     Create a new static route on the MX appliance.
+    #     
+    #     Args:
+    #         network_id: Network ID
+    #         name: Name for the route
+    #         subnet: Destination subnet in CIDR format
+    #         gateway_ip: Next hop IP address
+    #         
+    #     Returns:
+    #         Created route details
+    #     """
+    #     try:
+    #         result = meraki_client.dashboard.appliance.createNetworkApplianceStaticRoute(
+    #             network_id,
+    #             name=name,
+    #             subnet=subnet,
+    #             gatewayIp=gateway_ip
+    #         )
+    #         
+    #         response = f"# ✅ Static Route Created\n\n"
+    #         response += f"**Name**: {result.get('name')}\n"
+    #         response += f"**ID**: {result.get('id')}\n"
+    #         response += f"**Subnet**: {result.get('subnet')}\n"
+    #         response += f"**Gateway**: {result.get('gatewayIp')}\n"
+    #         response += f"**Enabled**: {'✅' if result.get('enabled', True) else '❌'}\n"
+    #         
+    #         return response
+    #         
+    #     except Exception as e:
+    #         error_msg = str(e)
+    #         if "400" in error_msg:
+    #             return f"❌ Invalid route configuration: {error_msg}"
+    #         else:
+    #             return f"❌ Error creating static route: {error_msg}"
     
     # ========== MISSING APPLIANCE SDK METHODS ==========
     
@@ -2898,8 +2901,8 @@ update_network_appliance_vlan(
         try:
             config = meraki_client.dashboard.appliance.getNetworkApplianceWarmSpare(network_id)
             
-            result = f"# 🔄 Warm Spare Configuration\\n\\n"
-            result += f"**Enabled**: {'✅' if config.get('enabled') else '❌'}\\n"
+            result = f"# 🔄 Warm Spare Configuration\n\n"
+            result += f"**Enabled**: {'✅' if config.get('enabled') else '❌'}\n"
             
             if config.get('primarySerial'):
                 result += f"**Primary MX**: {config.get('primarySerial')}\n"
@@ -2938,41 +2941,41 @@ update_network_appliance_vlan(
     # uplink_mode: Optional[str] = None,
     # virtual_ip1: Optional[str] = None,
     # virtual_ip2: Optional[str] = None
-    ):
-        """
-        Update warm spare configuration for an MX appliance.
-        
-        Args:
-            network_id: Network ID
-            enabled: Enable/disable warm spare
-            spare_serial: Serial number of spare MX
-            uplink_mode: Uplink mode (virtual or public)
-            virtual_ip1: Virtual IP for WAN1
-            virtual_ip2: Virtual IP for WAN2
-            
-        Returns:
-            Updated configuration
-        """
-        try:
-            kwargs = {"enabled": enabled}
-            
-            if spare_serial:
-                kwargs["spareSerial"] = spare_serial
-            if uplink_mode:
-                kwargs["uplinkMode"] = uplink_mode
-            if virtual_ip1:
-                kwargs["virtualIp1"] = virtual_ip1
-            if virtual_ip2:
-                kwargs["virtualIp2"] = virtual_ip2
-                
-            result = meraki_client.dashboard.appliance.updateNetworkApplianceWarmSpare(
-                network_id, **kwargs
-            )
-            
-            return "✅ Warm spare configuration updated successfully"
-            
-        except Exception as e:
-            return f"Error updating warm spare: {str(e)}"
+    # ):
+    #     """
+    #     Update warm spare configuration for an MX appliance.
+    #     
+    #     Args:
+    #         network_id: Network ID
+    #         enabled: Enable/disable warm spare
+    #         spare_serial: Serial number of spare MX
+    #         uplink_mode: Uplink mode (virtual or public)
+    #         virtual_ip1: Virtual IP for WAN1
+    #         virtual_ip2: Virtual IP for WAN2
+    #         
+    #     Returns:
+    #         Updated configuration
+    #     """
+    #     try:
+    #         kwargs = {"enabled": enabled}
+    #         
+    #         if spare_serial:
+    #             kwargs["spareSerial"] = spare_serial
+    #         if uplink_mode:
+    #             kwargs["uplinkMode"] = uplink_mode
+    #         if virtual_ip1:
+    #             kwargs["virtualIp1"] = virtual_ip1
+    #         if virtual_ip2:
+    #             kwargs["virtualIp2"] = virtual_ip2
+    #             
+    #         result = meraki_client.dashboard.appliance.updateNetworkApplianceWarmSpare(
+    #             network_id, **kwargs
+    #         )
+    #         
+    #         return "✅ Warm spare configuration updated successfully"
+    #         
+    #     except Exception as e:
+    #         return f"Error updating warm spare: {str(e)}"
     
     # @app.tool(
     # name="swap_network_appliance_warm_spare",
@@ -2985,23 +2988,23 @@ update_network_appliance_vlan(
     # """
     # Swap warm spare appliance to become primary.
     #         ⚠️ WARNING: This will cause a network failover!
-        
-        Args:
-            network_id: Network ID
-            confirmed: Must be True to execute this operation
-            
-        Returns:
-            Swap status
-        """
-        if not confirmed:
-            return "⚠️ Warm spare swap requires confirmation. Set confirmed=true to proceed."
-            
-        try:
-            result = meraki_client.dashboard.appliance.swapNetworkApplianceWarmSpare(network_id)
-            return "✅ Warm spare swap initiated successfully"
-            
-        except Exception as e:
-            return f"Error swapping warm spare: {str(e)}"
+    #     
+    #     Args:
+    #         network_id: Network ID
+    #         confirmed: Must be True to execute this operation
+    #         
+    #     Returns:
+    #         Swap status
+    #     """
+    #     if not confirmed:
+    #         return "⚠️ Warm spare swap requires confirmation. Set confirmed=true to proceed."
+    #         
+    #     try:
+    #         result = meraki_client.dashboard.appliance.swapNetworkApplianceWarmSpare(network_id)
+    #         return "✅ Warm spare swap initiated successfully"
+    #         
+    #     except Exception as e:
+    #         return f"Error swapping warm spare: {str(e)}"
     
     # @app.tool(
     # name="get_network_appliance_prefixes_delegated_statics",
@@ -3013,30 +3016,30 @@ update_network_appliance_vlan(
     #     # Args:
     # network_id: Network ID
     #         Returns:
-            Delegated static prefixes
-        """
-        try:
-            prefixes = meraki_client.dashboard.appliance.getNetworkAppliancePrefixesDelegatedStatics(network_id)
-            
-            if not prefixes:
-                return "No delegated static prefixes configured"
-                
-            result = f"# 🌐 IPv6 Delegated Static Prefixes\\n\\n"
-            
-            for prefix in prefixes:
-                result += f"## {prefix.get('description', 'Unnamed')}\\n"
-                result += f"- **Prefix**: {prefix.get('prefix')}\n"
-                result += f"- **Origin**: {prefix.get('origin', {}).get('type', 'Unknown')}\n"
-                
-                if prefix.get("origin", {}).get("interfaces"):
-                    result += f"- **Interfaces**: {', '.join(prefix['origin']['interfaces'])}\\n"
-                    
-                result += "\\n"
-                
-            return result
-            
-        except Exception as e:
-            return f"Error retrieving delegated prefixes: {str(e)}"
+    #         Delegated static prefixes
+    #     """
+    #     try:
+    #         prefixes = meraki_client.dashboard.appliance.getNetworkAppliancePrefixesDelegatedStatics(network_id)
+    #         
+    #         if not prefixes:
+    #             return "No delegated static prefixes configured"
+    #             
+    #         result = f"# 🌐 IPv6 Delegated Static Prefixes\n\n"
+    #         
+    #         for prefix in prefixes:
+    #             result += f"## {prefix.get('description', 'Unnamed')}\n"
+    #             result += f"- **Prefix**: {prefix.get('prefix')}\n"
+    #             result += f"- **Origin**: {prefix.get('origin', {}).get('type', 'Unknown')}\n"
+    #             
+    #             if prefix.get("origin", {}).get("interfaces"):
+    #                 result += f"- **Interfaces**: {', '.join(prefix['origin']['interfaces'])}\n"
+    #                 
+    #             result += "\n"
+    #             
+    #         return result
+    #         
+    #     except Exception as e:
+    #         return f"Error retrieving delegated prefixes: {str(e)}"
     
     # @app.tool(
     # name="create_network_appliance_prefixes_delegated_static",
@@ -3049,39 +3052,39 @@ update_network_appliance_vlan(
     # origin_interfaces: str,
     # description: Optional[str] = None
     # ):
-        """
-        Create an IPv6 delegated static prefix.
+        # """
+        # Create an IPv6 delegated static prefix.
         
-        Args:
-            network_id: Network ID
-            prefix: IPv6 prefix
-            origin_type: Origin type (e.g., "internet")
-            origin_interfaces: Comma-separated interface list
-            description: Description for the prefix
+        # Args:
+            # network_id: Network ID
+            # prefix: IPv6 prefix
+            # origin_type: Origin type (e.g., "internet")
+            # origin_interfaces: Comma-separated interface list
+            # description: Description for the prefix
             
-        Returns:
-            Created prefix details
-        """
-        try:
-            kwargs = {
-                "prefix": prefix,
-                "origin": {
-                    "type": origin_type,
-                    "interfaces": origin_interfaces.split(",")
-                }
-            }
+        # Returns:
+            # Created prefix details
+        # """
+    # try:
+    # kwargs = {
+    # "prefix": prefix,
+    # "origin": {
+    # "type": origin_type,
+    # "interfaces": origin_interfaces.split(",")
+    # }
+    # }
             
-            if description:
-                kwargs["description"] = description
+    # if description:
+    # kwargs["description"] = description
                 
-            result = meraki_client.dashboard.appliance.createNetworkAppliancePrefixesDelegatedStatic(
-                network_id, **kwargs
-            )
+    # result = meraki_client.dashboard.appliance.createNetworkAppliancePrefixesDelegatedStatic(
+    # network_id, **kwargs
+    # )
             
-            return f"✅ Created delegated static prefix: {prefix}"
+    # return f"✅ Created delegated static prefix: {prefix}"
             
-        except Exception as e:
-            return f"Error creating delegated prefix: {str(e)}"
+    # except Exception as e:
+    # return f"Error creating delegated prefix: {str(e)}"
     
     # @app.tool(
     # name="get_network_appliance_rf_profiles",
@@ -3093,18 +3096,18 @@ update_network_appliance_vlan(
     #     # Args:
     # network_id: Network ID
     #         Returns:
-            RF profile settings
-        """
+    # RF profile settings
+    # """
         try:
             profiles = meraki_client.dashboard.appliance.getNetworkApplianceRfProfiles(network_id)
             
-            result = f"# 📡 RF Profiles\\n\\n"
+            result = f"# 📡 RF Profiles\n\n"
             
             if profiles.get("assigned"):
-                result += f"**Assigned Profile**: {profiles.get('assigned')}\\n\\n"
+                result += f"**Assigned Profile**: {profiles.get('assigned')}\n\n"
                 
             if profiles.get("profiles"):
-                result += "## Available Profiles\\n"
+                result += "## Available Profiles\n"
                 for profile_id, profile in profiles.get("profiles", {}).items():
                     result += f"\n### {profile_id}\n"
                     result += f"- **Name**: {profile.get('name', 'Unnamed')}\n"
@@ -3135,95 +3138,95 @@ update_network_appliance_vlan(
     # two_four_ghz_min_bitrate: Optional[int] = None,
     # five_ghz_min_bitrate: Optional[int] = None
     # ):
-        """
-        Update RF profile settings for MG appliances.
+        # """
+        # Update RF profile settings for MG appliances.
         
-        Args:
-            network_id: Network ID
-            rf_profile_id: RF profile ID
-            name: Profile name
-            two_four_ghz_min_bitrate: 2.4 GHz minimum bitrate
-            five_ghz_min_bitrate: 5 GHz minimum bitrate
+        # Args:
+            # network_id: Network ID
+            # rf_profile_id: RF profile ID
+            # name: Profile name
+            # two_four_ghz_min_bitrate: 2.4 GHz minimum bitrate
+            # five_ghz_min_bitrate: 5 GHz minimum bitrate
             
-        Returns:
-            Updated profile
-        """
-        try:
-            kwargs = {}
+        # Returns:
+            # Updated profile
+        # """
+    # try:
+    # kwargs = {}
             
-            if name:
-                kwargs["name"] = name
+    # if name:
+    # kwargs["name"] = name
                 
-            two_four_settings = {}
-            if two_four_ghz_min_bitrate:
-                two_four_settings["minBitrate"] = two_four_ghz_min_bitrate
-            if two_four_settings:
-                kwargs["twoFourGhzSettings"] = two_four_settings
+    # two_four_settings = {}
+    # if two_four_ghz_min_bitrate:
+    # two_four_settings["minBitrate"] = two_four_ghz_min_bitrate
+    # if two_four_settings:
+    # kwargs["twoFourGhzSettings"] = two_four_settings
                 
-            five_settings = {}
-            if five_ghz_min_bitrate:
-                five_settings["minBitrate"] = five_ghz_min_bitrate
-            if five_settings:
-                kwargs["fiveGhzSettings"] = five_settings
+    # five_settings = {}
+    # if five_ghz_min_bitrate:
+    # five_settings["minBitrate"] = five_ghz_min_bitrate
+    # if five_settings:
+    # kwargs["fiveGhzSettings"] = five_settings
                 
-            result = meraki_client.dashboard.appliance.updateNetworkApplianceRfProfile(
-                network_id, rf_profile_id, **kwargs
-            )
+    # result = meraki_client.dashboard.appliance.updateNetworkApplianceRfProfile(
+    # network_id, rf_profile_id, **kwargs
+    # )
             
-            return "✅ RF profile updated successfully"
+    # return "✅ RF profile updated successfully"
             
-        except Exception as e:
-            return f"Error updating RF profile: {str(e)}"
+    # except Exception as e:
+    # return f"Error updating RF profile: {str(e)}"
     
-    @app.tool(
-        name="get_network_appliance_traffic_shaping_uplink_selection",
-        description="🌐 Get uplink selection settings for traffic shaping"
-    )
-    def get_network_appliance_traffic_shaping_uplink_selection(network_id: str):
-        """
-        Get uplink selection settings for traffic shaping.
+    # @app.tool(
+    # name="get_network_appliance_traffic_shaping_uplink_selection",
+    # description="🌐 Get uplink selection settings for traffic shaping"
+    # )
+    # def get_network_appliance_traffic_shaping_uplink_selection(network_id: str):
+    # """
+    # Get uplink selection settings for traffic shaping.
         
-        Args:
-            network_id: Network ID
+    # Args:
+    # network_id: Network ID
             
-        Returns:
-            Uplink selection configuration
-        """
-        try:
-            config = meraki_client.dashboard.appliance.getNetworkApplianceTrafficShapingUplinkSelection(network_id)
+    # Returns:
+    # Uplink selection configuration
+    # """
+    # try:
+    # config = meraki_client.dashboard.appliance.getNetworkApplianceTrafficShapingUplinkSelection(network_id)
             
-            result = f"# 🌐 Uplink Selection Settings\\n\\n"
+    # result = f"# 🌐 Uplink Selection Settings\n\n"
             
-            if config.get("activeActiveAutoVpnEnabled") is not None:
-                result += f"**Active-Active Auto VPN**: {'✅' if config.get('activeActiveAutoVpnEnabled') else '❌'}\n"
+    # if config.get("activeActiveAutoVpnEnabled") is not None:
+                # result += f"**Active-Active Auto VPN**: {'✅' if config.get('activeActiveAutoVpnEnabled') else '❌'}\n"
                 
-            if config.get("defaultUplink"):
-                result += f"**Default Uplink**: {config.get('defaultUplink')}\n"
+            # if config.get("defaultUplink"):
+                # result += f"**Default Uplink**: {config.get('defaultUplink')}\n"
                 
-            if config.get("loadBalancingEnabled") is not None:
-                result += f"**Load Balancing**: {'✅' if config.get('loadBalancingEnabled') else '❌'}\n"
+            # if config.get("loadBalancingEnabled") is not None:
+                # result += f"**Load Balancing**: {'✅' if config.get('loadBalancingEnabled') else '❌'}\n"
                 
-            if config.get("wanTrafficUplinkPreferences"):
-                result += f"\\n## WAN Traffic Preferences\\n"
-                for pref in config.get("wanTrafficUplinkPreferences", []):
-                    result += f"\n### {pref.get('trafficFilters', [{}])[0].get('type', 'Custom')} Rule\n"
-                    result += f"- **Preferred Uplink**: {pref.get('preferredUplink')}\n"
+            # if config.get("wanTrafficUplinkPreferences"):
+                # result += f"\n## WAN Traffic Preferences\n"
+                # for pref in config.get("wanTrafficUplinkPreferences", []):
+                    # result += f"\n### {pref.get('trafficFilters', [{}])[0].get('type', 'Custom')} Rule\n"
+                    # result += f"- **Preferred Uplink**: {pref.get('preferredUplink')}\n"
                     
-                    for filter in pref.get("trafficFilters", []):
-                        if filter.get("value"):
-                            result += f"- **Filter**: {filter.get('value')}\n"
+                    # for filter in pref.get("trafficFilters", []):
+                        # if filter.get("value"):
+                            # result += f"- **Filter**: {filter.get('value')}\n"
                             
-            if config.get("vpnTrafficUplinkPreferences"):
-                result += f"\\n## VPN Traffic Preferences\\n"
-                for pref in config.get("vpnTrafficUplinkPreferences", []):
-                    result += f"\n### {pref.get('trafficFilters', [{}])[0].get('type', 'Custom')} Rule\n"
-                    result += f"- **Preferred Uplink**: {pref.get('preferredUplink')}\n"
-                    result += f"- **Failover Criterion**: {pref.get('failOverCriterion', 'N/A')}\\n"
+            # if config.get("vpnTrafficUplinkPreferences"):
+                # result += f"\n## VPN Traffic Preferences\n"
+                # for pref in config.get("vpnTrafficUplinkPreferences", []):
+                    # result += f"\n### {pref.get('trafficFilters', [{}])[0].get('type', 'Custom')} Rule\n"
+                    # result += f"- **Preferred Uplink**: {pref.get('preferredUplink')}\n"
+                    # result += f"- **Failover Criterion**: {pref.get('failOverCriterion', 'N/A')}\n"
                     
-            return result
+            # return result
             
-        except Exception as e:
-            return f"Error retrieving uplink selection: {str(e)}"
+        # except Exception as e:
+            # return f"Error retrieving uplink selection: {str(e)}"
     
     @app.tool(
         name="update_network_appliance_traffic_shaping_uplink_selection",
