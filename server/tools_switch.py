@@ -7,6 +7,7 @@ Includes port configuration, VLANs, routing, QoS, storm control, STP, and more.
 
 from typing import Optional, Dict, Any, List
 import json
+import time
 
 # Global references to be set by register function
 app = None
@@ -97,6 +98,20 @@ def register_switch_tool_handlers():
         
         try:
             port_list = [p.strip() for p in ports.split(',')]
+            
+            # Validate port IDs exist on the switch before cycling
+            try:
+                switch_ports = meraki_client.dashboard.switch.getDeviceSwitchPorts(serial)
+                available_ports = [str(port.get('portId')) for port in switch_ports if port.get('portId')]
+                
+                invalid_ports = [p for p in port_list if p not in available_ports]
+                if invalid_ports:
+                    return f"❌ Invalid port IDs: {', '.join(invalid_ports)}\n\nAvailable ports on {serial}: {', '.join(available_ports)}"
+                
+            except Exception as e:
+                # If we can't validate, proceed with warning
+                pass
+            
             result = meraki_client.dashboard.switch.cycleDeviceSwitchPorts(
                 serial, ports=port_list
             )
@@ -108,7 +123,10 @@ def register_switch_tool_handlers():
             
             return response
         except Exception as e:
-            return f"❌ Error cycling ports: {str(e)}"
+            error_msg = str(e)
+            if "invalid port" in error_msg.lower() or "port list" in error_msg.lower():
+                return f"❌ Invalid port list error: {error_msg}\n\n💡 Check that all port IDs exist on this switch using get_device_switch_ports first."
+            return f"❌ Error cycling ports: {error_msg}"
     
     @app.tool(
         name="get_device_switch_ports_statuses",
@@ -176,57 +194,6 @@ def register_switch_tool_handlers():
             return response
         except Exception as e:
             return f"❌ Error getting port statuses: {str(e)}"
-    
-    @app.tool(
-        name="get_device_switch_ports_packets",
-        description="📊 Get packet counters for all switch ports including sent/received packets and rates."
-    )
-    def get_device_switch_ports_packets(
-        serial: str,
-        timespan: Optional[int] = None
-    ):
-        """
-        Return packet counters for all ports of a switch.
-        
-        Args:
-            serial: Switch serial number
-            timespan: Timespan in seconds
-        """
-        try:
-            kwargs = {}
-            if timespan:
-                kwargs['timespan'] = timespan
-            
-            result = meraki_client.dashboard.switch.getDeviceSwitchPortsStatusesPackets(serial, **kwargs)
-            
-            response = f"# 📊 Switch Port Packet Counters - {serial}\n\n"
-            
-            if result and isinstance(result, list):
-                total_packets = sum(p.get('packets', {}).get('sent', 0) + 
-                                  p.get('packets', {}).get('recv', 0) for p in result)
-                response += f"**Total Packets**: {total_packets:,}\n\n"
-                
-                for port in result:
-                    port_id = port.get('portId', 'Unknown')
-                    packets = port.get('packets', {})
-                    
-                    response += f"## Port {port_id}\n"
-                    response += f"- **Packets Sent**: {packets.get('sent', 0):,}\n"
-                    response += f"- **Packets Received**: {packets.get('recv', 0):,}\n"
-                    
-                    # Rates if available
-                    rate_per_sec = port.get('packetsPerSec', {})
-                    if rate_per_sec:
-                        response += f"- **Send Rate**: {rate_per_sec.get('sent', 0)} pps\n"
-                        response += f"- **Receive Rate**: {rate_per_sec.get('recv', 0)} pps\n"
-                    
-                    response += "\n"
-            else:
-                response += "*No packet counter data available*\n"
-            
-            return response
-        except Exception as e:
-            return f"❌ Error getting packet counters: {str(e)}"
     
     @app.tool(
         name="get_device_switch_port",
@@ -1199,7 +1166,7 @@ def register_switch_tool_handlers():
     )
     def get_organization_switch_ports_by_switch(
         organization_id: str,
-        per_page: Optional[int] = 100,
+        per_page: Optional[int] = 50,
         network_ids: Optional[str] = None,
         serial: Optional[str] = None
     ):
@@ -1208,14 +1175,15 @@ def register_switch_tool_handlers():
         
         Args:
             organization_id: Organization ID
-            per_page: Results per page (max 1000)
+            per_page: Results per page (IMPORTANT: max 50, API enforces 3-50 range)
             network_ids: Comma-separated network IDs to filter
             serial: Switch serial to filter
         """
         try:
             kwargs = {}
             if per_page:
-                kwargs['perPage'] = min(per_page, 1000)
+                # API enforces perPage between 3 and 50 for this endpoint
+                kwargs['perPage'] = min(max(per_page, 3), 50)
             if network_ids:
                 kwargs['networkIds'] = [n.strip() for n in network_ids.split(',')]
             if serial:
@@ -1555,101 +1523,594 @@ def register_switch_tool_handlers():
         except Exception as e:
             return f"❌ Error getting profile port: {str(e)}"
     
-    # ==================== CONNECTIVITY MONITORING ====================
+    # ==================== PORT USAGE HISTORY ====================
     
     @app.tool(
-        name="get_org_switch_uplinks_status_overview",
-        description="📡 Get uplink status overview for all switches in organization."
+        name="get_org_switch_ports_usage_history",
+        description="📊 Get switch port usage history across the organization by device and interval."
     )
-    def get_org_switch_uplinks_status_overview(
+    def get_org_switch_ports_usage_history(
+        organization_id: str,
+        timespan: Optional[int] = 86400,
+        per_page: Optional[int] = 25,
+        network_ids: Optional[str] = None
+    ):
+        """
+        Get switch port usage history by device and interval.
+        
+        Args:
+            organization_id: Organization ID
+            timespan: Timespan in seconds (default 24 hours)
+            per_page: Results per page (3-1000)
+            network_ids: Comma-separated network IDs to filter
+        """
+        try:
+            kwargs = {}
+            kwargs['timespan'] = timespan if timespan else 86400
+            if per_page:
+                kwargs['perPage'] = min(max(per_page, 3), 1000)
+            if network_ids:
+                kwargs['networkIds'] = [n.strip() for n in network_ids.split(',')]
+            
+            result = meraki_client.dashboard.switch.getOrganizationSwitchPortsUsageHistoryByDeviceByInterval(
+                organization_id, **kwargs
+            )
+            
+            response = f"# 📊 Switch Port Usage History\n\n"
+            
+            if result and isinstance(result, list):
+                response += f"**Analysis Period**: {timespan if timespan else 86400} seconds\n"
+                response += f"**Devices Found**: {len(result)}\n\n"
+                
+                for idx, device in enumerate(result[:10], 1):
+                    response += f"## {idx}. {device.get('name', 'Unknown')}\n"
+                    response += f"- **Serial**: {device.get('serial')}\n"
+                    response += f"- **Model**: {device.get('model', 'N/A')}\n"
+                    response += f"- **Network**: {device.get('network', {}).get('name', 'N/A')}\n"
+                    
+                    # Show usage history if available
+                    history = device.get('history', [])
+                    if history:
+                        response += f"- **Usage History**: {len(history)} data points\n"
+                        # Show latest data point
+                        latest = history[0] if history else {}
+                        if latest:
+                            response += f"  - Latest timestamp: {latest.get('ts', 'N/A')}\n"
+                            ports = latest.get('ports', [])
+                            if ports:
+                                response += f"  - Active ports: {len([p for p in ports if p.get('recv', 0) > 0 or p.get('sent', 0) > 0])}\n"
+                    
+                    response += "\n"
+                
+                if len(result) > 10:
+                    response += f"*Showing 10 of {len(result)} devices. Use network_ids filter to narrow results.*\n"
+            else:
+                response += "*No usage history data available*\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting switch port usage history: {str(e)}"
+    
+    @app.tool(
+        name="get_org_switch_ports_statuses_by_switch",
+        description="📊 Get port statuses across all switches in organization. Shows connection status, errors, warnings."
+    )
+    def get_org_switch_ports_statuses_by_switch(
+        organization_id: str,
+        per_page: Optional[int] = 20,
+        network_ids: Optional[str] = None
+    ):
+        """
+        Get port statuses for all switches in organization.
+        
+        Args:
+            organization_id: Organization ID
+            per_page: Results per page (max 20)
+            network_ids: Comma-separated network IDs to filter
+        """
+        try:
+            kwargs = {}
+            if per_page:
+                kwargs['perPage'] = min(max(per_page, 3), 20)
+            if network_ids:
+                kwargs['networkIds'] = [n.strip() for n in network_ids.split(',')]
+            
+            result = meraki_client.dashboard.switch.getOrganizationSwitchPortsStatusesBySwitch(
+                organization_id, **kwargs
+            )
+            
+            response = f"# 📊 Organization Switch Port Statuses\n\n"
+            
+            if result and isinstance(result, list):
+                response += f"**Switches Found**: {len(result)}\n\n"
+                
+                for switch in result[:10]:
+                    serial = switch.get('serial', 'Unknown')
+                    response += f"## Switch: {serial}\n"
+                    response += f"- **Name**: {switch.get('name', 'Unnamed')}\n"
+                    response += f"- **Model**: {switch.get('model', 'N/A')}\n"
+                    response += f"- **Network**: {switch.get('network', {}).get('name', 'N/A')}\n\n"
+                    
+                    ports = switch.get('ports', [])
+                    if ports:
+                        response += f"### Port Statuses ({len(ports)} ports)\n"
+                        for port in ports[:5]:
+                            port_id = port.get('portId', 'Unknown')
+                            status = port.get('status', 'Unknown')
+                            response += f"- **Port {port_id}**: {status}"
+                            
+                            if port.get('errors'):
+                                response += f" ⚠️ Errors: {', '.join(port['errors'])}"
+                            if port.get('warnings'):
+                                response += f" ⚠️ Warnings: {', '.join(port['warnings'])}"
+                            if port.get('speed'):
+                                response += f" | {port['speed']}"
+                            if port.get('duplex'):
+                                response += f" | {port['duplex']}"
+                            
+                            response += "\n"
+                        
+                        if len(ports) > 5:
+                            response += f"  *...and {len(ports) - 5} more ports*\n"
+                    
+                    response += "\n"
+                
+                if len(result) > 10:
+                    response += f"*Showing 10 of {len(result)} switches. Use filters to narrow results.*\n"
+            else:
+                response += "*No switches found*\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting switch port statuses: {str(e)}"
+    
+    @app.tool(
+        name="get_org_switch_ports_overview",
+        description="📈 Get organization-wide switch port usage overview and statistics."
+    )
+    def get_org_switch_ports_overview(
         organization_id: str
     ):
         """
-        Get overview of switch uplink statuses.
+        Get switch ports overview for organization.
         
         Args:
             organization_id: Organization ID
         """
         try:
-            result = meraki_client.dashboard.switch.getOrganizationSummaryTopSwitchesByEnergyUsage(
+            result = meraki_client.dashboard.switch.getOrganizationSwitchPortsOverview(
                 organization_id
             )
             
-            response = f"# 📡 Switch Uplinks Status Overview\n\n"
+            response = f"# 📈 Organization Switch Ports Overview\n\n"
             
-            if result and isinstance(result, list):
-                response += f"**Total Switches**: {len(result)}\n\n"
+            if result:
+                # Port counts
+                counts = result.get('counts', {})
+                if counts:
+                    response += "## Port Statistics\n"
+                    response += f"- **Total Ports**: {counts.get('total', 0)}\n"
+                    response += f"- **Connected**: {counts.get('connected', 0)}\n"
+                    response += f"- **Disabled**: {counts.get('disabled', 0)}\n"
+                    response += f"- **Errored**: {counts.get('errored', 0)}\n"
+                    response += f"- **Warned**: {counts.get('warned', 0)}\n\n"
                 
-                # Count by status
-                online = sum(1 for s in result if s.get('status') == 'online')
-                offline = sum(1 for s in result if s.get('status') == 'offline')
-                alerting = sum(1 for s in result if s.get('status') == 'alerting')
+                # Power over Ethernet
+                poe = result.get('powerOverEthernet', {})
+                if poe:
+                    response += "## Power over Ethernet\n"
+                    response += f"- **Total Power**: {poe.get('total', 0)} W\n"
+                    response += f"- **Used Power**: {poe.get('used', 0)} W\n"
+                    response += f"- **Available Power**: {poe.get('available', 0)} W\n\n"
                 
-                response += f"## Status Summary\n"
-                response += f"- 🟢 **Online**: {online}\n"
-                response += f"- 🔴 **Offline**: {offline}\n"
-                response += f"- 🟡 **Alerting**: {alerting}\n\n"
+                # By status
+                by_status = result.get('byStatus', {})
+                if by_status:
+                    response += "## Ports by Status\n"
+                    for status, count in by_status.items():
+                        response += f"- **{status}**: {count}\n"
+                    response += "\n"
                 
-                # Show problematic switches
-                issues = [s for s in result if s.get('status') != 'online']
-                if issues:
-                    response += f"## Switches with Issues ({len(issues)})\n"
-                    for switch in issues[:10]:
-                        response += f"- **{switch.get('serial')}**: {switch.get('status')}\n"
-                        response += f"  Network: {switch.get('network', {}).get('name', 'N/A')}\n"
+                # By speed
+                by_speed = result.get('bySpeed', {})
+                if by_speed:
+                    response += "## Ports by Speed\n"
+                    for speed, count in by_speed.items():
+                        response += f"- **{speed}**: {count}\n"
             else:
-                response += "*No uplink data available*\n"
+                response += "*No overview data available*\n"
             
             return response
         except Exception as e:
-            # This endpoint might not exist, try alternate
-            return f"ℹ️ Uplink status monitoring may require specific licensing.\n\nError: {str(e)}"
-    
-    # ==================== ENERGY USAGE ====================
+            return f"❌ Error getting switch ports overview: {str(e)}"
     
     @app.tool(
-        name="get_org_summary_top_switches_energy_usage",
-        description="⚡ Get top switches by energy usage in the organization."
+        name="get_org_summary_switch_power_history",
+        description="⚡ Get historical power consumption data for organization switches."
     )
-    def get_org_summary_top_switches_energy_usage(
+    def get_org_summary_switch_power_history(
         organization_id: str,
-        timespan: Optional[int] = None
+        timespan: Optional[int] = 86400
     ):
         """
-        Get top switches by energy consumption.
+        Get switch power consumption history.
         
         Args:
             organization_id: Organization ID
-            timespan: Timespan in seconds
+            timespan: Time span in seconds (default 24 hours)
         """
         try:
             kwargs = {}
             if timespan:
                 kwargs['timespan'] = timespan
             
-            result = meraki_client.dashboard.switch.getOrganizationSummaryTopSwitchesByEnergyUsage(
+            result = meraki_client.dashboard.switch.getOrganizationSummarySwitchPowerHistory(
                 organization_id, **kwargs
             )
             
-            response = f"# ⚡ Top Switches by Energy Usage\n\n"
+            response = f"# ⚡ Switch Power Consumption History\n\n"
+            response += f"**Timespan**: {timespan} seconds\n\n"
             
             if result and isinstance(result, list):
-                response += f"**Analysis Period**: {timespan if timespan else 86400} seconds\n\n"
+                response += f"**Data Points**: {len(result)}\n\n"
                 
-                for idx, switch in enumerate(result[:10], 1):
-                    response += f"## {idx}. {switch.get('name', 'Unknown')}\n"
-                    response += f"- **Serial**: {switch.get('serial')}\n"
-                    response += f"- **Model**: {switch.get('model', 'N/A')}\n"
-                    response += f"- **Network**: {switch.get('network', {}).get('name', 'N/A')}\n"
-                    response += f"- **Energy Usage**: {switch.get('usage', 0):.2f} kWh\n"
-                    response += f"- **Port Count**: {switch.get('portCount', 'N/A')}\n"
-                    response += "\n"
+                # Show latest readings
+                if result:
+                    latest = result[-1] if result else {}
+                    response += "## Latest Reading\n"
+                    response += f"- **Timestamp**: {latest.get('ts', 'N/A')}\n"
+                    response += f"- **Total Power**: {latest.get('total', 0)} W\n"
+                    response += f"- **PoE Power**: {latest.get('poe', 0)} W\n"
+                    response += f"- **System Power**: {latest.get('system', 0)} W\n\n"
+                    
+                    # Calculate averages
+                    if len(result) > 1:
+                        total_avg = sum(p.get('total', 0) for p in result) / len(result)
+                        poe_avg = sum(p.get('poe', 0) for p in result) / len(result)
+                        
+                        response += "## Averages\n"
+                        response += f"- **Average Total**: {total_avg:.2f} W\n"
+                        response += f"- **Average PoE**: {poe_avg:.2f} W\n\n"
+                    
+                    # Show peak usage
+                    peak_total = max(result, key=lambda x: x.get('total', 0))
+                    response += "## Peak Usage\n"
+                    response += f"- **Peak Total**: {peak_total.get('total', 0)} W\n"
+                    response += f"- **Peak Time**: {peak_total.get('ts', 'N/A')}\n"
             else:
-                response += "*No energy usage data available*\n"
+                response += "*No power history data available*\n"
             
             return response
         except Exception as e:
-            return f"❌ Error getting energy usage: {str(e)}"
+            return f"❌ Error getting switch power history: {str(e)}"
+    
+    @app.tool(
+        name="get_device_switch_ports_statuses_packets",
+        description="📦 Get detailed packet statistics for all ports on a switch."
+    )
+    def get_device_switch_ports_statuses_packets(
+        serial: str,
+        timespan: Optional[int] = 3600
+    ):
+        """
+        Get packet statistics for switch ports.
+        
+        Args:
+            serial: Switch serial number
+            timespan: Time span in seconds (default 1 hour)
+        """
+        try:
+            kwargs = {}
+            if timespan:
+                kwargs['timespan'] = timespan
+            
+            result = meraki_client.dashboard.switch.getDeviceSwitchPortsStatusesPackets(
+                serial, **kwargs
+            )
+            
+            response = f"# 📦 Switch Port Packet Statistics\n\n"
+            response += f"**Switch**: {serial}\n"
+            response += f"**Timespan**: {timespan} seconds\n\n"
+            
+            if result and isinstance(result, list):
+                response += f"**Ports with Data**: {len(result)}\n\n"
+                
+                total_rx = 0
+                total_tx = 0
+                
+                for port in result:
+                    port_id = port.get('portId', 'Unknown')
+                    packets = port.get('packets', [])
+                    
+                    # Handle packets as list of packet type objects
+                    rx_total = 0
+                    tx_total = 0
+                    rates = {}
+                    packet_types = {}
+                    
+                    if isinstance(packets, list):
+                        for packet_info in packets:
+                            desc = packet_info.get('desc', '')
+                            if desc == 'Total':
+                                rx_total = packet_info.get('recv', 0)
+                                tx_total = packet_info.get('sent', 0)
+                                rates = packet_info.get('ratePerSec', {})
+                            elif desc and packet_info.get('total', 0) > 0:
+                                packet_types[desc] = {
+                                    'total': packet_info.get('total', 0),
+                                    'sent': packet_info.get('sent', 0),
+                                    'recv': packet_info.get('recv', 0)
+                                }
+                    
+                    total_rx += rx_total
+                    total_tx += tx_total
+                    
+                    response += f"## Port {port_id}\n"
+                    response += f"- **Received**: {rx_total:,} packets\n"
+                    response += f"- **Sent**: {tx_total:,} packets\n"
+                    
+                    # Detailed packet types
+                    if packet_types:
+                        response += "- **By Type**:\n"
+                        for pkt_type, counts in packet_types.items():
+                            response += f"  - {pkt_type}: {counts['total']:,} "
+                            response += f"(sent: {counts['sent']:,}, recv: {counts['recv']:,})\n"
+                    
+                    # Rate info if available
+                    if rates:
+                        response += f"- **Rate**: {rates.get('recv', 0)} rx/s, {rates.get('sent', 0)} tx/s\n"
+                    
+                    response += "\n"
+                
+                response += f"## Totals\n"
+                response += f"- **Total Received**: {total_rx:,} packets\n"
+                response += f"- **Total Sent**: {total_tx:,} packets\n"
+            else:
+                response += "*No packet data available*\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting port packet statistics: {str(e)}"
+    
+    @app.tool(
+        name="get_org_switch_ports_clients_overview",
+        description="👥 Get client distribution overview across organization switches."
+    )
+    def get_org_switch_ports_clients_overview(
+        organization_id: str,
+        timespan: Optional[int] = 86400
+    ):
+        """
+        Get client overview for organization switch ports.
+        
+        Args:
+            organization_id: Organization ID
+            timespan: Time span in seconds (default 24 hours)
+        """
+        try:
+            kwargs = {}
+            if timespan:
+                kwargs['t0'] = str(int(time.time() - timespan))
+                kwargs['t1'] = str(int(time.time()))
+            
+            result = meraki_client.dashboard.switch.getOrganizationSwitchPortsClientsOverviewByDevice(
+                organization_id, **kwargs
+            )
+            
+            response = f"# 👥 Switch Ports Client Overview\n\n"
+            response += f"**Timespan**: {timespan} seconds\n\n"
+            
+            if result and isinstance(result, dict):
+                counts = result.get('counts', {})
+                items = result.get('items', [])
+                
+                if counts:
+                    response += "## Summary\n"
+                    response += f"- **Total Clients**: {counts.get('clients', 0)}\n"
+                    response += f"- **Switches with Clients**: {counts.get('devices', 0)}\n\n"
+                
+                if items:
+                    response += "## Client Distribution by Switch\n"
+                    for item in items[:10]:
+                        switch = item.get('device', {})
+                        usage = item.get('usage', {})
+                        clients = item.get('clients', {})
+                        
+                        response += f"### {switch.get('name', 'Unknown')} ({switch.get('serial', 'N/A')})\n"
+                        response += f"- **Total Clients**: {clients.get('count', 0)}\n"
+                        
+                        if usage:
+                            response += f"- **Traffic**: {usage.get('recv', 0)} bytes rx, {usage.get('sent', 0)} bytes tx\n"
+                        
+                        # Top clients
+                        top_clients = clients.get('top', [])
+                        if top_clients:
+                            response += "- **Top Clients**:\n"
+                            for client in top_clients[:3]:
+                                response += f"  - {client.get('mac', 'Unknown')}: {client.get('name', 'Unnamed')}\n"
+                        
+                        response += "\n"
+                    
+                    if len(items) > 10:
+                        response += f"*Showing 10 of {len(items)} switches*\n"
+            else:
+                response += "*No client data available*\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting client overview: {str(e)}"
+    
+    @app.tool(
+        name="get_org_switch_ports_topology_discovery",
+        description="🗺️ Get network topology discovered via CDP/LLDP on organization switches."
+    )
+    def get_org_switch_ports_topology_discovery(
+        organization_id: str,
+        per_page: Optional[int] = 20
+    ):
+        """
+        Get topology discovery data for organization switches.
+        
+        Args:
+            organization_id: Organization ID
+            per_page: Results per page (max 20)
+        """
+        try:
+            kwargs = {}
+            if per_page:
+                kwargs['perPage'] = min(max(per_page, 3), 20)
+            
+            result = meraki_client.dashboard.switch.getOrganizationSwitchPortsTopologyDiscoveryByDevice(
+                organization_id, **kwargs
+            )
+            
+            response = f"# 🗺️ Switch Network Topology Discovery\n\n"
+            
+            if result and isinstance(result, list):
+                response += f"**Devices with Topology Data**: {len(result)}\n\n"
+                
+                for device in result[:10]:
+                    serial = device.get('serial', 'Unknown')
+                    response += f"## Switch: {serial}\n"
+                    response += f"- **Name**: {device.get('name', 'Unnamed')}\n"
+                    response += f"- **Model**: {device.get('model', 'N/A')}\n\n"
+                    
+                    ports = device.get('ports', [])
+                    if ports:
+                        response += f"### Discovered Connections ({len(ports)} ports)\n"
+                        for port in ports:
+                            port_id = port.get('portId', 'Unknown')
+                            cdp = port.get('cdp', {})
+                            lldp = port.get('lldp', {})
+                            
+                            if cdp or lldp:
+                                response += f"- **Port {port_id}**:\n"
+                                
+                                if cdp:
+                                    response += f"  - CDP: {cdp.get('deviceId', 'Unknown')} "
+                                    response += f"({cdp.get('platform', 'N/A')})\n"
+                                    response += f"    Port: {cdp.get('portId', 'N/A')}\n"
+                                
+                                if lldp:
+                                    response += f"  - LLDP: {lldp.get('systemName', 'Unknown')}\n"
+                                    response += f"    Port: {lldp.get('portId', 'N/A')}\n"
+                                    if lldp.get('systemDescription'):
+                                        response += f"    Desc: {lldp['systemDescription']}\n"
+                        
+                        response += "\n"
+                
+                if len(result) > 10:
+                    response += f"*Showing 10 of {len(result)} devices*\n"
+            else:
+                response += "*No topology data available (CDP/LLDP may be disabled)*\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting topology discovery: {str(e)}"
+    
+    @app.tool(
+        name="get_network_switch_dhcp_arp_warnings",
+        description="⚠️ Get DHCP ARP inspection warnings for network switches."
+    )
+    def get_network_switch_dhcp_arp_warnings(
+        network_id: str,
+        per_page: Optional[int] = 50
+    ):
+        """
+        Get DHCP ARP inspection warnings by device.
+        
+        Args:
+            network_id: Network ID
+            per_page: Results per page (max 1000)
+        """
+        try:
+            kwargs = {}
+            if per_page:
+                kwargs['perPage'] = min(max(per_page, 3), 1000)
+            
+            result = meraki_client.dashboard.switch.getNetworkSwitchDhcpServerPolicyArpInspectionWarningsByDevice(
+                network_id, **kwargs
+            )
+            
+            response = f"# ⚠️ DHCP ARP Inspection Warnings\n\n"
+            
+            if result and isinstance(result, list):
+                response += f"**Devices with Warnings**: {len(result)}\n\n"
+                
+                for device in result:
+                    serial = device.get('serial', 'Unknown')
+                    response += f"## Device: {serial}\n"
+                    response += f"- **Name**: {device.get('name', 'Unnamed')}\n"
+                    response += f"- **URL**: {device.get('url', 'N/A')}\n\n"
+                    
+                    warnings = device.get('arpInspectionWarnings', [])
+                    if warnings:
+                        response += f"### Warnings ({len(warnings)})\n"
+                        for warning in warnings[:10]:
+                            response += f"- **Timestamp**: {warning.get('timestamp', 'N/A')}\n"
+                            response += f"  - **Type**: {warning.get('type', 'Unknown')}\n"
+                            response += f"  - **Message**: {warning.get('message', 'N/A')}\n"
+                            response += f"  - **Details**: {warning.get('details', {})}\n\n"
+                        
+                        if len(warnings) > 10:
+                            response += f"*Showing 10 of {len(warnings)} warnings*\n"
+                    else:
+                        response += "*No warnings for this device*\n"
+                    
+                    response += "\n"
+            else:
+                response += "*No ARP inspection warnings found (this is good!)*\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting ARP inspection warnings: {str(e)}"
+    
+    @app.tool(
+        name="update_device_switch_warm_spare",
+        description="🔄 Update warm spare configuration for a switch. Requires confirmation."
+    )
+    def update_device_switch_warm_spare(
+        serial: str,
+        enabled: bool,
+        spare_serial: Optional[str] = None,
+        confirmed: bool = False
+    ):
+        """
+        Update switch warm spare configuration.
+        
+        Args:
+            serial: Primary switch serial number
+            enabled: Enable/disable warm spare
+            spare_serial: Spare switch serial (required if enabling)
+            confirmed: Must be true to execute
+        """
+        if not confirmed:
+            return "⚠️ Warm spare update requires confirmed=true. This will modify switch redundancy configuration!"
+        
+        try:
+            kwargs = {'enabled': enabled}
+            if enabled and spare_serial:
+                kwargs['spareSerial'] = spare_serial
+            
+            result = meraki_client.dashboard.switch.updateDeviceSwitchWarmSpare(
+                serial, **kwargs
+            )
+            
+            response = f"# ✅ Warm Spare Configuration Updated\n\n"
+            response += f"**Primary Switch**: {serial}\n"
+            
+            if result:
+                response += f"## New Configuration\n"
+                response += f"- **Enabled**: {result.get('enabled', False)}\n"
+                response += f"- **Primary Serial**: {result.get('primarySerial', 'N/A')}\n"
+                response += f"- **Spare Serial**: {result.get('spareSerial', 'N/A')}\n"
+                
+                if enabled:
+                    response += "\n⚠️ **Important**: Ensure spare switch is properly connected and configured.\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error updating warm spare: {str(e)}"
     
     # ==================== INTERFACE STATUS ====================
     

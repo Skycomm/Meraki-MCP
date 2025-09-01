@@ -15,6 +15,9 @@ Different Meraki API endpoints have **different pagination limits**. Before chan
 - **Most endpoints**: 3-1000 (can safely use 1000)
 - **Mesh statuses** (`getNetworkWirelessMeshStatuses`): 3-500 max
 - **SSID statuses** (`getOrganizationWirelessSsidsStatusesByDevice`): 3-500 max
+- **Organization switch ports** (`getOrganizationSwitchPortsBySwitch`): 3-50 max (default now set to 50)
+- **Organization switch port statuses** (`getOrganizationSwitchPortsStatusesBySwitch`): 3-20 max (default now set to 20)
+- **Organization switch topology** (`getOrganizationSwitchPortsTopologyDiscoveryByDevice`): 3-20 max (default now set to 20)
 - **General rule**: "statuses" endpoints often have lower limits (use 500 as safe default)
 
 **How to check:**
