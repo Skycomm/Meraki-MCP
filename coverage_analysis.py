@@ -109,14 +109,14 @@ def main():
             base_path + 'tools_networks_complete.py'
         ],
         'organizations': [
-            base_path + 'tools_organizations.py',
-            base_path + 'tools_organizations_complete.py',
             base_path + 'tools_organizations_earlyAccess.py',
             base_path + 'tools_organizations_core.py',
             base_path + 'tools_organizations_adaptive_policy.py',
             base_path + 'tools_organizations_admin.py',
             base_path + 'tools_organizations_inventory.py',
-            base_path + 'tools_organizations_licensing.py'
+            base_path + 'tools_organizations_licensing.py',
+            base_path + 'tools_organizations_alerts.py',
+            base_path + 'tools_organizations_misc.py'
         ],
         'devices': [
             base_path + 'tools_devices.py'

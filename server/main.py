@@ -16,7 +16,6 @@ app = FastMCP(SERVER_NAME)
 
 # Import all resources and tools modules - they will register with the app
 from server.resources import register_resources
-from server.tools_organizations import register_organization_tools
 from server.tools_organizations_core import register_organizations_core_tools
 from server.tools_networks import register_network_tools
 from server.tools_devices import register_device_tools
@@ -45,6 +44,8 @@ from server.tools_organizations_adaptive_policy import register_adaptive_policy_
 from server.tools_organizations_admin import register_admin_tools
 from server.tools_organizations_inventory import register_inventory_tools
 from server.tools_organizations_licensing import register_licensing_tools
+from server.tools_organizations_alerts import register_alerts_tools
+from server.tools_organizations_misc import register_misc_tools
 from server.tools_sensor import register_sensor_tools
 from server.tools_appliance_additional import register_appliance_extended_tools
 from server.tools_appliance_firewall import register_appliance_firewall_tools
@@ -53,7 +54,6 @@ from server.tools_batch import register_batch_tools
 from server.tools_live import register_live_tools
 from server.tools_helpers import register_helper_tools
 from server.tools_search import register_search_tools
-from server.tools_organizations_complete import register_organizations_complete_tools
 from server.tools_networks_complete import register_networks_complete_tools
 from server.tools_adaptive_policy import register_adaptive_policy_tools
 
@@ -88,6 +88,8 @@ register_adaptive_policy_tools(app, meraki)
 register_admin_tools(app, meraki)
 register_inventory_tools(app, meraki)
 register_licensing_tools(app, meraki)
+register_alerts_tools(app, meraki)
+register_misc_tools(app, meraki)
 register_sensor_tools(app, meraki)
 register_appliance_extended_tools(app, meraki)
 register_appliance_firewall_tools(app, meraki)
