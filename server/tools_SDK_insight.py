@@ -32,10 +32,10 @@ def register_insight_tool_handlers():
     # ==================== MONITORED MEDIA SERVERS ====================
     
     @app.tool(
-        name="get_org_insight_monitored_media_servers",
+        name="get_organization_insight_monitored_media_servers",
         description="📊 List all monitored media servers for the organization."
     )
-    def get_org_insight_monitored_media_servers(
+    def get_organization_insight_monitored_media_servers(
         organization_id: str
     ):
         """
@@ -77,10 +77,10 @@ def register_insight_tool_handlers():
             return f"❌ Error getting monitored media servers: {str(e)}"
     
     @app.tool(
-        name="get_org_insight_monitored_media_server",
+        name="get_organization_insight_monitored_media_server",
         description="📊 Get details of a specific monitored media server."
     )
-    def get_org_insight_monitored_media_server(
+    def get_organization_insight_monitored_media_server(
         organization_id: str,
         monitored_media_server_id: str
     ):
@@ -124,10 +124,10 @@ def register_insight_tool_handlers():
             return f"❌ Error getting media server details: {str(e)}"
     
     @app.tool(
-        name="create_org_insight_monitored_media_server",
+        name="create_organization_insight_monitored_media_server",
         description="➕ Create a new monitored media server. Requires confirmation."
     )
-    def create_org_insight_monitored_media_server(
+    def create_organization_insight_monitored_media_server(
         organization_id: str,
         name: str,
         address: str,
@@ -172,10 +172,10 @@ def register_insight_tool_handlers():
             return f"❌ Error creating monitored media server: {str(e)}"
     
     @app.tool(
-        name="update_org_insight_monitored_media_server",
+        name="update_organization_insight_monitored_media_server",
         description="✏️ Update a monitored media server configuration. Requires confirmation."
     )
-    def update_org_insight_monitored_media_server(
+    def update_organization_insight_monitored_media_server(
         organization_id: str,
         monitored_media_server_id: str,
         name: Optional[str] = None,
@@ -224,10 +224,10 @@ def register_insight_tool_handlers():
             return f"❌ Error updating monitored media server: {str(e)}"
     
     @app.tool(
-        name="delete_org_insight_monitored_media_server",
+        name="delete_organization_insight_monitored_media_server",
         description="🗑️ Delete a monitored media server. Requires confirmation."
     )
-    def delete_org_insight_monitored_media_server(
+    def delete_organization_insight_monitored_media_server(
         organization_id: str,
         monitored_media_server_id: str,
         confirmed: bool = False
@@ -317,10 +317,10 @@ def register_insight_tool_handlers():
             return f"❌ Error getting monitored applications: {error_msg}"
     
     @app.tool(
-        name="get_network_insight_app_health_by_time",
+        name="get_network_insight_application_health_by_time",
         description="📈 Get application health metrics over time for a network."
     )
-    def get_network_insight_app_health_by_time(
+    def get_network_insight_application_health_by_time(
         network_id: str,
         application_id: str,
         timespan: int = 86400,

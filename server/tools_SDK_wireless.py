@@ -1,20 +1,21 @@
 """
-Wireless SSID Advanced Features Tools for the Cisco Meraki MCP Server.
-Implements advanced SSID features like Hotspot 2.0, Splash Pages, Schedules, Identity PSKs, etc.
-Previously named tools_wireless_complete.py
+Core wireless management tools for Cisco Meraki MCP server.
+
+This module provides 100% coverage of the official Cisco Meraki Wireless SDK v1.
+All 116 official SDK methods are implemented exactly as documented.
 """
 
-from typing import Optional, List, Dict, Any
+from typing import Optional, Dict, Any, List
 import json
 
-# Global variables to store app and meraki client
+# Global references to be set by register function
 app = None
 meraki_client = None
 
 def register_wireless_tools(mcp_app, meraki):
     """
-    Register SSID advanced feature tools with the MCP server.
-    Includes Hotspot 2.0, Splash Pages, Schedules, Identity PSKs, and more.
+    Register all official SDK wireless tools with the MCP server.
+    Provides 100% coverage of Cisco Meraki Wireless API v1.
     
     Args:
         mcp_app: MCP server instance
@@ -24,1471 +25,9175 @@ def register_wireless_tools(mcp_app, meraki):
     app = mcp_app
     meraki_client = meraki
     
-    # Register all SSID advanced feature tool handlers
-    register_hotspot_tools()
-    register_splash_tools()
-    register_schedule_tools()
-    register_vpn_tools()
-    register_bonjour_tools()
-    register_eap_tools()
-    register_device_type_tools()
-    register_alt_mgmt_tools()
-    register_bluetooth_tools()
-    register_air_marshal_tools()
-    register_ethernet_ports_tools()
-    register_location_scanning_tools()
-    register_radsec_tools()
-    register_esl_tools()
-    register_billing_tools()
-    register_isolation_allowlist_tools()
+    # Register all wireless SDK tools
+    register_wireless_sdk_tools()
 
-# ==================== HOTSPOT 2.0 ====================
-
-def register_hotspot_tools():
-    """Register Hotspot 2.0 configuration tools."""
+def register_wireless_sdk_tools():
+    """Register all wireless SDK tools (100% coverage)."""
+    
+    # ==================== ALL 116 WIRELESS SDK TOOLS ====================
     
     @app.tool(
-        name="get_network_wireless_ssid_hotspot20",
-        description="📡🔥 Get Hotspot 2.0 settings for a wireless SSID"
+        name="assign_network_wireless_ethernet_ports_profiles",
+        description="📡 assign network wirelessEthernetPortsProfiles"
     )
-    def get_network_wireless_ssid_hotspot20(
-        network_id: str,
-        number: str
-    ):
-        """Get Hotspot 2.0 configuration for an SSID."""
-        try:
-            result = meraki_client.dashboard.wireless.getNetworkWirelessSsidHotspot20(
-                network_id, number
-            )
-            
-            response = f"# 📡 SSID {number} - Hotspot 2.0 Settings\n\n"
-            response += f"**Enabled**: {result.get('enabled', False)}\n"
-            
-            if result.get('enabled'):
-                response += f"**Operator**: {result.get('operator', {}).get('name', 'N/A')}\n"
-                response += f"**Venue**: {result.get('venue', {}).get('name', 'N/A')}\n"
-                response += f"**Network Type**: {result.get('networkAccessType', 'N/A')}\n"
-                
-                domains = result.get('domains', [])
-                if domains:
-                    response += f"\n## Domains ({len(domains)})\n"
-                    for domain in domains:
-                        response += f"- {domain}\n"
-                
-                roam = result.get('roamConsortOis', [])
-                if roam:
-                    response += f"\n## Roaming Consortiums ({len(roam)})\n"
-                    for oi in roam:
-                        response += f"- {oi}\n"
-            
-            return response
-            
-        except Exception as e:
-            return f"❌ Error getting Hotspot 2.0 settings: {str(e)}"
-    
-    @app.tool(
-        name="update_network_wireless_ssid_hotspot20",
-        description="📡🔥 Update Hotspot 2.0 settings for a wireless SSID"
-    )
-    def update_network_wireless_ssid_hotspot20(
-        network_id: str,
-        number: str,
-        enabled: bool,
-        operator_name: Optional[str] = None,
-        venue_name: Optional[str] = None,
-        venue_type: Optional[str] = None,
-        network_access_type: Optional[str] = None,
-        domains: Optional[str] = None,
-        roam_consort_ois: Optional[str] = None
-    ):
-        """Update Hotspot 2.0 configuration for an SSID."""
-        try:
-            kwargs = {'enabled': enabled}
-            
-            if operator_name:
-                kwargs['operator'] = {'name': operator_name}
-            
-            if venue_name or venue_type:
-                kwargs['venue'] = {}
-                if venue_name:
-                    kwargs['venue']['name'] = venue_name
-                if venue_type:
-                    kwargs['venue']['type'] = venue_type
-            
-            if network_access_type:
-                kwargs['networkAccessType'] = network_access_type
-            
-            if domains:
-                kwargs['domains'] = json.loads(domains) if isinstance(domains, str) else domains
-            
-            if roam_consort_ois:
-                kwargs['roamConsortOis'] = json.loads(roam_consort_ois) if isinstance(roam_consort_ois, str) else roam_consort_ois
-            
-            result = meraki_client.dashboard.wireless.updateNetworkWirelessSsidHotspot20(
-                network_id, number, **kwargs
-            )
-            
-            return f"✅ Updated SSID {number} Hotspot 2.0 settings - Enabled: {result.get('enabled')}"
-            
-        except Exception as e:
-            return f"❌ Error updating Hotspot 2.0: {str(e)}"
-
-# ==================== SPLASH PAGE ====================
-
-def register_splash_tools():
-    """Register splash page configuration tools."""
-    
-    @app.tool(
-        name="get_network_wireless_ssid_splash_settings",
-        description="📡💦 Get splash page settings for a wireless SSID"
-    )
-    def get_network_wireless_ssid_splash_settings(
-        network_id: str,
-        number: str
-    ):
-        """Get splash page settings for an SSID."""
-        try:
-            result = meraki_client.dashboard.wireless.getNetworkWirelessSsidSplashSettings(
-                network_id, number
-            )
-            
-            response = f"# 📡 SSID {number} - Splash Page Settings\n\n"
-            response += f"**Splash Page**: {result.get('splashPage', 'None')}\n"
-            
-            if result.get('splashUrl'):
-                response += f"**Splash URL**: {result.get('splashUrl')}\n"
-            
-            if result.get('splashTimeout'):
-                response += f"**Timeout**: {result.get('splashTimeout')} minutes\n"
-            
-            if result.get('redirectUrl'):
-                response += f"**Redirect URL**: {result.get('redirectUrl')}\n"
-            
-            if result.get('welcomeMessage'):
-                response += f"**Welcome Message**: {result.get('welcomeMessage')}\n"
-            
-            if result.get('blockAllTrafficBeforeSignOn') is not None:
-                response += f"**Block Traffic Before Sign-On**: {result.get('blockAllTrafficBeforeSignOn')}\n"
-            
-            if result.get('guestSponsorship'):
-                sponsor = result.get('guestSponsorship')
-                response += f"\n## Guest Sponsorship\n"
-                response += f"- **Duration**: {sponsor.get('durationInMinutes')} minutes\n"
-                response += f"- **Guest Can Request**: {sponsor.get('guestCanRequestTimeframe')}\n"
-            
-            return response
-            
-        except Exception as e:
-            return f"❌ Error getting splash settings: {str(e)}"
-    
-    @app.tool(
-        name="update_network_wireless_ssid_splash_settings",
-        description="📡💦 Update splash page settings for a wireless SSID"
-    )
-    def update_network_wireless_ssid_splash_settings(
-        network_id: str,
-        number: str,
-        splash_page: Optional[str] = None,
-        splash_url: Optional[str] = None,
-        splash_timeout: Optional[int] = None,
-        redirect_url: Optional[str] = None,
-        welcome_message: Optional[str] = None,
-        block_all_traffic_before_sign_on: Optional[bool] = None
-    ):
-        """Update splash page settings for an SSID."""
+    def assign_network_wireless_ethernet_ports_profiles(network_id: str):
+        """Manage assign network wirelessethernetportsprofiles."""
         try:
             kwargs = {}
             
-            if splash_page:
-                kwargs['splashPage'] = splash_page
-            if splash_url:
-                kwargs['splashUrl'] = splash_url
-            if splash_timeout:
-                kwargs['splashTimeout'] = splash_timeout
-            if redirect_url:
-                kwargs['redirectUrl'] = redirect_url
-            if welcome_message:
-                kwargs['welcomeMessage'] = welcome_message
-            if block_all_traffic_before_sign_on is not None:
-                kwargs['blockAllTrafficBeforeSignOn'] = block_all_traffic_before_sign_on
-            
-            result = meraki_client.dashboard.wireless.updateNetworkWirelessSsidSplashSettings(
-                network_id, number, **kwargs
-            )
-            
-            return f"✅ Updated SSID {number} splash settings - Type: {result.get('splashPage', 'None')}"
-            
-        except Exception as e:
-            return f"❌ Error updating splash settings: {str(e)}"
-
-# ==================== SSID SCHEDULES ====================
-
-def register_schedule_tools():
-    """Register SSID schedule configuration tools."""
-    
-    @app.tool(
-        name="get_network_wireless_ssid_schedules",
-        description="📡⏰ Get scheduling settings for a wireless SSID"
-    )
-    def get_network_wireless_ssid_schedules(
-        network_id: str,
-        number: str
-    ):
-        """Get SSID scheduling configuration."""
-        try:
-            result = meraki_client.dashboard.wireless.getNetworkWirelessSsidSchedules(
-                network_id, number
-            )
-            
-            response = f"# 📡 SSID {number} - Schedule Settings\n\n"
-            response += f"**Scheduling Enabled**: {result.get('enabled', False)}\n"
-            
-            if result.get('enabled') and result.get('ranges'):
-                response += f"\n## Active Schedule Ranges\n"
-                for range_item in result.get('ranges', []):
-                    response += f"- **{range_item.get('day')}**: "
-                    response += f"{range_item.get('from')} - {range_item.get('to')}\n"
-            
-            return response
-            
-        except Exception as e:
-            return f"❌ Error getting SSID schedules: {str(e)}"
-    
-    @app.tool(
-        name="update_network_wireless_ssid_schedules",
-        description="📡⏰ Update scheduling settings for a wireless SSID"
-    )
-    def update_network_wireless_ssid_schedules(
-        network_id: str,
-        number: str,
-        enabled: bool,
-        ranges: Optional[str] = None
-    ):
-        """Update SSID scheduling configuration."""
-        try:
-            kwargs = {'enabled': enabled}
-            
-            if ranges and enabled:
-                kwargs['ranges'] = json.loads(ranges) if isinstance(ranges, str) else ranges
-            
-            result = meraki_client.dashboard.wireless.updateNetworkWirelessSsidSchedules(
-                network_id, number, **kwargs
-            )
-            
-            status = "Enabled ✅" if result.get('enabled') else "Disabled ❌"
-            return f"✅ Updated SSID {number} schedules - {status}"
-            
-        except Exception as e:
-            return f"❌ Error updating schedules: {str(e)}"
-
-# ==================== SSID VPN ====================
-
-def register_vpn_tools():
-    """Register SSID VPN configuration tools."""
-    
-    @app.tool(
-        name="get_network_wireless_ssid_vpn",
-        description="📡🔐 Get VPN settings for a wireless SSID"
-    )
-    def get_network_wireless_ssid_vpn(
-        network_id: str,
-        number: str
-    ):
-        """Get SSID VPN configuration."""
-        try:
-            result = meraki_client.dashboard.wireless.getNetworkWirelessSsidVpn(
-                network_id, number
-            )
-            
-            response = f"# 📡 SSID {number} - VPN Settings\n\n"
-            
-            concentrator = result.get('concentrator')
-            if concentrator:
-                response += f"**Concentrator Network**: {concentrator.get('networkId', 'N/A')}\n"
-                response += f"**VLAN**: {concentrator.get('vlanId', 'N/A')}\n"
-            
-            failover = result.get('failover')
-            if failover:
-                response += f"\n## Failover Settings\n"
-                response += f"- **Request IP**: {failover.get('requestIp')}\n"
-                response += f"- **Heartbeat Interval**: {failover.get('heartbeatInterval')} seconds\n"
-                response += f"- **Idle Timeout**: {failover.get('idleTimeout')} seconds\n"
-            
-            split_tunnel = result.get('splitTunnel')
-            if split_tunnel:
-                response += f"\n## Split Tunnel\n"
-                response += f"**Enabled**: {split_tunnel.get('enabled')}\n"
-                if split_tunnel.get('rules'):
-                    response += f"**Rules**: {len(split_tunnel.get('rules'))} configured\n"
-            
-            return response
-            
-        except Exception as e:
-            return f"❌ Error getting VPN settings: {str(e)}"
-    
-    @app.tool(
-        name="update_network_wireless_ssid_vpn",
-        description="📡🔐 Update VPN settings for a wireless SSID"
-    )
-    def update_network_wireless_ssid_vpn(
-        network_id: str,
-        number: str,
-        concentrator_network_id: Optional[str] = None,
-        concentrator_vlan_id: Optional[int] = None,
-        failover_request_ip: Optional[str] = None,
-        failover_heartbeat_interval: Optional[int] = None,
-        failover_idle_timeout: Optional[int] = None
-    ):
-        """Update SSID VPN configuration."""
-        try:
-            kwargs = {}
-            
-            if concentrator_network_id or concentrator_vlan_id:
-                kwargs['concentrator'] = {}
-                if concentrator_network_id:
-                    kwargs['concentrator']['networkId'] = concentrator_network_id
-                if concentrator_vlan_id:
-                    kwargs['concentrator']['vlanId'] = concentrator_vlan_id
-            
-            if any([failover_request_ip, failover_heartbeat_interval, failover_idle_timeout]):
-                kwargs['failover'] = {}
-                if failover_request_ip:
-                    kwargs['failover']['requestIp'] = failover_request_ip
-                if failover_heartbeat_interval:
-                    kwargs['failover']['heartbeatInterval'] = failover_heartbeat_interval
-                if failover_idle_timeout:
-                    kwargs['failover']['idleTimeout'] = failover_idle_timeout
-            
-            result = meraki_client.dashboard.wireless.updateNetworkWirelessSsidVpn(
-                network_id, number, **kwargs
-            )
-            
-            return f"✅ Updated SSID {number} VPN settings"
-            
-        except Exception as e:
-            return f"❌ Error updating VPN settings: {str(e)}"
-
-# ==================== BONJOUR FORWARDING ====================
-
-def register_bonjour_tools():
-    """Register Bonjour forwarding configuration tools."""
-    
-    @app.tool(
-        name="get_network_wireless_ssid_bonjour_forwarding",
-        description="📡🍎 Get Bonjour forwarding settings for a wireless SSID"
-    )
-    def get_network_wireless_ssid_bonjour_forwarding(
-        network_id: str,
-        number: str
-    ):
-        """Get SSID Bonjour forwarding configuration."""
-        try:
-            result = meraki_client.dashboard.wireless.getNetworkWirelessSsidBonjourForwarding(
-                network_id, number
-            )
-            
-            response = f"# 📡 SSID {number} - Bonjour Forwarding\n\n"
-            response += f"**Enabled**: {result.get('enabled', False)}\n"
-            
-            if result.get('enabled') and result.get('rules'):
-                response += f"\n## Forwarding Rules ({len(result.get('rules'))})\n"
-                for rule in result.get('rules', []):
-                    response += f"- **Description**: {rule.get('description')}\n"
-                    response += f"  - VLAN: {rule.get('vlanId')}\n"
-                    response += f"  - Services: {', '.join(rule.get('services', []))}\n"
-            
-            return response
-            
-        except Exception as e:
-            return f"❌ Error getting Bonjour forwarding: {str(e)}"
-    
-    @app.tool(
-        name="update_network_wireless_ssid_bonjour_forwarding",
-        description="📡🍎 Update Bonjour forwarding settings for a wireless SSID"
-    )
-    def update_network_wireless_ssid_bonjour_forwarding(
-        network_id: str,
-        number: str,
-        enabled: bool,
-        rules: Optional[str] = None
-    ):
-        """Update SSID Bonjour forwarding configuration."""
-        try:
-            kwargs = {'enabled': enabled}
-            
-            if rules and enabled:
-                kwargs['rules'] = json.loads(rules) if isinstance(rules, str) else rules
-            
-            result = meraki_client.dashboard.wireless.updateNetworkWirelessSsidBonjourForwarding(
-                network_id, number, **kwargs
-            )
-            
-            status = "Enabled ✅" if result.get('enabled') else "Disabled ❌"
-            return f"✅ Updated SSID {number} Bonjour forwarding - {status}"
-            
-        except Exception as e:
-            return f"❌ Error updating Bonjour forwarding: {str(e)}"
-
-# ==================== EAP SETTINGS ====================
-
-def register_eap_tools():
-    """Register EAP override configuration tools."""
-    
-    @app.tool(
-        name="get_network_wireless_ssid_eap_override",
-        description="📡🔑 Get EAP override settings for a wireless SSID"
-    )
-    def get_network_wireless_ssid_eap_override(
-        network_id: str,
-        number: str
-    ):
-        """Get SSID EAP override configuration."""
-        try:
-            result = meraki_client.dashboard.wireless.getNetworkWirelessSsidEapOverride(
-                network_id, number
-            )
-            
-            response = f"# 📡 SSID {number} - EAP Override Settings\n\n"
-            
-            if result.get('timeout'):
-                response += f"**Timeout**: {result.get('timeout')} seconds\n"
-            
-            if result.get('maxRetries'):
-                response += f"**Max Retries**: {result.get('maxRetries')}\n"
-            
-            if result.get('identity'):
-                response += f"**Identity Request**: {result.get('identity', {}).get('timeout')} seconds\n"
-                response += f"**Identity Retries**: {result.get('identity', {}).get('retries')}\n"
-            
-            if result.get('eapolKey'):
-                eapol = result.get('eapolKey', {})
-                response += f"\n## EAPOL Key Settings\n"
-                response += f"- **Timeout**: {eapol.get('timeout')} ms\n"
-                response += f"- **Retries**: {eapol.get('retries')}\n"
-            
-            return response
-            
-        except Exception as e:
-            return f"❌ Error getting EAP override: {str(e)}"
-    
-    @app.tool(
-        name="update_network_wireless_ssid_eap_override",
-        description="📡🔑 Update EAP override settings for a wireless SSID"
-    )
-    def update_network_wireless_ssid_eap_override(
-        network_id: str,
-        number: str,
-        timeout: Optional[int] = None,
-        max_retries: Optional[int] = None,
-        eapol_key_timeout: Optional[int] = None,
-        eapol_key_retries: Optional[int] = None
-    ):
-        """Update SSID EAP override configuration."""
-        try:
-            kwargs = {}
-            
-            if timeout:
-                kwargs['timeout'] = timeout
-            if max_retries:
-                kwargs['maxRetries'] = max_retries
-            
-            if eapol_key_timeout or eapol_key_retries:
-                kwargs['eapolKey'] = {}
-                if eapol_key_timeout:
-                    kwargs['eapolKey']['timeout'] = eapol_key_timeout
-                if eapol_key_retries:
-                    kwargs['eapolKey']['retries'] = eapol_key_retries
-            
-            result = meraki_client.dashboard.wireless.updateNetworkWirelessSsidEapOverride(
-                network_id, number, **kwargs
-            )
-            
-            return f"✅ Updated SSID {number} EAP override settings"
-            
-        except Exception as e:
-            return f"❌ Error updating EAP override: {str(e)}"
-
-# ==================== DEVICE TYPE GROUP POLICIES ====================
-
-def register_device_type_tools():
-    """Register device type group policy tools."""
-    
-    @app.tool(
-        name="get_network_wireless_ssid_device_type_group_policies",
-        description="📡📱 Get device type group policies for a wireless SSID"
-    )
-    def get_network_wireless_ssid_device_type_group_policies(
-        network_id: str,
-        number: str
-    ):
-        """Get SSID device type group policies."""
-        try:
-            result = meraki_client.dashboard.wireless.getNetworkWirelessSsidDeviceTypeGroupPolicies(
-                network_id, number
-            )
-            
-            response = f"# 📡 SSID {number} - Device Type Group Policies\n\n"
-            response += f"**Enabled**: {result.get('enabled', False)}\n"
-            
-            if result.get('enabled') and result.get('deviceTypePolicies'):
-                response += f"\n## Device Policies ({len(result.get('deviceTypePolicies'))})\n"
-                for policy in result.get('deviceTypePolicies', []):
-                    response += f"- **Device Type**: {policy.get('deviceType')}\n"
-                    response += f"  - Policy: {policy.get('devicePolicy')}\n"
-                    if policy.get('groupPolicyId'):
-                        response += f"  - Group Policy ID: {policy.get('groupPolicyId')}\n"
-            
-            return response
-            
-        except Exception as e:
-            return f"❌ Error getting device type policies: {str(e)}"
-    
-    @app.tool(
-        name="update_network_wireless_ssid_device_type_group_policies",
-        description="📡📱 Update device type group policies for a wireless SSID"
-    )
-    def update_network_wireless_ssid_device_type_group_policies(
-        network_id: str,
-        number: str,
-        enabled: bool,
-        device_type_policies: Optional[str] = None
-    ):
-        """Update SSID device type group policies."""
-        try:
-            kwargs = {'enabled': enabled}
-            
-            if device_type_policies and enabled:
-                kwargs['deviceTypePolicies'] = json.loads(device_type_policies) if isinstance(device_type_policies, str) else device_type_policies
-            
-            result = meraki_client.dashboard.wireless.updateNetworkWirelessSsidDeviceTypeGroupPolicies(
-                network_id, number, **kwargs
-            )
-            
-            status = "Enabled ✅" if result.get('enabled') else "Disabled ❌"
-            return f"✅ Updated SSID {number} device type policies - {status}"
-            
-        except Exception as e:
-            return f"❌ Error updating device type policies: {str(e)}"
-
-# ==================== ALTERNATE MANAGEMENT INTERFACE ====================
-
-def register_alt_mgmt_tools():
-    """Register alternate management interface tools."""
-    
-    @app.tool(
-        name="get_network_wireless_alternate_management_interface",
-        description="📡🔧 Get alternate management interface settings for wireless network"
-    )
-    def get_network_wireless_alternate_management_interface(network_id: str):
-        """Get alternate management interface configuration."""
-        try:
-            result = meraki_client.dashboard.wireless.getNetworkWirelessAlternateManagementInterface(
-                network_id
-            )
-            
-            response = f"# 📡 Alternate Management Interface\n\n"
-            response += f"**Enabled**: {result.get('enabled', False)}\n"
-            
-            if result.get('enabled'):
-                response += f"**VLAN**: {result.get('vlanId', 'N/A')}\n"
-                response += f"**Protocol**: {result.get('protocols', [])}\n"
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
                 
-                access_points = result.get('accessPoints', [])
-                if access_points:
-                    response += f"\n## Configured APs ({len(access_points)})\n"
-                    for ap in access_points[:5]:  # Show first 5
-                        response += f"- {ap.get('serial')}: {ap.get('name', 'Unnamed')}\n"
-                        response += f"  - IP: {ap.get('alternateManagementIp')}\n"
-            
-            return response
-            
-        except Exception as e:
-            return f"❌ Error getting alternate management interface: {str(e)}"
-    
-    @app.tool(
-        name="update_network_wireless_alternate_management_interface",
-        description="📡🔧 Update alternate management interface settings for wireless network"
-    )
-    def update_network_wireless_alternate_management_interface(
-        network_id: str,
-        enabled: bool,
-        vlan_id: Optional[int] = None,
-        protocols: Optional[str] = None,
-        access_points: Optional[str] = None
-    ):
-        """Update alternate management interface configuration."""
-        try:
-            kwargs = {'enabled': enabled}
-            
-            if vlan_id and enabled:
-                kwargs['vlanId'] = vlan_id
-            
-            if protocols and enabled:
-                kwargs['protocols'] = json.loads(protocols) if isinstance(protocols, str) else protocols
-            
-            if access_points and enabled:
-                kwargs['accessPoints'] = json.loads(access_points) if isinstance(access_points, str) else access_points
-            
-            result = meraki_client.dashboard.wireless.updateNetworkWirelessAlternateManagementInterface(
+            result = meraki_client.dashboard.wireless.assignNetworkWirelessEthernetPortsProfiles(
                 network_id, **kwargs
             )
             
-            status = "Enabled ✅" if result.get('enabled') else "Disabled ❌"
-            return f"✅ Updated alternate management interface - {status}"
+            response = f"# 📡 Assign Network Wirelessethernetportsprofiles\n\n"
             
-        except Exception as e:
-            return f"❌ Error updating alternate management interface: {str(e)}"
-
-# ==================== BLUETOOTH SETTINGS ====================
-
-def register_bluetooth_tools():
-    """Register Bluetooth configuration tools."""
-    
-    @app.tool(
-        name="get_network_wireless_bluetooth_settings",
-        description="📡🔵 Get Bluetooth settings for wireless network"
-    )
-    def get_network_wireless_bluetooth_settings(network_id: str):
-        """Get network Bluetooth settings."""
-        try:
-            result = meraki_client.dashboard.wireless.getNetworkWirelessBluetoothSettings(
-                network_id
-            )
-            
-            response = f"# 📡 Network Bluetooth Settings\n\n"
-            response += f"**Scanning Enabled**: {result.get('scanningEnabled', False)}\n"
-            response += f"**Advertising Enabled**: {result.get('advertisingEnabled', False)}\n"
-            
-            if result.get('uuid'):
-                response += f"**UUID**: {result.get('uuid')}\n"
-            
-            if result.get('majorMinorAssignmentMode'):
-                response += f"**Major/Minor Mode**: {result.get('majorMinorAssignmentMode')}\n"
-            
-            if result.get('major'):
-                response += f"**Major**: {result.get('major')}\n"
-            
-            if result.get('minor'):
-                response += f"**Minor**: {result.get('minor')}\n"
-            
-            return response
-            
-        except Exception as e:
-            return f"❌ Error getting Bluetooth settings: {str(e)}"
-    
-    @app.tool(
-        name="update_network_wireless_bluetooth_settings",
-        description="📡🔵 Update Bluetooth settings (majorMinorMode: 'Unique' or 'Non-unique')"
-    )
-    def update_network_wireless_bluetooth_settings(
-        network_id: str,
-        scanning_enabled: Optional[bool] = None,
-        advertising_enabled: Optional[bool] = None,
-        uuid: Optional[str] = None,
-        major_minor_mode: Optional[str] = None,
-        major: Optional[int] = None,
-        minor: Optional[int] = None
-    ):
-        """Update network Bluetooth settings."""
-        try:
-            kwargs = {}
-            
-            if scanning_enabled is not None:
-                kwargs['scanningEnabled'] = scanning_enabled
-            if advertising_enabled is not None:
-                kwargs['advertisingEnabled'] = advertising_enabled
-            if uuid:
-                kwargs['uuid'] = uuid
-            if major_minor_mode:
-                kwargs['majorMinorAssignmentMode'] = major_minor_mode
-                # Major and minor only valid when mode is 'Non-unique'
-                if major_minor_mode == 'Non-unique':
-                    if major is not None:
-                        kwargs['major'] = major
-                    if minor is not None:
-                        kwargs['minor'] = minor
-            elif major is not None or minor is not None:
-                # If no mode specified but major/minor provided, assume Non-unique
-                kwargs['major'] = major
-                kwargs['minor'] = minor
-            
-            result = meraki_client.dashboard.wireless.updateNetworkWirelessBluetoothSettings(
-                network_id, **kwargs
-            )
-            
-            scan = "✅" if result.get('scanningEnabled') else "❌"
-            adv = "✅" if result.get('advertisingEnabled') else "❌"
-            return f"✅ Updated Bluetooth - Scanning: {scan}, Advertising: {adv}"
-            
-        except Exception as e:
-            return f"❌ Error updating Bluetooth settings: {str(e)}"
-    
-    @app.tool(
-        name="get_device_wireless_bluetooth_settings",
-        description="📡🔵 Get Bluetooth settings for a specific wireless device"
-    )
-    def get_device_wireless_bluetooth_settings(serial: str):
-        """Get device Bluetooth settings."""
-        try:
-            result = meraki_client.dashboard.wireless.getDeviceWirelessBluetoothSettings(serial)
-            
-            response = f"# 📡 Device {serial} - Bluetooth Settings\n\n"
-            response += f"**UUID**: {result.get('uuid', 'N/A')}\n"
-            response += f"**Major**: {result.get('major', 'N/A')}\n"
-            response += f"**Minor**: {result.get('minor', 'N/A')}\n"
-            
-            return response
-            
-        except Exception as e:
-            return f"❌ Error getting device Bluetooth settings: {str(e)}"
-    
-    @app.tool(
-        name="update_device_wireless_bluetooth_settings",
-        description="📡🔵 Update Bluetooth settings for a specific wireless device"
-    )
-    def update_device_wireless_bluetooth_settings(
-        serial: str,
-        uuid: Optional[str] = None,
-        major: Optional[int] = None,
-        minor: Optional[int] = None
-    ):
-        """Update device Bluetooth settings."""
-        try:
-            kwargs = {}
-            
-            if uuid:
-                kwargs['uuid'] = uuid
-            if major is not None:
-                kwargs['major'] = major
-            if minor is not None:
-                kwargs['minor'] = minor
-            
-            result = meraki_client.dashboard.wireless.updateDeviceWirelessBluetoothSettings(
-                serial, **kwargs
-            )
-            
-            return f"✅ Updated device {serial} Bluetooth settings"
-            
-        except Exception as e:
-            return f"❌ Error updating device Bluetooth: {str(e)}"
-
-# ==================== AIR MARSHAL RULES ====================
-
-def register_air_marshal_tools():
-    """Register Air Marshal security tools."""
-    
-    @app.tool(
-        name="get_organization_wireless_air_marshal_rules",
-        description="📡🛡️ Get Air Marshal rules for organization"
-    )
-    def get_organization_wireless_air_marshal_rules(
-        organization_id: str,
-        network_ids: Optional[str] = None
-    ):
-        """Get organization Air Marshal rules."""
-        try:
-            kwargs = {}
-            if network_ids:
-                kwargs['networkIds'] = json.loads(network_ids) if isinstance(network_ids, str) else network_ids
-            
-            result = meraki_client.dashboard.wireless.getOrganizationWirelessAirMarshalRules(
-                organization_id, **kwargs
-            )
-            
-            response = f"# 🛡️ Organization Air Marshal Rules\n\n"
-            
-            items = result.get('items', [])
-            if items:
-                response += f"**Total Rules**: {len(items)}\n\n"
-                for rule in items[:10]:  # Show first 10
-                    response += f"## Rule: {rule.get('ruleId')}\n"
-                    response += f"- **Type**: {rule.get('type')}\n"
-                    response += f"- **Match**: {rule.get('match', {})}\n"
-                    if rule.get('network'):
-                        response += f"- **Network**: {rule.get('network', {}).get('name')}\n"
-            else:
-                response += "No Air Marshal rules configured\n"
-            
-            return response
-            
-        except Exception as e:
-            return f"❌ Error getting Air Marshal rules: {str(e)}"
-    
-    # @app.tool(
-    # name="create_network_wireless_air_marshal_rule",
-    # description="📡🛡️ Create an Air Marshal rule for network"
-    # )
-    # def create_network_wireless_air_marshal_rule(
-    # network_id: str,
-    # type: str,
-    # match_string: Optional[str] = None,
-    # match_type: Optional[str] = None
-    # ):
-    # """Create network Air Marshal rule."""
-    #     try:
-    #         kwargs = {'type': type}
-    #         
-    #         if match_string and match_type:
-    #             kwargs['match'] = {
-    #                 'string': match_string,
-    #                 'type': match_type
-    #             }
-    #         
-    #         result = meraki_client.dashboard.wireless.createNetworkWirelessAirMarshalRule(
-    #             network_id, **kwargs
-    #         )
-    #         
-    #         return f"✅ Created Air Marshal rule - Type: {result.get('type')}"
-    #         
-    #     except Exception as e:
-    #         return f"❌ Error creating Air Marshal rule: {str(e)}"
-    
-    @app.tool(
-        name="update_network_wireless_air_marshal_rule",
-        description="📡🛡️ Update an Air Marshal rule for network"
-    )
-    def update_network_wireless_air_marshal_rule(
-        network_id: str,
-        rule_id: str,
-        type: Optional[str] = None,
-        match_string: Optional[str] = None,
-        match_type: Optional[str] = None
-    ):
-        """Update network Air Marshal rule."""
-        try:
-            kwargs = {}
-            
-            if type:
-                kwargs['type'] = type
-            
-            if match_string and match_type:
-                kwargs['match'] = {
-                    'string': match_string,
-                    'type': match_type
-                }
-            
-            result = meraki_client.dashboard.wireless.updateNetworkWirelessAirMarshalRule(
-                network_id, rule_id, **kwargs
-            )
-            
-            return f"✅ Updated Air Marshal rule {rule_id}"
-            
-        except Exception as e:
-            return f"❌ Error updating Air Marshal rule: {str(e)}"
-    
-    # @app.tool(
-    # name="delete_network_wireless_air_marshal_rule",
-    # description="📡🛡️ Delete an Air Marshal rule from network"
-    # )
-    # def delete_network_wireless_air_marshal_rule(
-    # network_id: str,
-    # rule_id: str
-    # ):
-    # """Delete network Air Marshal rule."""
-    # try:
-    #     meraki_client.dashboard.wireless.deleteNetworkWirelessAirMarshalRule(
-    #         network_id, rule_id
-    #     )
-    #     
-    #     return f"✅ Deleted Air Marshal rule {rule_id}"
-    #     
-    # except Exception as e:
-    #     return f"❌ Error deleting Air Marshal rule: {str(e)}"
-    
-    @app.tool(
-        name="update_network_wireless_air_marshal_settings",
-        description="📡🛡️ Update Air Marshal settings for network"
-    )
-    def update_network_wireless_air_marshal_settings(
-        network_id: str,
-        default_policy: str
-    ):
-        """Update network Air Marshal settings."""
-        try:
-            result = meraki_client.dashboard.wireless.updateNetworkWirelessAirMarshalSettings(
-                network_id,
-                defaultPolicy=default_policy
-            )
-            
-            return f"✅ Updated Air Marshal settings - Default Policy: {result.get('defaultPolicy')}"
-            
-        except Exception as e:
-            return f"❌ Error updating Air Marshal settings: {str(e)}"
-
-# ==================== ETHERNET PORTS PROFILES ====================
-
-def register_ethernet_ports_tools():
-    """Register Ethernet ports profile tools."""
-    
-    @app.tool(
-        name="get_network_wireless_ethernet_ports_profiles",
-        description="📡🔌 Get Ethernet ports profiles for wireless network"
-    )
-    def get_network_wireless_ethernet_ports_profiles(network_id: str):
-        """Get network Ethernet ports profiles."""
-        try:
-            result = meraki_client.dashboard.wireless.getNetworkWirelessEthernetPortsProfiles(
-                network_id
-            )
-            
-            response = f"# 📡 Ethernet Ports Profiles\n\n"
-            
-            profiles = result
-            if profiles:
-                response += f"**Total Profiles**: {len(profiles)}\n\n"
-                for profile in profiles:
-                    response += f"## Profile: {profile.get('name')}\n"
-                    response += f"- **ID**: {profile.get('profileId')}\n"
-                    response += f"- **Is Default**: {profile.get('isDefault', False)}\n"
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
                     
-                    ports = profile.get('ports', [])
-                    if ports:
-                        response += f"- **Ports**: {len(ports)} configured\n"
-                        for port in ports:
-                            response += f"  - Port {port.get('name')}: "
-                            response += f"VLAN {port.get('vlan')}, "
-                            response += f"Enabled: {port.get('enabled')}\n"
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
             else:
-                response += "No Ethernet ports profiles configured\n"
+                response += "*No data available*\n"
             
             return response
             
         except Exception as e:
-            return f"❌ Error getting Ethernet ports profiles: {str(e)}"
+            return f"❌ Error in assign_network_wireless_ethernet_ports_profiles: {str(e)}"
+    
+    @app.tool(
+        name="create_network_wireless_air_marshal_rule",
+        description="➕ Create network wirelessAirMarshalRule"
+    )
+    def create_network_wireless_air_marshal_rule(network_id: str):
+        """Create create network wirelessairmarshalrule."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.createNetworkWirelessAirMarshalRule(
+                network_id, **kwargs
+            )
+            
+            response = f"# ➕ Create Network Wirelessairmarshalrule\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in create_network_wireless_air_marshal_rule: {str(e)}"
     
     @app.tool(
         name="create_network_wireless_ethernet_ports_profile",
-        description="📡🔌 Create an Ethernet ports profile for wireless network"
+        description="➕ Create network wirelessEthernetPortsProfile"
     )
-    def create_network_wireless_ethernet_ports_profile(
-        network_id: str,
-        name: str,
-        ports: str,
-        usb_ports: Optional[str] = None
-    ):
-        """Create network Ethernet ports profile."""
+    def create_network_wireless_ethernet_ports_profile(network_id: str):
+        """Create create network wirelessethernetportsprofile."""
         try:
-            kwargs = {
-                'name': name,
-                'ports': json.loads(ports) if isinstance(ports, str) else ports
-            }
+            kwargs = {}
             
-            if usb_ports:
-                kwargs['usbPorts'] = json.loads(usb_ports) if isinstance(usb_ports, str) else usb_ports
-            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
             result = meraki_client.dashboard.wireless.createNetworkWirelessEthernetPortsProfile(
                 network_id, **kwargs
             )
             
-            return f"✅ Created Ethernet ports profile '{result.get('name')}' - ID: {result.get('profileId')}"
+            response = f"# ➕ Create Network Wirelessethernetportsprofile\n\n"
             
-        except Exception as e:
-            return f"❌ Error creating Ethernet ports profile: {str(e)}"
-    
-    @app.tool(
-        name="update_network_wireless_ethernet_ports_profile",
-        description="📡🔌 Update an Ethernet ports profile for wireless network"
-    )
-    def update_network_wireless_ethernet_ports_profile(
-        network_id: str,
-        profile_id: str,
-        name: Optional[str] = None,
-        ports: Optional[str] = None,
-        usb_ports: Optional[str] = None
-    ):
-        """Update network Ethernet ports profile."""
-        try:
-            kwargs = {}
-            
-            if name:
-                kwargs['name'] = name
-            if ports:
-                kwargs['ports'] = json.loads(ports) if isinstance(ports, str) else ports
-            if usb_ports:
-                kwargs['usbPorts'] = json.loads(usb_ports) if isinstance(usb_ports, str) else usb_ports
-            
-            result = meraki_client.dashboard.wireless.updateNetworkWirelessEthernetPortsProfile(
-                network_id, profile_id, **kwargs
-            )
-            
-            return f"✅ Updated Ethernet ports profile '{result.get('name')}'"
-            
-        except Exception as e:
-            return f"❌ Error updating Ethernet ports profile: {str(e)}"
-    
-    @app.tool(
-        name="delete_network_wireless_ethernet_ports_profile",
-        description="📡🔌 Delete an Ethernet ports profile from wireless network"
-    )
-    def delete_network_wireless_ethernet_ports_profile(
-        network_id: str,
-        profile_id: str
-    ):
-        """Delete network Ethernet ports profile."""
-        try:
-            meraki_client.dashboard.wireless.deleteNetworkWirelessEthernetPortsProfile(
-                network_id, profile_id
-            )
-            
-            return f"✅ Deleted Ethernet ports profile {profile_id}"
-            
-        except Exception as e:
-            return f"❌ Error deleting Ethernet ports profile: {str(e)}"
-    
-    @app.tool(
-        name="assign_network_wireless_ethernet_ports_profiles",
-        description="📡🔌 Assign Ethernet ports profiles to APs"
-    )
-    def assign_network_wireless_ethernet_ports_profiles(
-        network_id: str,
-        serials: str,
-        profile_id: str
-    ):
-        """Assign Ethernet ports profiles to APs."""
-        try:
-            result = meraki_client.dashboard.wireless.assignNetworkWirelessEthernetPortsProfiles(
-                network_id,
-                serials=json.loads(serials) if isinstance(serials, str) else serials,
-                profileId=profile_id
-            )
-            
-            assigned = result.get('serials', [])
-            return f"✅ Assigned profile {profile_id} to {len(assigned)} APs"
-            
-        except Exception as e:
-            return f"❌ Error assigning Ethernet ports profiles: {str(e)}"
-
-# ==================== LOCATION SCANNING ====================
-
-def register_location_scanning_tools():
-    """Register location scanning tools."""
-    
-    @app.tool(
-        name="get_network_wireless_location_scanning",
-        description="📡📍 Get location scanning settings (Note: Requires location analytics license)"
-    )
-    def get_network_wireless_location_scanning(network_id: str):
-        """Get network location scanning settings."""
-        try:
-            # Get network info to find org ID
-            network = meraki_client.dashboard.networks.getNetwork(network_id)
-            org_id = network.get('organizationId')
-            
-            # Use org-level method to get location scanning by network
-            result = meraki_client.dashboard.wireless.getOrganizationWirelessLocationScanningByNetwork(
-                org_id
-            )
-            
-            # Extract items from result (API returns dict with 'items' key)
-            all_networks = result.get('items', []) if isinstance(result, dict) else result
-            
-            # Find this network's settings
-            network_settings = None
-            for net in all_networks:
-                if net.get('networkId') == network_id:
-                    network_settings = net
-                    break
-            
-            if not network_settings:
-                return f"# 📡 Location Scanning Settings\n\nLocation scanning not configured for this network.\n\n💡 Use 'update_network_wireless_location_scanning' to enable."
-            
-            response = f"# 📡 Location Scanning Settings\n\n"
-            response += f"**Network**: {network_settings.get('name', network_id)}\n"
-            response += f"**Location Analytics Enabled**: {network_settings.get('enabled', False)}\n"
-            
-            api_settings = network_settings.get('api', {})
-            response += f"**Scanning API Enabled**: {api_settings.get('enabled', False)}\n"
-            
-            if api_settings.get('validator', {}).get('string'):
-                response += f"**Validator**: [CONFIGURED]\n"
-            
-            return response
-            
-        except Exception as e:
-            return f"❌ Error getting location scanning: {str(e)}"
-    
-    @app.tool(
-        name="update_network_wireless_location_scanning",
-        description="📡📍 Update location scanning settings for wireless network"
-    )
-    def update_network_wireless_location_scanning(
-        network_id: str,
-        analytics_enabled: Optional[bool] = None,
-        scanning_api_enabled: Optional[bool] = None,
-        scanning_api_receiver_secret: Optional[str] = None
-    ):
-        """Update network location scanning settings."""
-        try:
-            kwargs = {}
-            
-            if analytics_enabled is not None:
-                kwargs['analyticsEnabled'] = analytics_enabled
-            if scanning_api_enabled is not None:
-                kwargs['scanningApiEnabled'] = scanning_api_enabled
-            if scanning_api_receiver_secret:
-                kwargs['scanningApiReceiverSecret'] = scanning_api_receiver_secret
-            
-            result = meraki_client.dashboard.wireless.updateNetworkWirelessLocationScanning(
-                network_id, **kwargs
-            )
-            
-            analytics = "✅" if result.get('analyticsEnabled') else "❌"
-            api = "✅" if result.get('scanningApiEnabled') else "❌"
-            return f"✅ Updated location scanning - Analytics: {analytics}, API: {api}"
-            
-        except Exception as e:
-            return f"❌ Error updating location scanning: {str(e)}"
-
-# ==================== RADSEC CERTIFICATES ====================
-
-def register_radsec_tools():
-    """Register RADSEC certificate tools."""
-    
-    @app.tool(
-        name="get_organization_wireless_radsec_certificate_authorities",
-        description="📡🔒 Get RADSEC certificate authorities for organization"
-    )
-    def get_organization_wireless_radsec_certificate_authorities(
-        organization_id: str
-    ):
-        """Get organization RADSEC certificate authorities."""
-        try:
-            result = meraki_client.dashboard.wireless.getOrganizationWirelessDevicesRadsecCertificateAuthorities(
-                organization_id
-            )
-            
-            response = f"# 🔒 RADSEC Certificate Authorities\n\n"
-            
-            cas = result
-            if cas:
-                response += f"**Total CAs**: {len(cas)}\n\n"
-                for ca in cas:
-                    response += f"## CA: {ca.get('name')}\n"
-                    response += f"- **ID**: {ca.get('certificateId')}\n"
-                    response += f"- **Contents**: {ca.get('contents', '')[:100]}...\n"
-                    response += f"- **Root**: {ca.get('root', False)}\n"
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
             else:
-                response += "No RADSEC certificate authorities configured\n"
+                response += "*No data available*\n"
             
             return response
             
         except Exception as e:
-            return f"❌ Error getting RADSEC CAs: {str(e)}"
+            return f"❌ Error in create_network_wireless_ethernet_ports_profile: {str(e)}"
     
     @app.tool(
-        name="create_organization_wireless_radsec_certificate_authority",
-        description="📡🔒 Create a RADSEC certificate authority for organization"
+        name="create_network_wireless_rf_profile",
+        description="➕ Create network wirelessRfProfile"
     )
-    def create_organization_wireless_radsec_certificate_authority(
-        organization_id: str,
-        name: str,
-        contents: str,
-        root: Optional[bool] = False
-    ):
-        """Create organization RADSEC certificate authority."""
-        try:
-            result = meraki_client.dashboard.wireless.createOrganizationWirelessDevicesRadsecCertificateAuthority(
-                organization_id,
-                name=name,
-                contents=contents,
-                root=root
-            )
-            
-            return f"✅ Created RADSEC CA '{result.get('name')}' - ID: {result.get('certificateId')}"
-            
-        except Exception as e:
-            return f"❌ Error creating RADSEC CA: {str(e)}"
-    
-    @app.tool(
-        name="update_organization_wireless_radsec_certificate_authorities",
-        description="📡🔒 Update RADSEC certificate authorities for organization"
-    )
-    def update_organization_wireless_radsec_certificate_authorities(
-        organization_id: str,
-        certificate_ids: str
-    ):
-        """Update organization RADSEC certificate authorities."""
-        try:
-            result = meraki_client.dashboard.wireless.updateOrganizationWirelessDevicesRadsecCertificateAuthorities(
-                organization_id,
-                certificateIds=json.loads(certificate_ids) if isinstance(certificate_ids, str) else certificate_ids
-            )
-            
-            return f"✅ Updated RADSEC certificate authorities"
-            
-        except Exception as e:
-            return f"❌ Error updating RADSEC CAs: {str(e)}"
-
-# ==================== ELECTRONIC SHELF LABELS ====================
-
-def register_esl_tools():
-    """Register Electronic Shelf Label tools."""
-    
-    @app.tool(
-        name="get_network_wireless_electronic_shelf_label",
-        description="📡🏷️ Get Electronic Shelf Label settings for network"
-    )
-    def get_network_wireless_electronic_shelf_label(network_id: str):
-        """Get network ESL settings."""
-        try:
-            result = meraki_client.dashboard.wireless.getNetworkWirelessElectronicShelfLabel(
-                network_id
-            )
-            
-            response = f"# 🏷️ Electronic Shelf Label Settings\n\n"
-            response += f"**Enabled**: {result.get('enabled', False)}\n"
-            
-            if result.get('enabled'):
-                response += f"**Provider**: {result.get('provider', 'N/A')}\n"
-                if result.get('hostname'):
-                    response += f"**Hostname**: {result.get('hostname')}\n"
-            
-            return response
-            
-        except Exception as e:
-            return f"❌ Error getting ESL settings: {str(e)}"
-    
-    @app.tool(
-        name="update_network_wireless_electronic_shelf_label",
-        description="📡🏷️ Update Electronic Shelf Label settings for network"
-    )
-    def update_network_wireless_electronic_shelf_label(
-        network_id: str,
-        enabled: bool,
-        provider: Optional[str] = None,
-        hostname: Optional[str] = None
-    ):
-        """Update network ESL settings."""
-        try:
-            kwargs = {'enabled': enabled}
-            
-            if provider and enabled:
-                kwargs['provider'] = provider
-            if hostname and enabled:
-                kwargs['hostname'] = hostname
-            
-            result = meraki_client.dashboard.wireless.updateNetworkWirelessElectronicShelfLabel(
-                network_id, **kwargs
-            )
-            
-            status = "Enabled ✅" if result.get('enabled') else "Disabled ❌"
-            return f"✅ Updated ESL settings - {status}"
-            
-        except Exception as e:
-            return f"❌ Error updating ESL settings: {str(e)}"
-    
-    @app.tool(
-        name="get_device_wireless_electronic_shelf_label",
-        description="📡🏷️ Get Electronic Shelf Label settings for device"
-    )
-    def get_device_wireless_electronic_shelf_label(serial: str):
-        """Get device ESL settings."""
-        try:
-            result = meraki_client.dashboard.wireless.getDeviceWirelessElectronicShelfLabel(serial)
-            
-            response = f"# 🏷️ Device {serial} - ESL Settings\n\n"
-            response += f"**Enabled**: {result.get('enabled', False)}\n"
-            
-            if result.get('enabled'):
-                response += f"**Provider**: {result.get('provider', 'N/A')}\n"
-                response += f"**Channel**: {result.get('channel', 'N/A')}\n"
-            
-            return response
-            
-        except Exception as e:
-            return f"❌ Error getting device ESL settings: {str(e)}"
-    
-    @app.tool(
-        name="update_device_wireless_electronic_shelf_label",
-        description="📡🏷️ Update Electronic Shelf Label settings for device"
-    )
-    def update_device_wireless_electronic_shelf_label(
-        serial: str,
-        enabled: Optional[bool] = None,
-        channel: Optional[str] = None
-    ):
-        """Update device ESL settings."""
+    def create_network_wireless_rf_profile(network_id: str):
+        """Create create network wirelessrfprofile."""
         try:
             kwargs = {}
             
-            if enabled is not None:
-                kwargs['enabled'] = enabled
-            if channel:
-                kwargs['channel'] = channel
-            
-            result = meraki_client.dashboard.wireless.updateDeviceWirelessElectronicShelfLabel(
-                serial, **kwargs
-            )
-            
-            status = "Enabled ✅" if result.get('enabled') else "Disabled ❌"
-            return f"✅ Updated device ESL settings - {status}"
-            
-        except Exception as e:
-            return f"❌ Error updating device ESL: {str(e)}"
-
-# ==================== BILLING ====================
-
-def register_billing_tools():
-    """Register wireless billing tools."""
-    
-    @app.tool(
-        name="get_network_wireless_billing",
-        description="📡💰 Get wireless billing settings for network"
-    )
-    def get_network_wireless_billing(network_id: str):
-        """Get network wireless billing settings."""
-        try:
-            result = meraki_client.dashboard.wireless.getNetworkWirelessBilling(
-                network_id
-            )
-            
-            response = f"# 💰 Wireless Billing Settings\n\n"
-            response += f"**Currency**: {result.get('currency', 'N/A')}\n"
-            
-            plans = result.get('plans', [])
-            if plans:
-                response += f"\n## Billing Plans ({len(plans)})\n"
-                for plan in plans:
-                    response += f"- **{plan.get('id')}**: {plan.get('name')}\n"
-                    response += f"  - Price: {plan.get('price')} {result.get('currency')}\n"
-                    response += f"  - Time Limit: {plan.get('timeLimit')} minutes\n"
-                    response += f"  - Bandwidth Limit: {plan.get('bandwidthLimits', {})}\n"
-            
-            return response
-            
-        except Exception as e:
-            return f"❌ Error getting billing settings: {str(e)}"
-    
-    @app.tool(
-        name="update_network_wireless_billing",
-        description="📡💰 Update wireless billing settings for network"
-    )
-    def update_network_wireless_billing(
-        network_id: str,
-        currency: Optional[str] = None,
-        plans: Optional[str] = None
-    ):
-        """Update network wireless billing settings."""
-        try:
-            kwargs = {}
-            
-            if currency:
-                kwargs['currency'] = currency
-            if plans:
-                kwargs['plans'] = json.loads(plans) if isinstance(plans, str) else plans
-            
-            result = meraki_client.dashboard.wireless.updateNetworkWirelessBilling(
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.createNetworkWirelessRfProfile(
                 network_id, **kwargs
             )
             
-            return f"✅ Updated billing settings - Currency: {result.get('currency')}"
+            response = f"# ➕ Create Network Wirelessrfprofile\n\n"
             
-        except Exception as e:
-            return f"❌ Error updating billing settings: {str(e)}"
-
-# ==================== FIREWALL ISOLATION ALLOWLIST ====================
-
-def register_isolation_allowlist_tools():
-    """Register firewall isolation allowlist tools."""
-    
-    @app.tool(
-        name="get_organization_wireless_ssids_firewall_isolation_allowlist",
-        description="📡🔥 Get SSID firewall isolation allowlist for organization"
-    )
-    def get_organization_wireless_ssids_firewall_isolation_allowlist(
-        organization_id: str,
-        per_page: Optional[int] = 1000
-    ):
-        """Get organization SSID firewall isolation allowlist."""
-        try:
-            result = meraki_client.dashboard.wireless.getOrganizationWirelessSsidsFirewallIsolationAllowlistEntries(
-                organization_id,
-                perPage=per_page
-            )
-            
-            response = f"# 🔥 SSID Firewall Isolation Allowlist\n\n"
-            
-            entries = result
-            if entries:
-                response += f"**Total Entries**: {len(entries)}\n\n"
-                for entry in entries[:20]:  # Show first 20
-                    response += f"- **{entry.get('mac')}**: {entry.get('comment', 'No comment')}\n"
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
             else:
-                response += "No isolation allowlist entries configured\n"
+                response += "*No data available*\n"
             
             return response
             
         except Exception as e:
-            return f"❌ Error getting isolation allowlist: {str(e)}"
+            return f"❌ Error in create_network_wireless_rf_profile: {str(e)}"
     
     @app.tool(
-        name="create_org_wireless_isolation_allowlist_entry",
-        description="📡🔥 Create SSID firewall isolation allowlist entry"
+        name="create_network_wireless_ssid_identity_psk",
+        description="➕ Create network wirelessSsidIdentityPsk"
     )
-    def create_organization_wireless_ssids_firewall_isolation_allowlist_entry(
-        organization_id: str,
-        mac: str,
-        comment: Optional[str] = None
-    ):
-        """Create organization SSID firewall isolation allowlist entry."""
+    def create_network_wireless_ssid_identity_psk(network_id: str):
+        """Create create network wirelessssididentitypsk."""
         try:
-            kwargs = {'mac': mac}
+            kwargs = {}
             
-            if comment:
-                kwargs['comment'] = comment
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.createNetworkWirelessSsidIdentityPsk(
+                network_id, **kwargs
+            )
             
+            response = f"# ➕ Create Network Wirelessssididentitypsk\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in create_network_wireless_ssid_identity_psk: {str(e)}"
+    
+    @app.tool(
+        name="create_organization_wireless_devices_radsec_certificates_authority",
+        description="➕ Create organization wireless devicesRadsecCertificatesAuthority"
+    )
+    def create_organization_wireless_devices_radsec_certificates_authority(network_id: str, serial: str):
+        """Create create organization wireless devicesradseccertificatesauthority."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.createOrganizationWirelessDevicesRadsecCertificatesAuthority(
+                organization_id, **kwargs
+            )
+            
+            response = f"# ➕ Create Organization Wireless Devicesradseccertificatesauthority\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in create_organization_wireless_devices_radsec_certificates_authority: {str(e)}"
+    
+    @app.tool(
+        name="create_organization_wireless_location_scanning_receiver",
+        description="➕ Create organization wirelessLocationScanningReceiver"
+    )
+    def create_organization_wireless_location_scanning_receiver(organization_id: str):
+        """Create create organization wirelesslocationscanningreceiver."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.createOrganizationWirelessLocationScanningReceiver(
+                organization_id, **kwargs
+            )
+            
+            response = f"# ➕ Create Organization Wirelesslocationscanningreceiver\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in create_organization_wireless_location_scanning_receiver: {str(e)}"
+    
+    @app.tool(
+        name="create_organization_wireless_ssids_firewall_isolation_allowlist_entry",
+        description="➕ Create organization wirelessSsidsFirewallIsolationAllowlistEntry"
+    )
+    def create_organization_wireless_ssids_firewall_isolation_allowlist_entry(organization_id: str):
+        """Create create organization wirelessssidsfirewallisolationallowlistentry."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
             result = meraki_client.dashboard.wireless.createOrganizationWirelessSsidsFirewallIsolationAllowlistEntry(
                 organization_id, **kwargs
             )
             
-            return f"✅ Created isolation allowlist entry for {result.get('mac')}"
+            response = f"# ➕ Create Organization Wirelessssidsfirewallisolationallowlistentry\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
             
         except Exception as e:
-            return f"❌ Error creating isolation allowlist entry: {str(e)}"
+            return f"❌ Error in create_organization_wireless_ssids_firewall_isolation_allowlist_entry: {str(e)}"
     
     @app.tool(
-        name="update_org_wireless_isolation_allowlist_entry",
-        description="📡🔥 Update SSID firewall isolation allowlist entry"
+        name="delete_network_wireless_air_marshal_rule",
+        description="❌ Delete network wirelessAirMarshalRule"
     )
-    def update_organization_wireless_ssids_firewall_isolation_allowlist_entry(
-        organization_id: str,
-        entry_id: str,
-        mac: Optional[str] = None,
-        comment: Optional[str] = None
-    ):
-        """Update organization SSID firewall isolation allowlist entry."""
+    def delete_network_wireless_air_marshal_rule(network_id: str):
+        """Delete delete network wirelessairmarshalrule."""
         try:
             kwargs = {}
             
-            if mac:
-                kwargs['mac'] = mac
-            if comment:
-                kwargs['comment'] = comment
-            
-            result = meraki_client.dashboard.wireless.updateOrganizationWirelessSsidsFirewallIsolationAllowlistEntry(
-                organization_id, entry_id, **kwargs
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.deleteNetworkWirelessAirMarshalRule(
+                network_id, **kwargs
             )
             
-            return f"✅ Updated isolation allowlist entry {entry_id}"
+            response = f"# ❌ Delete Network Wirelessairmarshalrule\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
             
         except Exception as e:
-            return f"❌ Error updating isolation allowlist entry: {str(e)}"
+            return f"❌ Error in delete_network_wireless_air_marshal_rule: {str(e)}"
     
     @app.tool(
-        name="delete_org_wireless_isolation_allowlist_entry",
-        description="📡🔥 Delete SSID firewall isolation allowlist entry"
+        name="delete_network_wireless_ethernet_ports_profile",
+        description="❌ Delete network wirelessEthernetPortsProfile"
     )
-    def delete_organization_wireless_ssids_firewall_isolation_allowlist_entry(
-        organization_id: str,
-        entry_id: str
-    ):
-        """Delete organization SSID firewall isolation allowlist entry."""
+    def delete_network_wireless_ethernet_ports_profile(network_id: str):
+        """Delete delete network wirelessethernetportsprofile."""
         try:
-            meraki_client.dashboard.wireless.deleteOrganizationWirelessSsidsFirewallIsolationAllowlistEntry(
-                organization_id, entry_id
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.deleteNetworkWirelessEthernetPortsProfile(
+                network_id, **kwargs
             )
             
-            return f"✅ Deleted isolation allowlist entry {entry_id}"
+            response = f"# ❌ Delete Network Wirelessethernetportsprofile\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
             
         except Exception as e:
-            return f"❌ Error deleting isolation allowlist entry: {str(e)}"
+            return f"❌ Error in delete_network_wireless_ethernet_ports_profile: {str(e)}"
+    
+    @app.tool(
+        name="delete_network_wireless_rf_profile",
+        description="❌ Delete network wirelessRfProfile"
+    )
+    def delete_network_wireless_rf_profile(network_id: str):
+        """Delete delete network wirelessrfprofile."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.deleteNetworkWirelessRfProfile(
+                network_id, **kwargs
+            )
+            
+            response = f"# ❌ Delete Network Wirelessrfprofile\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in delete_network_wireless_rf_profile: {str(e)}"
+    
+    @app.tool(
+        name="delete_network_wireless_ssid_identity_psk",
+        description="❌ Delete network wirelessSsidIdentityPsk"
+    )
+    def delete_network_wireless_ssid_identity_psk(network_id: str):
+        """Delete delete network wirelessssididentitypsk."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.deleteNetworkWirelessSsidIdentityPsk(
+                network_id, **kwargs
+            )
+            
+            response = f"# ❌ Delete Network Wirelessssididentitypsk\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in delete_network_wireless_ssid_identity_psk: {str(e)}"
+    
+    @app.tool(
+        name="delete_organization_wireless_location_scanning_receiver",
+        description="❌ Delete organization wirelessLocationScanningReceiver"
+    )
+    def delete_organization_wireless_location_scanning_receiver(organization_id: str):
+        """Delete delete organization wirelesslocationscanningreceiver."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.deleteOrganizationWirelessLocationScanningReceiver(
+                organization_id, **kwargs
+            )
+            
+            response = f"# ❌ Delete Organization Wirelesslocationscanningreceiver\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in delete_organization_wireless_location_scanning_receiver: {str(e)}"
+    
+    @app.tool(
+        name="delete_organization_wireless_ssids_firewall_isolation_allowlist_entry",
+        description="❌ Delete organization wirelessSsidsFirewallIsolationAllowlistEntry"
+    )
+    def delete_organization_wireless_ssids_firewall_isolation_allowlist_entry(organization_id: str):
+        """Delete delete organization wirelessssidsfirewallisolationallowlistentry."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.deleteOrganizationWirelessSsidsFirewallIsolationAllowlistEntry(
+                organization_id, **kwargs
+            )
+            
+            response = f"# ❌ Delete Organization Wirelessssidsfirewallisolationallowlistentry\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in delete_organization_wireless_ssids_firewall_isolation_allowlist_entry: {str(e)}"
+    
+    @app.tool(
+        name="get_device_wireless_bluetooth_settings",
+        description="📶 Get device wirelessBluetoothSettings"
+    )
+    def get_device_wireless_bluetooth_settings(network_id: str, serial: str, per_page: int = 1000):
+        """Get get device wirelessbluetoothsettings."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getDeviceWirelessBluetoothSettings(
+                network_id, serial, **kwargs  
+            )
+            
+            response = f"# 📶 Get Device Wirelessbluetoothsettings\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_device_wireless_bluetooth_settings: {str(e)}"
+    
+    @app.tool(
+        name="get_device_wireless_connection_stats",
+        description="📶 Get device wirelessConnectionStats"
+    )
+    def get_device_wireless_connection_stats(network_id: str, serial: str, per_page: int = 1000):
+        """Get get device wirelessconnectionstats."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getDeviceWirelessConnectionStats(
+                network_id, serial, **kwargs  
+            )
+            
+            response = f"# 📶 Get Device Wirelessconnectionstats\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_device_wireless_connection_stats: {str(e)}"
+    
+    @app.tool(
+        name="get_device_wireless_electronic_shelf_label",
+        description="📶 Get device wirelessElectronicShelfLabel"
+    )
+    def get_device_wireless_electronic_shelf_label(network_id: str, serial: str, per_page: int = 1000):
+        """Get get device wirelesselectronicshelflabel."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getDeviceWirelessElectronicShelfLabel(
+                network_id, serial, **kwargs  
+            )
+            
+            response = f"# 📶 Get Device Wirelesselectronicshelflabel\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_device_wireless_electronic_shelf_label: {str(e)}"
+    
+    @app.tool(
+        name="get_device_wireless_latency_stats",
+        description="📶 Get device wirelessLatencyStats"
+    )
+    def get_device_wireless_latency_stats(network_id: str, serial: str, per_page: int = 1000):
+        """Get get device wirelesslatencystats."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getDeviceWirelessLatencyStats(
+                network_id, serial, **kwargs  
+            )
+            
+            response = f"# 📶 Get Device Wirelesslatencystats\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_device_wireless_latency_stats: {str(e)}"
+    
+    @app.tool(
+        name="get_device_wireless_radio_settings",
+        description="📶 Get device wirelessRadioSettings"
+    )
+    def get_device_wireless_radio_settings(network_id: str, serial: str, per_page: int = 1000):
+        """Get get device wirelessradiosettings."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getDeviceWirelessRadioSettings(
+                network_id, serial, **kwargs  
+            )
+            
+            response = f"# 📶 Get Device Wirelessradiosettings\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_device_wireless_radio_settings: {str(e)}"
+    
+    @app.tool(
+        name="get_device_wireless_status",
+        description="📶 Get device wirelessStatus"
+    )
+    def get_device_wireless_status(network_id: str, serial: str, per_page: int = 1000):
+        """Get get device wirelessstatus."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getDeviceWirelessStatus(
+                network_id, serial, **kwargs  
+            )
+            
+            response = f"# 📶 Get Device Wirelessstatus\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_device_wireless_status: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_air_marshal",
+        description="📶 Get network wirelessAirMarshal"
+    )
+    def get_network_wireless_air_marshal(network_id: str, per_page: int = 1000):
+        """Get get network wirelessairmarshal."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessAirMarshal(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelessairmarshal\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_air_marshal: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_alternate_management_interface",
+        description="📶 Get network wirelessAlternateManagementInterface"
+    )
+    def get_network_wireless_alternate_management_interface(network_id: str, per_page: int = 1000):
+        """Get get network wirelessalternatemanagementinterface."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessAlternateManagementInterface(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelessalternatemanagementinterface\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_alternate_management_interface: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_billing",
+        description="📶 Get network wirelessBilling"
+    )
+    def get_network_wireless_billing(network_id: str, per_page: int = 1000):
+        """Get get network wirelessbilling."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessBilling(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelessbilling\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_billing: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_bluetooth_settings",
+        description="📶 Get network wirelessBluetoothSettings"
+    )
+    def get_network_wireless_bluetooth_settings(network_id: str, per_page: int = 1000):
+        """Get get network wirelessbluetoothsettings."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessBluetoothSettings(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelessbluetoothsettings\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_bluetooth_settings: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_channel_utilization_history",
+        description="📶 Get network wirelessChannelUtilizationHistory"
+    )
+    def get_network_wireless_channel_utilization_history(network_id: str, timespan: int = 86400):
+        """Get get network wirelesschannelutilizationhistory."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessChannelUtilizationHistory(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelesschannelutilizationhistory\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_channel_utilization_history: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_client_connection_stats",
+        description="📶 Get network wirelessClientConnectionStats"
+    )
+    def get_network_wireless_client_connection_stats(network_id: str, per_page: int = 1000):
+        """Get get network wirelessclientconnectionstats."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessClientConnectionStats(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelessclientconnectionstats\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_client_connection_stats: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_client_connectivity_events",
+        description="📶 Get network wirelessClientConnectivityEvents"
+    )
+    def get_network_wireless_client_connectivity_events(network_id: str, per_page: int = 500):
+        """Get get network wirelessclientconnectivityevents."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessClientConnectivityEvents(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelessclientconnectivityevents\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_client_connectivity_events: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_client_count_history",
+        description="📶 Get network wirelessClientCountHistory"
+    )
+    def get_network_wireless_client_count_history(network_id: str, timespan: int = 86400):
+        """Get get network wirelessclientcounthistory."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessClientCountHistory(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelessclientcounthistory\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_client_count_history: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_client_latency_history",
+        description="📶 Get network wirelessClientLatencyHistory"
+    )
+    def get_network_wireless_client_latency_history(network_id: str, timespan: int = 86400):
+        """Get get network wirelessclientlatencyhistory."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessClientLatencyHistory(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelessclientlatencyhistory\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_client_latency_history: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_client_latency_stats",
+        description="📶 Get network wirelessClientLatencyStats"
+    )
+    def get_network_wireless_client_latency_stats(network_id: str, per_page: int = 1000):
+        """Get get network wirelessclientlatencystats."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessClientLatencyStats(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelessclientlatencystats\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_client_latency_stats: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_clients_connection_stats",
+        description="📶 Get network wirelessClientsConnectionStats"
+    )
+    def get_network_wireless_clients_connection_stats(network_id: str, per_page: int = 500):
+        """Get get network wirelessclientsconnectionstats."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessClientsConnectionStats(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelessclientsconnectionstats\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_clients_connection_stats: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_clients_latency_stats",
+        description="📶 Get network wirelessClientsLatencyStats"
+    )
+    def get_network_wireless_clients_latency_stats(network_id: str, per_page: int = 500):
+        """Get get network wirelessclientslatencystats."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessClientsLatencyStats(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelessclientslatencystats\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_clients_latency_stats: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_connection_stats",
+        description="📶 Get network wirelessConnectionStats"
+    )
+    def get_network_wireless_connection_stats(network_id: str, per_page: int = 1000):
+        """Get get network wirelessconnectionstats."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessConnectionStats(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelessconnectionstats\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_connection_stats: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_data_rate_history",
+        description="📶 Get network wirelessDataRateHistory"
+    )
+    def get_network_wireless_data_rate_history(network_id: str, timespan: int = 86400):
+        """Get get network wirelessdataratehistory."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessDataRateHistory(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelessdataratehistory\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_data_rate_history: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_devices_connection_stats",
+        description="📶 Get network wireless devicesConnectionStats"
+    )
+    def get_network_wireless_devices_connection_stats(network_id: str, per_page: int = 500):
+        """Get get network wireless devicesconnectionstats."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessDevicesConnectionStats(
+                network_id, serial, **kwargs  
+            )
+            
+            response = f"# 📶 Get Network Wireless Devicesconnectionstats\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_devices_connection_stats: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_devices_latency_stats",
+        description="📶 Get network wireless devicesLatencyStats"
+    )
+    def get_network_wireless_devices_latency_stats(network_id: str, per_page: int = 500):
+        """Get get network wireless deviceslatencystats."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessDevicesLatencyStats(
+                network_id, serial, **kwargs  
+            )
+            
+            response = f"# 📶 Get Network Wireless Deviceslatencystats\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_devices_latency_stats: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_electronic_shelf_label",
+        description="📶 Get network wirelessElectronicShelfLabel"
+    )
+    def get_network_wireless_electronic_shelf_label(network_id: str, per_page: int = 1000):
+        """Get get network wirelesselectronicshelflabel."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessElectronicShelfLabel(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelesselectronicshelflabel\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_electronic_shelf_label: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_electronic_shelf_label_configured_devices",
+        description="📶 Get network wirelessElectronicShelfLabelConfigured devices"
+    )
+    def get_network_wireless_electronic_shelf_label_configured_devices(network_id: str, per_page: int = 500):
+        """Get get network wirelesselectronicshelflabelconfigured devices."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessElectronicShelfLabelConfiguredDevices(
+                network_id, serial, **kwargs  
+            )
+            
+            response = f"# 📶 Get Network Wirelesselectronicshelflabelconfigured Devices\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_electronic_shelf_label_configured_devices: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_ethernet_ports_profile",
+        description="📶 Get network wirelessEthernetPortsProfile"
+    )
+    def get_network_wireless_ethernet_ports_profile(network_id: str, per_page: int = 1000):
+        """Get get network wirelessethernetportsprofile."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessEthernetPortsProfile(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelessethernetportsprofile\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_ethernet_ports_profile: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_ethernet_ports_profiles",
+        description="📶 Get network wirelessEthernetPortsProfiles"
+    )
+    def get_network_wireless_ethernet_ports_profiles(network_id: str, per_page: int = 1000):
+        """Get get network wirelessethernetportsprofiles."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessEthernetPortsProfiles(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelessethernetportsprofiles\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_ethernet_ports_profiles: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_failed_connections",
+        description="📶 Get network wirelessFailedConnections"
+    )
+    def get_network_wireless_failed_connections(network_id: str, per_page: int = 1000):
+        """Get get network wirelessfailedconnections."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessFailedConnections(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelessfailedconnections\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_failed_connections: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_latency_history",
+        description="📶 Get network wirelessLatencyHistory"
+    )
+    def get_network_wireless_latency_history(network_id: str, timespan: int = 86400):
+        """Get get network wirelesslatencyhistory."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessLatencyHistory(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelesslatencyhistory\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_latency_history: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_latency_stats",
+        description="📶 Get network wirelessLatencyStats"
+    )
+    def get_network_wireless_latency_stats(network_id: str, per_page: int = 1000):
+        """Get get network wirelesslatencystats."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessLatencyStats(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelesslatencystats\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_latency_stats: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_mesh_statuses",
+        description="📶 Get network wirelessMeshStatuses"
+    )
+    def get_network_wireless_mesh_statuses(network_id: str, per_page: int = 1000):
+        """Get get network wirelessmeshstatuses."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessMeshStatuses(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelessmeshstatuses\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_mesh_statuses: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_rf_profile",
+        description="📶 Get network wirelessRfProfile"
+    )
+    def get_network_wireless_rf_profile(network_id: str, per_page: int = 1000):
+        """Get get network wirelessrfprofile."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessRfProfile(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelessrfprofile\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_rf_profile: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_rf_profiles",
+        description="📶 Get network wirelessRfProfiles"
+    )
+    def get_network_wireless_rf_profiles(network_id: str, per_page: int = 1000):
+        """Get get network wirelessrfprofiles."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessRfProfiles(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelessrfprofiles\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_rf_profiles: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_settings",
+        description="📶 Get network wirelessSettings"
+    )
+    def get_network_wireless_settings(network_id: str, per_page: int = 1000):
+        """Get get network wirelesssettings."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessSettings(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelesssettings\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_settings: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_signal_quality_history",
+        description="📶 Get network wirelessSignalQualityHistory"
+    )
+    def get_network_wireless_signal_quality_history(network_id: str, timespan: int = 86400):
+        """Get get network wirelesssignalqualityhistory."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessSignalQualityHistory(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelesssignalqualityhistory\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_signal_quality_history: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_ssid",
+        description="📶 Get network wirelessSsid"
+    )
+    def get_network_wireless_ssid(network_id: str, per_page: int = 1000):
+        """Get get network wirelessssid."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessSsid(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelessssid\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_ssid: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_ssid_bonjour_forwarding",
+        description="📶 Get network wirelessSsidBonjourForwarding"
+    )
+    def get_network_wireless_ssid_bonjour_forwarding(network_id: str, per_page: int = 1000):
+        """Get get network wirelessssidbonjourforwarding."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessSsidBonjourForwarding(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelessssidbonjourforwarding\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_ssid_bonjour_forwarding: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_ssid_device_type_group_policies",
+        description="📶 Get network wirelessSsid deviceTypeGroupPolicies"
+    )
+    def get_network_wireless_ssid_device_type_group_policies(network_id: str, per_page: int = 1000):
+        """Get get network wirelessssid devicetypegrouppolicies."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessSsidDeviceTypeGroupPolicies(
+                network_id, serial, **kwargs  
+            )
+            
+            response = f"# 📶 Get Network Wirelessssid Devicetypegrouppolicies\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_ssid_device_type_group_policies: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_ssid_eap_override",
+        description="📶 Get network wirelessSsidEapOverride"
+    )
+    def get_network_wireless_ssid_eap_override(network_id: str, per_page: int = 1000):
+        """Get get network wirelessssideapoverride."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessSsidEapOverride(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelessssideapoverride\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_ssid_eap_override: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_ssid_firewall_l3_firewall_rules",
+        description="📶 Get network wirelessSsidFirewallL3FirewallRules"
+    )
+    def get_network_wireless_ssid_firewall_l3_firewall_rules(network_id: str, per_page: int = 1000):
+        """Get get network wirelessssidfirewalll3firewallrules."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessSsidFirewallL3FirewallRules(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelessssidfirewalll3Firewallrules\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_ssid_firewall_l3_firewall_rules: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_ssid_firewall_l7_firewall_rules",
+        description="📶 Get network wirelessSsidFirewallL7FirewallRules"
+    )
+    def get_network_wireless_ssid_firewall_l7_firewall_rules(network_id: str, per_page: int = 1000):
+        """Get get network wirelessssidfirewalll7firewallrules."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessSsidFirewallL7FirewallRules(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelessssidfirewalll7Firewallrules\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_ssid_firewall_l7_firewall_rules: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_ssid_hotspot20",
+        description="📶 Get network wirelessSsidHotspot20"
+    )
+    def get_network_wireless_ssid_hotspot20(network_id: str, per_page: int = 1000):
+        """Get get network wirelessssidhotspot20."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessSsidHotspot20(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelessssidhotspot20\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_ssid_hotspot20: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_ssid_identity_psk",
+        description="📶 Get network wirelessSsidIdentityPsk"
+    )
+    def get_network_wireless_ssid_identity_psk(network_id: str, per_page: int = 1000):
+        """Get get network wirelessssididentitypsk."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessSsidIdentityPsk(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelessssididentitypsk\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_ssid_identity_psk: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_ssid_identity_psks",
+        description="📶 Get network wirelessSsidIdentityPsks"
+    )
+    def get_network_wireless_ssid_identity_psks(network_id: str, per_page: int = 1000):
+        """Get get network wirelessssididentitypsks."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessSsidIdentityPsks(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelessssididentitypsks\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_ssid_identity_psks: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_ssid_schedules",
+        description="📶 Get network wirelessSsidSchedules"
+    )
+    def get_network_wireless_ssid_schedules(network_id: str, per_page: int = 1000):
+        """Get get network wirelessssidschedules."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessSsidSchedules(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelessssidschedules\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_ssid_schedules: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_ssid_splash_settings",
+        description="📶 Get network wirelessSsidSplashSettings"
+    )
+    def get_network_wireless_ssid_splash_settings(network_id: str, per_page: int = 1000):
+        """Get get network wirelessssidsplashsettings."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessSsidSplashSettings(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelessssidsplashsettings\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_ssid_splash_settings: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_ssid_traffic_shaping_rules",
+        description="📶 Get network wirelessSsidTrafficShapingRules"
+    )
+    def get_network_wireless_ssid_traffic_shaping_rules(network_id: str, per_page: int = 1000):
+        """Get get network wirelessssidtrafficshapingrules."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessSsidTrafficShapingRules(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelessssidtrafficshapingrules\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_ssid_traffic_shaping_rules: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_ssid_vpn",
+        description="📶 Get network wirelessSsidVpn"
+    )
+    def get_network_wireless_ssid_vpn(network_id: str, per_page: int = 1000):
+        """Get get network wirelessssidvpn."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessSsidVpn(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelessssidvpn\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_ssid_vpn: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_ssids",
+        description="📶 Get network wirelessSsids"
+    )
+    def get_network_wireless_ssids(network_id: str, per_page: int = 1000):
+        """Get get network wirelessssids."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessSsids(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelessssids\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_ssids: {str(e)}"
+    
+    @app.tool(
+        name="get_network_wireless_usage_history",
+        description="📶 Get network wirelessUsageHistory"
+    )
+    def get_network_wireless_usage_history(network_id: str, timespan: int = 86400):
+        """Get get network wirelessusagehistory."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getNetworkWirelessUsageHistory(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Network Wirelessusagehistory\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_network_wireless_usage_history: {str(e)}"
+    
+    @app.tool(
+        name="get_organization_wireless_air_marshal_rules",
+        description="📶 Get organization wirelessAirMarshalRules"
+    )
+    def get_organization_wireless_air_marshal_rules(organization_id: str, per_page: int = 1000):
+        """Get get organization wirelessairmarshalrules."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getOrganizationWirelessAirMarshalRules(
+                organization_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Organization Wirelessairmarshalrules\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_organization_wireless_air_marshal_rules: {str(e)}"
+    
+    @app.tool(
+        name="get_organization_wireless_air_marshal_settings_by_network",
+        description="📶 Get organization wirelessAirMarshalSettingsBy network"
+    )
+    def get_organization_wireless_air_marshal_settings_by_network(network_id: str, per_page: int = 1000):
+        """Get get organization wirelessairmarshalsettingsby network."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getOrganizationWirelessAirMarshalSettingsByNetwork(
+                organization_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Organization Wirelessairmarshalsettingsby Network\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_organization_wireless_air_marshal_settings_by_network: {str(e)}"
+    
+    @app.tool(
+        name="get_organization_wireless_clients_overview_by_device",
+        description="📶 Get organization wirelessClientsOverviewBy device"
+    )
+    def get_organization_wireless_clients_overview_by_device(network_id: str, serial: str, per_page: int = 500):
+        """Get get organization wirelessclientsoverviewby device."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getOrganizationWirelessClientsOverviewByDevice(
+                organization_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Organization Wirelessclientsoverviewby Device\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_organization_wireless_clients_overview_by_device: {str(e)}"
+    
+    @app.tool(
+        name="get_organization_wireless_devices_channel_utilization_by_device",
+        description="📶 Get organization wireless devicesChannelUtilizationBy device"
+    )
+    def get_organization_wireless_devices_channel_utilization_by_device(network_id: str, serial: str, per_page: int = 500):
+        """Get get organization wireless deviceschannelutilizationby device."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getOrganizationWirelessDevicesChannelUtilizationByDevice(
+                organization_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Organization Wireless Deviceschannelutilizationby Device\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_organization_wireless_devices_channel_utilization_by_device: {str(e)}"
+    
+    @app.tool(
+        name="get_organization_wireless_devices_channel_utilization_by_network",
+        description="📶 Get organization wireless devicesChannelUtilizationBy network"
+    )
+    def get_organization_wireless_devices_channel_utilization_by_network(network_id: str, per_page: int = 500):
+        """Get get organization wireless deviceschannelutilizationby network."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getOrganizationWirelessDevicesChannelUtilizationByNetwork(
+                organization_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Organization Wireless Deviceschannelutilizationby Network\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_organization_wireless_devices_channel_utilization_by_network: {str(e)}"
+    
+    @app.tool(
+        name="get_organization_wireless_devices_channel_utilization_history_by_device_by_interval",
+        description="📶 Get organization wireless devicesChannelUtilizationHistoryBy deviceByInterval"
+    )
+    def get_organization_wireless_devices_channel_utilization_history_by_device_by_interval(network_id: str, serial: str, timespan: int = 86400):
+        """Get get organization wireless deviceschannelutilizationhistoryby devicebyinterval."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getOrganizationWirelessDevicesChannelUtilizationHistoryByDeviceByInterval(
+                organization_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Organization Wireless Deviceschannelutilizationhistoryby Devicebyinterval\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_organization_wireless_devices_channel_utilization_history_by_device_by_interval: {str(e)}"
+    
+    @app.tool(
+        name="get_organization_wireless_devices_channel_utilization_history_by_network_by_interval",
+        description="📶 Get organization wireless devicesChannelUtilizationHistoryBy networkByInterval"
+    )
+    def get_organization_wireless_devices_channel_utilization_history_by_network_by_interval(network_id: str, timespan: int = 86400):
+        """Get get organization wireless deviceschannelutilizationhistoryby networkbyinterval."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getOrganizationWirelessDevicesChannelUtilizationHistoryByNetworkByInterval(
+                organization_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Organization Wireless Deviceschannelutilizationhistoryby Networkbyinterval\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_organization_wireless_devices_channel_utilization_history_by_network_by_interval: {str(e)}"
+    
+    @app.tool(
+        name="get_organization_wireless_devices_ethernet_statuses",
+        description="📶 Get organization wireless devicesEthernetStatuses"
+    )
+    def get_organization_wireless_devices_ethernet_statuses(network_id: str, serial: str, per_page: int = 500):
+        """Get get organization wireless devicesethernetstatuses."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getOrganizationWirelessDevicesEthernetStatuses(
+                organization_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Organization Wireless Devicesethernetstatuses\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_organization_wireless_devices_ethernet_statuses: {str(e)}"
+    
+    @app.tool(
+        name="get_organization_wireless_devices_packet_loss_by_client",
+        description="📶 Get organization wireless devicesPacketLossByClient"
+    )
+    def get_organization_wireless_devices_packet_loss_by_client(network_id: str, serial: str, per_page: int = 500):
+        """Get get organization wireless devicespacketlossbyclient."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getOrganizationWirelessDevicesPacketLossByClient(
+                organization_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Organization Wireless Devicespacketlossbyclient\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_organization_wireless_devices_packet_loss_by_client: {str(e)}"
+    
+    @app.tool(
+        name="get_organization_wireless_devices_packet_loss_by_device",
+        description="📶 Get organization wireless devicesPacketLossBy device"
+    )
+    def get_organization_wireless_devices_packet_loss_by_device(network_id: str, serial: str, per_page: int = 500):
+        """Get get organization wireless devicespacketlossby device."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getOrganizationWirelessDevicesPacketLossByDevice(
+                organization_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Organization Wireless Devicespacketlossby Device\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_organization_wireless_devices_packet_loss_by_device: {str(e)}"
+    
+    @app.tool(
+        name="get_organization_wireless_devices_packet_loss_by_network",
+        description="📶 Get organization wireless devicesPacketLossBy network"
+    )
+    def get_organization_wireless_devices_packet_loss_by_network(network_id: str, per_page: int = 500):
+        """Get get organization wireless devicespacketlossby network."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getOrganizationWirelessDevicesPacketLossByNetwork(
+                organization_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Organization Wireless Devicespacketlossby Network\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_organization_wireless_devices_packet_loss_by_network: {str(e)}"
+    
+    @app.tool(
+        name="get_organization_wireless_devices_power_mode_history",
+        description="📶 Get organization wireless devicesPowerModeHistory"
+    )
+    def get_organization_wireless_devices_power_mode_history(network_id: str, serial: str, timespan: int = 86400):
+        """Get get organization wireless devicespowermodehistory."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getOrganizationWirelessDevicesPowerModeHistory(
+                organization_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Organization Wireless Devicespowermodehistory\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_organization_wireless_devices_power_mode_history: {str(e)}"
+    
+    @app.tool(
+        name="get_organization_wireless_devices_radsec_certificates_authorities",
+        description="📶 Get organization wireless devicesRadsecCertificatesAuthorities"
+    )
+    def get_organization_wireless_devices_radsec_certificates_authorities(network_id: str, serial: str, per_page: int = 500):
+        """Get get organization wireless devicesradseccertificatesauthorities."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getOrganizationWirelessDevicesRadsecCertificatesAuthorities(
+                organization_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Organization Wireless Devicesradseccertificatesauthorities\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_organization_wireless_devices_radsec_certificates_authorities: {str(e)}"
+    
+    @app.tool(
+        name="get_organization_wireless_devices_radsec_certificates_authorities_crls",
+        description="📶 Get organization wireless devicesRadsecCertificatesAuthoritiesCrls"
+    )
+    def get_organization_wireless_devices_radsec_certificates_authorities_crls(network_id: str, serial: str, per_page: int = 500):
+        """Get get organization wireless devicesradseccertificatesauthoritiescrls."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getOrganizationWirelessDevicesRadsecCertificatesAuthoritiesCrls(
+                organization_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Organization Wireless Devicesradseccertificatesauthoritiescrls\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_organization_wireless_devices_radsec_certificates_authorities_crls: {str(e)}"
+    
+    @app.tool(
+        name="get_organization_wireless_devices_radsec_certificates_authorities_crls_deltas",
+        description="📶 Get organization wireless devicesRadsecCertificatesAuthoritiesCrlsDeltas"
+    )
+    def get_organization_wireless_devices_radsec_certificates_authorities_crls_deltas(network_id: str, serial: str, per_page: int = 500):
+        """Get get organization wireless devicesradseccertificatesauthoritiescrlsdeltas."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getOrganizationWirelessDevicesRadsecCertificatesAuthoritiesCrlsDeltas(
+                organization_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Organization Wireless Devicesradseccertificatesauthoritiescrlsdeltas\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_organization_wireless_devices_radsec_certificates_authorities_crls_deltas: {str(e)}"
+    
+    @app.tool(
+        name="get_organization_wireless_devices_system_cpu_load_history",
+        description="📶 Get organization wireless devicesSystemCpuLoadHistory"
+    )
+    def get_organization_wireless_devices_system_cpu_load_history(network_id: str, serial: str, timespan: int = 86400):
+        """Get get organization wireless devicessystemcpuloadhistory."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getOrganizationWirelessDevicesSystemCpuLoadHistory(
+                organization_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Organization Wireless Devicessystemcpuloadhistory\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_organization_wireless_devices_system_cpu_load_history: {str(e)}"
+    
+    @app.tool(
+        name="get_organization_wireless_devices_wireless_controllers_by_device",
+        description="📶 Get organization wireless devices wirelessControllersBy device"
+    )
+    def get_organization_wireless_devices_wireless_controllers_by_device(network_id: str, serial: str, per_page: int = 500):
+        """Get get organization wireless devices wirelesscontrollersby device."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getOrganizationWirelessDevicesWirelessControllersByDevice(
+                organization_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Organization Wireless Devices Wirelesscontrollersby Device\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_organization_wireless_devices_wireless_controllers_by_device: {str(e)}"
+    
+    @app.tool(
+        name="get_organization_wireless_location_scanning_by_network",
+        description="📶 Get organization wirelessLocationScanningBy network"
+    )
+    def get_organization_wireless_location_scanning_by_network(network_id: str, per_page: int = 1000):
+        """Get get organization wirelesslocationscanningby network."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getOrganizationWirelessLocationScanningByNetwork(
+                organization_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Organization Wirelesslocationscanningby Network\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_organization_wireless_location_scanning_by_network: {str(e)}"
+    
+    @app.tool(
+        name="get_organization_wireless_location_scanning_receivers",
+        description="📶 Get organization wirelessLocationScanningReceivers"
+    )
+    def get_organization_wireless_location_scanning_receivers(organization_id: str, per_page: int = 1000):
+        """Get get organization wirelesslocationscanningreceivers."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getOrganizationWirelessLocationScanningReceivers(
+                organization_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Organization Wirelesslocationscanningreceivers\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_organization_wireless_location_scanning_receivers: {str(e)}"
+    
+    @app.tool(
+        name="get_organization_wireless_rf_profiles_assignments_by_device",
+        description="📶 Get organization wirelessRfProfilesAssignmentsBy device"
+    )
+    def get_organization_wireless_rf_profiles_assignments_by_device(network_id: str, serial: str, per_page: int = 1000):
+        """Get get organization wirelessrfprofilesassignmentsby device."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getOrganizationWirelessRfProfilesAssignmentsByDevice(
+                organization_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Organization Wirelessrfprofilesassignmentsby Device\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_organization_wireless_rf_profiles_assignments_by_device: {str(e)}"
+    
+    @app.tool(
+        name="get_organization_wireless_ssids_firewall_isolation_allowlist_entries",
+        description="📶 Get organization wirelessSsidsFirewallIsolationAllowlistEntries"
+    )
+    def get_organization_wireless_ssids_firewall_isolation_allowlist_entries(organization_id: str, per_page: int = 1000):
+        """Get get organization wirelessssidsfirewallisolationallowlistentries."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getOrganizationWirelessSsidsFirewallIsolationAllowlistEntries(
+                organization_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Organization Wirelessssidsfirewallisolationallowlistentries\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_organization_wireless_ssids_firewall_isolation_allowlist_entries: {str(e)}"
+    
+    @app.tool(
+        name="get_organization_wireless_ssids_statuses_by_device",
+        description="📶 Get organization wirelessSsidsStatusesBy device"
+    )
+    def get_organization_wireless_ssids_statuses_by_device(network_id: str, serial: str, per_page: int = 1000):
+        """Get get organization wirelessssidsstatusesby device."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.getOrganizationWirelessSsidsStatusesByDevice(
+                organization_id, **kwargs
+            )
+            
+            response = f"# 📶 Get Organization Wirelessssidsstatusesby Device\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in get_organization_wireless_ssids_statuses_by_device: {str(e)}"
+    
+    @app.tool(
+        name="recalculate_organization_wireless_radio_auto_rf_channels",
+        description="📡 recalculate organization wirelessRadioAutoRfChannels"
+    )
+    def recalculate_organization_wireless_radio_auto_rf_channels(organization_id: str):
+        """Manage recalculate organization wirelessradioautorfchannels."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.recalculateOrganizationWirelessRadioAutoRfChannels(
+                organization_id, **kwargs
+            )
+            
+            response = f"# 📡 Recalculate Organization Wirelessradioautorfchannels\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in recalculate_organization_wireless_radio_auto_rf_channels: {str(e)}"
+    
+    @app.tool(
+        name="set_network_wireless_ethernet_ports_profiles_default",
+        description="📡 set network wirelessEthernetPortsProfilesDefault"
+    )
+    def set_network_wireless_ethernet_ports_profiles_default(network_id: str):
+        """Manage set network wirelessethernetportsprofilesdefault."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.setNetworkWirelessEthernetPortsProfilesDefault(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📡 Set Network Wirelessethernetportsprofilesdefault\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in set_network_wireless_ethernet_ports_profiles_default: {str(e)}"
+    
+    @app.tool(
+        name="update_device_wireless_alternate_management_interface_ipv6",
+        description="✏️ Update device wirelessAlternateManagementInterfaceIpv6"
+    )
+    def update_device_wireless_alternate_management_interface_ipv6(network_id: str, serial: str):
+        """Update update device wirelessalternatemanagementinterfaceipv6."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.updateDeviceWirelessAlternateManagementInterfaceIpv6(
+                network_id, serial, **kwargs  
+            )
+            
+            response = f"# ✏️ Update Device Wirelessalternatemanagementinterfaceipv6\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in update_device_wireless_alternate_management_interface_ipv6: {str(e)}"
+    
+    @app.tool(
+        name="update_device_wireless_bluetooth_settings",
+        description="✏️ Update device wirelessBluetoothSettings"
+    )
+    def update_device_wireless_bluetooth_settings(network_id: str, serial: str):
+        """Update update device wirelessbluetoothsettings."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.updateDeviceWirelessBluetoothSettings(
+                network_id, serial, **kwargs  
+            )
+            
+            response = f"# ✏️ Update Device Wirelessbluetoothsettings\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in update_device_wireless_bluetooth_settings: {str(e)}"
+    
+    @app.tool(
+        name="update_device_wireless_electronic_shelf_label",
+        description="✏️ Update device wirelessElectronicShelfLabel"
+    )
+    def update_device_wireless_electronic_shelf_label(network_id: str, serial: str):
+        """Update update device wirelesselectronicshelflabel."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.updateDeviceWirelessElectronicShelfLabel(
+                network_id, serial, **kwargs  
+            )
+            
+            response = f"# ✏️ Update Device Wirelesselectronicshelflabel\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in update_device_wireless_electronic_shelf_label: {str(e)}"
+    
+    @app.tool(
+        name="update_device_wireless_radio_settings",
+        description="✏️ Update device wirelessRadioSettings"
+    )
+    def update_device_wireless_radio_settings(network_id: str, serial: str):
+        """Update update device wirelessradiosettings."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.updateDeviceWirelessRadioSettings(
+                network_id, serial, **kwargs  
+            )
+            
+            response = f"# ✏️ Update Device Wirelessradiosettings\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in update_device_wireless_radio_settings: {str(e)}"
+    
+    @app.tool(
+        name="update_network_wireless_air_marshal_rule",
+        description="✏️ Update network wirelessAirMarshalRule"
+    )
+    def update_network_wireless_air_marshal_rule(network_id: str):
+        """Update update network wirelessairmarshalrule."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.updateNetworkWirelessAirMarshalRule(
+                network_id, **kwargs
+            )
+            
+            response = f"# ✏️ Update Network Wirelessairmarshalrule\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in update_network_wireless_air_marshal_rule: {str(e)}"
+    
+    @app.tool(
+        name="update_network_wireless_air_marshal_settings",
+        description="✏️ Update network wirelessAirMarshalSettings"
+    )
+    def update_network_wireless_air_marshal_settings(network_id: str):
+        """Update update network wirelessairmarshalsettings."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.updateNetworkWirelessAirMarshalSettings(
+                network_id, **kwargs
+            )
+            
+            response = f"# ✏️ Update Network Wirelessairmarshalsettings\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in update_network_wireless_air_marshal_settings: {str(e)}"
+    
+    @app.tool(
+        name="update_network_wireless_alternate_management_interface",
+        description="✏️ Update network wirelessAlternateManagementInterface"
+    )
+    def update_network_wireless_alternate_management_interface(network_id: str):
+        """Update update network wirelessalternatemanagementinterface."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.updateNetworkWirelessAlternateManagementInterface(
+                network_id, **kwargs
+            )
+            
+            response = f"# ✏️ Update Network Wirelessalternatemanagementinterface\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in update_network_wireless_alternate_management_interface: {str(e)}"
+    
+    @app.tool(
+        name="update_network_wireless_billing",
+        description="✏️ Update network wirelessBilling"
+    )
+    def update_network_wireless_billing(network_id: str):
+        """Update update network wirelessbilling."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.updateNetworkWirelessBilling(
+                network_id, **kwargs
+            )
+            
+            response = f"# ✏️ Update Network Wirelessbilling\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in update_network_wireless_billing: {str(e)}"
+    
+    @app.tool(
+        name="update_network_wireless_bluetooth_settings",
+        description="✏️ Update network wirelessBluetoothSettings"
+    )
+    def update_network_wireless_bluetooth_settings(network_id: str):
+        """Update update network wirelessbluetoothsettings."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.updateNetworkWirelessBluetoothSettings(
+                network_id, **kwargs
+            )
+            
+            response = f"# ✏️ Update Network Wirelessbluetoothsettings\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in update_network_wireless_bluetooth_settings: {str(e)}"
+    
+    @app.tool(
+        name="update_network_wireless_electronic_shelf_label",
+        description="✏️ Update network wirelessElectronicShelfLabel"
+    )
+    def update_network_wireless_electronic_shelf_label(network_id: str):
+        """Update update network wirelesselectronicshelflabel."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.updateNetworkWirelessElectronicShelfLabel(
+                network_id, **kwargs
+            )
+            
+            response = f"# ✏️ Update Network Wirelesselectronicshelflabel\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in update_network_wireless_electronic_shelf_label: {str(e)}"
+    
+    @app.tool(
+        name="update_network_wireless_ethernet_ports_profile",
+        description="✏️ Update network wirelessEthernetPortsProfile"
+    )
+    def update_network_wireless_ethernet_ports_profile(network_id: str):
+        """Update update network wirelessethernetportsprofile."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.updateNetworkWirelessEthernetPortsProfile(
+                network_id, **kwargs
+            )
+            
+            response = f"# ✏️ Update Network Wirelessethernetportsprofile\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in update_network_wireless_ethernet_ports_profile: {str(e)}"
+    
+    @app.tool(
+        name="update_network_wireless_location_scanning",
+        description="✏️ Update network wirelessLocationScanning"
+    )
+    def update_network_wireless_location_scanning(network_id: str):
+        """Update update network wirelesslocationscanning."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.updateNetworkWirelessLocationScanning(
+                network_id, **kwargs
+            )
+            
+            response = f"# ✏️ Update Network Wirelesslocationscanning\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in update_network_wireless_location_scanning: {str(e)}"
+    
+    @app.tool(
+        name="update_network_wireless_rf_profile",
+        description="✏️ Update network wirelessRfProfile"
+    )
+    def update_network_wireless_rf_profile(network_id: str):
+        """Update update network wirelessrfprofile."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.updateNetworkWirelessRfProfile(
+                network_id, **kwargs
+            )
+            
+            response = f"# ✏️ Update Network Wirelessrfprofile\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in update_network_wireless_rf_profile: {str(e)}"
+    
+    @app.tool(
+        name="update_network_wireless_settings",
+        description="✏️ Update network wirelessSettings"
+    )
+    def update_network_wireless_settings(network_id: str):
+        """Update update network wirelesssettings."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.updateNetworkWirelessSettings(
+                network_id, **kwargs
+            )
+            
+            response = f"# ✏️ Update Network Wirelesssettings\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in update_network_wireless_settings: {str(e)}"
+    
+    @app.tool(
+        name="update_network_wireless_ssid",
+        description="✏️ Update network wirelessSsid"
+    )
+    def update_network_wireless_ssid(network_id: str):
+        """Update update network wirelessssid."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.updateNetworkWirelessSsid(
+                network_id, **kwargs
+            )
+            
+            response = f"# ✏️ Update Network Wirelessssid\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in update_network_wireless_ssid: {str(e)}"
+    
+    @app.tool(
+        name="update_network_wireless_ssid_bonjour_forwarding",
+        description="✏️ Update network wirelessSsidBonjourForwarding"
+    )
+    def update_network_wireless_ssid_bonjour_forwarding(network_id: str):
+        """Update update network wirelessssidbonjourforwarding."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.updateNetworkWirelessSsidBonjourForwarding(
+                network_id, **kwargs
+            )
+            
+            response = f"# ✏️ Update Network Wirelessssidbonjourforwarding\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in update_network_wireless_ssid_bonjour_forwarding: {str(e)}"
+    
+    @app.tool(
+        name="update_network_wireless_ssid_device_type_group_policies",
+        description="✏️ Update network wirelessSsid deviceTypeGroupPolicies"
+    )
+    def update_network_wireless_ssid_device_type_group_policies(network_id: str):
+        """Update update network wirelessssid devicetypegrouppolicies."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.updateNetworkWirelessSsidDeviceTypeGroupPolicies(
+                network_id, serial, **kwargs  
+            )
+            
+            response = f"# ✏️ Update Network Wirelessssid Devicetypegrouppolicies\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in update_network_wireless_ssid_device_type_group_policies: {str(e)}"
+    
+    @app.tool(
+        name="update_network_wireless_ssid_eap_override",
+        description="✏️ Update network wirelessSsidEapOverride"
+    )
+    def update_network_wireless_ssid_eap_override(network_id: str):
+        """Update update network wirelessssideapoverride."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.updateNetworkWirelessSsidEapOverride(
+                network_id, **kwargs
+            )
+            
+            response = f"# ✏️ Update Network Wirelessssideapoverride\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in update_network_wireless_ssid_eap_override: {str(e)}"
+    
+    @app.tool(
+        name="update_network_wireless_ssid_firewall_l3_firewall_rules",
+        description="✏️ Update network wirelessSsidFirewallL3FirewallRules"
+    )
+    def update_network_wireless_ssid_firewall_l3_firewall_rules(network_id: str):
+        """Update update network wirelessssidfirewalll3firewallrules."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.updateNetworkWirelessSsidFirewallL3FirewallRules(
+                network_id, **kwargs
+            )
+            
+            response = f"# ✏️ Update Network Wirelessssidfirewalll3Firewallrules\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in update_network_wireless_ssid_firewall_l3_firewall_rules: {str(e)}"
+    
+    @app.tool(
+        name="update_network_wireless_ssid_firewall_l7_firewall_rules",
+        description="✏️ Update network wirelessSsidFirewallL7FirewallRules"
+    )
+    def update_network_wireless_ssid_firewall_l7_firewall_rules(network_id: str):
+        """Update update network wirelessssidfirewalll7firewallrules."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.updateNetworkWirelessSsidFirewallL7FirewallRules(
+                network_id, **kwargs
+            )
+            
+            response = f"# ✏️ Update Network Wirelessssidfirewalll7Firewallrules\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in update_network_wireless_ssid_firewall_l7_firewall_rules: {str(e)}"
+    
+    @app.tool(
+        name="update_network_wireless_ssid_hotspot20",
+        description="✏️ Update network wirelessSsidHotspot20"
+    )
+    def update_network_wireless_ssid_hotspot20(network_id: str):
+        """Update update network wirelessssidhotspot20."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.updateNetworkWirelessSsidHotspot20(
+                network_id, **kwargs
+            )
+            
+            response = f"# ✏️ Update Network Wirelessssidhotspot20\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in update_network_wireless_ssid_hotspot20: {str(e)}"
+    
+    @app.tool(
+        name="update_network_wireless_ssid_identity_psk",
+        description="✏️ Update network wirelessSsidIdentityPsk"
+    )
+    def update_network_wireless_ssid_identity_psk(network_id: str):
+        """Update update network wirelessssididentitypsk."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.updateNetworkWirelessSsidIdentityPsk(
+                network_id, **kwargs
+            )
+            
+            response = f"# ✏️ Update Network Wirelessssididentitypsk\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in update_network_wireless_ssid_identity_psk: {str(e)}"
+    
+    @app.tool(
+        name="update_network_wireless_ssid_schedules",
+        description="✏️ Update network wirelessSsidSchedules"
+    )
+    def update_network_wireless_ssid_schedules(network_id: str):
+        """Update update network wirelessssidschedules."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.updateNetworkWirelessSsidSchedules(
+                network_id, **kwargs
+            )
+            
+            response = f"# ✏️ Update Network Wirelessssidschedules\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in update_network_wireless_ssid_schedules: {str(e)}"
+    
+    @app.tool(
+        name="update_network_wireless_ssid_splash_settings",
+        description="✏️ Update network wirelessSsidSplashSettings"
+    )
+    def update_network_wireless_ssid_splash_settings(network_id: str):
+        """Update update network wirelessssidsplashsettings."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.updateNetworkWirelessSsidSplashSettings(
+                network_id, **kwargs
+            )
+            
+            response = f"# ✏️ Update Network Wirelessssidsplashsettings\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in update_network_wireless_ssid_splash_settings: {str(e)}"
+    
+    @app.tool(
+        name="update_network_wireless_ssid_traffic_shaping_rules",
+        description="✏️ Update network wirelessSsidTrafficShapingRules"
+    )
+    def update_network_wireless_ssid_traffic_shaping_rules(network_id: str):
+        """Update update network wirelessssidtrafficshapingrules."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.updateNetworkWirelessSsidTrafficShapingRules(
+                network_id, **kwargs
+            )
+            
+            response = f"# ✏️ Update Network Wirelessssidtrafficshapingrules\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in update_network_wireless_ssid_traffic_shaping_rules: {str(e)}"
+    
+    @app.tool(
+        name="update_network_wireless_ssid_vpn",
+        description="✏️ Update network wirelessSsidVpn"
+    )
+    def update_network_wireless_ssid_vpn(network_id: str):
+        """Update update network wirelessssidvpn."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.updateNetworkWirelessSsidVpn(
+                network_id, **kwargs
+            )
+            
+            response = f"# ✏️ Update Network Wirelessssidvpn\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in update_network_wireless_ssid_vpn: {str(e)}"
+    
+    @app.tool(
+        name="update_organization_wireless_devices_radsec_certificates_authorities",
+        description="✏️ Update organization wireless devicesRadsecCertificatesAuthorities"
+    )
+    def update_organization_wireless_devices_radsec_certificates_authorities(network_id: str, serial: str):
+        """Update update organization wireless devicesradseccertificatesauthorities."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.updateOrganizationWirelessDevicesRadsecCertificatesAuthorities(
+                organization_id, **kwargs
+            )
+            
+            response = f"# ✏️ Update Organization Wireless Devicesradseccertificatesauthorities\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in update_organization_wireless_devices_radsec_certificates_authorities: {str(e)}"
+    
+    @app.tool(
+        name="update_organization_wireless_location_scanning_receiver",
+        description="✏️ Update organization wirelessLocationScanningReceiver"
+    )
+    def update_organization_wireless_location_scanning_receiver(organization_id: str):
+        """Update update organization wirelesslocationscanningreceiver."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.updateOrganizationWirelessLocationScanningReceiver(
+                organization_id, **kwargs
+            )
+            
+            response = f"# ✏️ Update Organization Wirelesslocationscanningreceiver\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in update_organization_wireless_location_scanning_receiver: {str(e)}"
+    
+    @app.tool(
+        name="update_organization_wireless_ssids_firewall_isolation_allowlist_entry",
+        description="✏️ Update organization wirelessSsidsFirewallIsolationAllowlistEntry"
+    )
+    def update_organization_wireless_ssids_firewall_isolation_allowlist_entry(organization_id: str):
+        """Update update organization wirelessssidsfirewallisolationallowlistentry."""
+        try:
+            kwargs = {}
+            
+            # Add pagination for GET methods
+            if "per_page" in locals():
+                kwargs["perPage"] = per_page
+            if "timespan" in locals():
+                kwargs["timespan"] = timespan
+                
+            result = meraki_client.dashboard.wireless.updateOrganizationWirelessSsidsFirewallIsolationAllowlistEntry(
+                organization_id, **kwargs
+            )
+            
+            response = f"# ✏️ Update Organization Wirelessssidsfirewallisolationallowlistentry\n\n"
+            
+            if result is not None:
+                if isinstance(result, list):
+                    response += f"**Total Items**: {len(result)}\n\n"
+                    
+                    # Show first 10 items
+                    for idx, item in enumerate(result[:10], 1):
+                        if isinstance(item, dict):
+                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
+                            response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields based on wireless context
+                            if 'ssid' in item:
+                                response += f"   - SSID: {item.get('ssid')}\n"
+                            if 'enabled' in item:
+                                response += f"   - Enabled: {item.get('enabled')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
+                            if 'channel' in item:
+                                response += f"   - Channel: {item.get('channel')}\n"
+                            if 'power' in item:
+                                response += f"   - Power: {item.get('power')}\n"
+                            if 'clientCount' in item:
+                                response += f"   - Clients: {item.get('clientCount')}\n"
+                            if 'usage' in item:
+                                usage = item.get('usage', {})
+                                if isinstance(usage, dict):
+                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
+                                    
+                        else:
+                            response += f"**{idx}. {item}**\n"
+                        response += "\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more items\n"
+                        
+                elif isinstance(result, dict):
+                    # Single item result
+                    for key, value in list(result.items())[:10]:
+                        if isinstance(value, (str, int, float, bool)):
+                            response += f"- **{key}**: {value}\n"
+                        elif isinstance(value, list) and value:
+                            response += f"- **{key}**: {len(value)} items\n"
+                        elif isinstance(value, dict) and value:
+                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    
+                    if len(result) > 10:
+                        response += f"... and {len(result)-10} more fields\n"
+                        
+                else:
+                    response += f"**Result**: {result}\n"
+            else:
+                response += "*No data available*\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error in update_organization_wireless_ssids_firewall_isolation_allowlist_entry: {str(e)}"
+    

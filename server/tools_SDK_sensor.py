@@ -461,10 +461,10 @@ def register_sensor_tools(mcp_app, meraki):
     # ==================== SENSOR ALERTS OVERVIEW ====================
     
     @app.tool(
-        name="get_network_sensor_alerts_current_overview",
+        name="get_network_sensor_alerts_current_overview_by_metric",
         description="🌡️📊 Get current sensor alerts overview by metric"
     )
-    def get_network_sensor_alerts_current_overview(
+    def get_network_sensor_alerts_current_overview_by_metric(
         network_id: str
     ):
         """Get current alerts overview."""

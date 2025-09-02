@@ -23,6 +23,9 @@ def register_appliance_tools(mcp_app, meraki):
     
     # Register all appliance tools
     register_appliance_tool_handlers()
+    
+    # Register additional appliance tools from backup
+    register_additional_appliance_tools()
 
 def register_appliance_tool_handlers():
     """Register all security appliance tool handlers using ONLY REAL API methods."""
@@ -2885,350 +2888,6 @@ def register_appliance_tool_handlers():
     # ========== MISSING APPLIANCE SDK METHODS ==========
     
     @app.tool(
-        name="get_network_appliance_warm_spare_config",
-        description="🔄 Get warm spare configuration details for an MX appliance"
-    )
-    def get_network_appliance_warm_spare_config(network_id: str):
-        """
-        Get warm spare configuration for an MX appliance.
-        
-        Args:
-            network_id: Network ID
-            
-        Returns:
-            Warm spare configuration details
-        """
-        try:
-            config = meraki_client.dashboard.appliance.getNetworkApplianceWarmSpare(network_id)
-            
-            result = f"# 🔄 Warm Spare Configuration\n\n"
-            result += f"**Enabled**: {'✅' if config.get('enabled') else '❌'}\n"
-            
-            if config.get('primarySerial'):
-                result += f"**Primary MX**: {config.get('primarySerial')}\n"
-            
-            if config.get('spareSerial'):
-                result += f"**Spare MX**: {config.get('spareSerial')}\n"
-                
-            if config.get('uplinkMode'):
-                result += f"**Uplink Mode**: {config.get('uplinkMode')}\n"
-                
-            if config.get('wan1'):
-                result += f"\n## WAN 1 Configuration\n"
-                wan1 = config.get('wan1')
-                result += f"- **IP**: {wan1.get('ip', 'N/A')}\n"
-                result += f"- **Subnet**: {wan1.get('subnet', 'N/A')}\n"
-                
-            if config.get('wan2'):
-                result += f"\n## WAN 2 Configuration\n"
-                wan2 = config.get('wan2')
-                result += f"- **IP**: {wan2.get('ip', 'N/A')}\n"
-                result += f"- **Subnet**: {wan2.get('subnet', 'N/A')}\n"
-                
-            return result
-            
-        except Exception as e:
-            return f"Error retrieving warm spare config: {str(e)}"
-    
-    # @app.tool(
-    # name="update_network_appliance_warm_spare",
-    # description="🔄 Update warm spare configuration for an MX appliance"
-    # )
-    # def update_network_appliance_warm_spare(
-    # network_id: str,
-    # enabled: bool,
-    # spare_serial: Optional[str] = None,
-    # uplink_mode: Optional[str] = None,
-    # virtual_ip1: Optional[str] = None,
-    # virtual_ip2: Optional[str] = None
-    # ):
-    #     """
-    #     Update warm spare configuration for an MX appliance.
-    #     
-    #     Args:
-    #         network_id: Network ID
-    #         enabled: Enable/disable warm spare
-    #         spare_serial: Serial number of spare MX
-    #         uplink_mode: Uplink mode (virtual or public)
-    #         virtual_ip1: Virtual IP for WAN1
-    #         virtual_ip2: Virtual IP for WAN2
-    #         
-    #     Returns:
-    #         Updated configuration
-    #     """
-    #     try:
-    #         kwargs = {"enabled": enabled}
-    #         
-    #         if spare_serial:
-    #             kwargs["spareSerial"] = spare_serial
-    #         if uplink_mode:
-    #             kwargs["uplinkMode"] = uplink_mode
-    #         if virtual_ip1:
-    #             kwargs["virtualIp1"] = virtual_ip1
-    #         if virtual_ip2:
-    #             kwargs["virtualIp2"] = virtual_ip2
-    #             
-    #         result = meraki_client.dashboard.appliance.updateNetworkApplianceWarmSpare(
-    #             network_id, **kwargs
-    #         )
-    #         
-    #         return "✅ Warm spare configuration updated successfully"
-    #         
-    #     except Exception as e:
-    #         return f"Error updating warm spare: {str(e)}"
-    
-    # @app.tool(
-    # name="swap_network_appliance_warm_spare",
-    # description="🔄 Swap warm spare appliance to become primary - REQUIRES CONFIRMATION"
-    # )
-    # def swap_network_appliance_warm_spare(
-    # network_id: str,
-    # confirmed: bool = False
-    # ):
-    # """
-    # Swap warm spare appliance to become primary.
-    #         ⚠️ WARNING: This will cause a network failover!
-    #     
-    #     Args:
-    #         network_id: Network ID
-    #         confirmed: Must be True to execute this operation
-    #         
-    #     Returns:
-    #         Swap status
-    #     """
-    #     if not confirmed:
-    #         return "⚠️ Warm spare swap requires confirmation. Set confirmed=true to proceed."
-    #         
-    #     try:
-    #         result = meraki_client.dashboard.appliance.swapNetworkApplianceWarmSpare(network_id)
-    #         return "✅ Warm spare swap initiated successfully"
-    #         
-    #     except Exception as e:
-    #         return f"Error swapping warm spare: {str(e)}"
-    
-    # @app.tool(
-    # name="get_network_appliance_prefixes_delegated_statics",
-    # description="🌐 Get IPv6 delegated static prefixes for an appliance"
-    # )
-    # def get_network_appliance_prefixes_delegated_statics(network_id: str):
-    # """
-    # Get IPv6 delegated static prefixes for an appliance.
-    #     # Args:
-    # network_id: Network ID
-    #         Returns:
-    #         Delegated static prefixes
-    #     """
-    #     try:
-    #         prefixes = meraki_client.dashboard.appliance.getNetworkAppliancePrefixesDelegatedStatics(network_id)
-    #         
-    #         if not prefixes:
-    #             return "No delegated static prefixes configured"
-    #             
-    #         result = f"# 🌐 IPv6 Delegated Static Prefixes\n\n"
-    #         
-    #         for prefix in prefixes:
-    #             result += f"## {prefix.get('description', 'Unnamed')}\n"
-    #             result += f"- **Prefix**: {prefix.get('prefix')}\n"
-    #             result += f"- **Origin**: {prefix.get('origin', {}).get('type', 'Unknown')}\n"
-    #             
-    #             if prefix.get("origin", {}).get("interfaces"):
-    #                 result += f"- **Interfaces**: {', '.join(prefix['origin']['interfaces'])}\n"
-    #                 
-    #             result += "\n"
-    #             
-    #         return result
-    #         
-    #     except Exception as e:
-    #         return f"Error retrieving delegated prefixes: {str(e)}"
-    
-    # @app.tool(
-    # name="create_network_appliance_prefixes_delegated_static",
-    # description="🌐 Create an IPv6 delegated static prefix"
-    # )
-    # def create_network_appliance_prefixes_delegated_static(
-    # network_id: str,
-    # prefix: str,
-    # origin_type: str,
-    # origin_interfaces: str,
-    # description: Optional[str] = None
-    # ):
-        # """
-        # Create an IPv6 delegated static prefix.
-        
-        # Args:
-            # network_id: Network ID
-            # prefix: IPv6 prefix
-            # origin_type: Origin type (e.g., "internet")
-            # origin_interfaces: Comma-separated interface list
-            # description: Description for the prefix
-            
-        # Returns:
-            # Created prefix details
-        # """
-    # try:
-    # kwargs = {
-    # "prefix": prefix,
-    # "origin": {
-    # "type": origin_type,
-    # "interfaces": origin_interfaces.split(",")
-    # }
-    # }
-            
-    # if description:
-    # kwargs["description"] = description
-                
-    # result = meraki_client.dashboard.appliance.createNetworkAppliancePrefixesDelegatedStatic(
-    # network_id, **kwargs
-    # )
-            
-    # return f"✅ Created delegated static prefix: {prefix}"
-            
-    # except Exception as e:
-    # return f"Error creating delegated prefix: {str(e)}"
-    
-    # @app.tool(
-    # name="get_network_appliance_rf_profiles",
-    # description="📡 Get RF profiles for MG (cellular gateway) appliances"
-    # )
-    # def get_network_appliance_rf_profiles(network_id: str):
-    # """
-    # Get RF profiles for MG (cellular gateway) appliances.
-    #     # Args:
-    # network_id: Network ID
-    #         Returns:
-    # RF profile settings
-    # """
-        try:
-            profiles = meraki_client.dashboard.appliance.getNetworkApplianceRfProfiles(network_id)
-            
-            result = f"# 📡 RF Profiles\n\n"
-            
-            if profiles.get("assigned"):
-                result += f"**Assigned Profile**: {profiles.get('assigned')}\n\n"
-                
-            if profiles.get("profiles"):
-                result += "## Available Profiles\n"
-                for profile_id, profile in profiles.get("profiles", {}).items():
-                    result += f"\n### {profile_id}\n"
-                    result += f"- **Name**: {profile.get('name', 'Unnamed')}\n"
-                    
-                    if profile.get("twoFourGhzSettings"):
-                        settings = profile["twoFourGhzSettings"]
-                        result += f"- **2.4 GHz Min Bitrate**: {settings.get('minBitrate')} Mbps\n"
-                        result += f"- **2.4 GHz Ax Enabled**: {settings.get('axEnabled', False)}\n"
-                        
-                    if profile.get("fiveGhzSettings"):
-                        settings = profile["fiveGhzSettings"]
-                        result += f"- **5 GHz Min Bitrate**: {settings.get('minBitrate')} Mbps\n"
-                        result += f"- **5 GHz Ax Enabled**: {settings.get('axEnabled', False)}\n"
-                        
-            return result
-            
-        except Exception as e:
-            return f"Error retrieving RF profiles: {str(e)}"
-    
-    # @app.tool(
-    # name="update_network_appliance_rf_profile",
-    # description="📡 Update RF profile settings for MG appliances"
-    # )
-    # def update_network_appliance_rf_profile(
-    # network_id: str,
-    # rf_profile_id: str,
-    # name: Optional[str] = None,
-    # two_four_ghz_min_bitrate: Optional[int] = None,
-    # five_ghz_min_bitrate: Optional[int] = None
-    # ):
-        # """
-        # Update RF profile settings for MG appliances.
-        
-        # Args:
-            # network_id: Network ID
-            # rf_profile_id: RF profile ID
-            # name: Profile name
-            # two_four_ghz_min_bitrate: 2.4 GHz minimum bitrate
-            # five_ghz_min_bitrate: 5 GHz minimum bitrate
-            
-        # Returns:
-            # Updated profile
-        # """
-    # try:
-    # kwargs = {}
-            
-    # if name:
-    # kwargs["name"] = name
-                
-    # two_four_settings = {}
-    # if two_four_ghz_min_bitrate:
-    # two_four_settings["minBitrate"] = two_four_ghz_min_bitrate
-    # if two_four_settings:
-    # kwargs["twoFourGhzSettings"] = two_four_settings
-                
-    # five_settings = {}
-    # if five_ghz_min_bitrate:
-    # five_settings["minBitrate"] = five_ghz_min_bitrate
-    # if five_settings:
-    # kwargs["fiveGhzSettings"] = five_settings
-                
-    # result = meraki_client.dashboard.appliance.updateNetworkApplianceRfProfile(
-    # network_id, rf_profile_id, **kwargs
-    # )
-            
-    # return "✅ RF profile updated successfully"
-            
-    # except Exception as e:
-    # return f"Error updating RF profile: {str(e)}"
-    
-    # @app.tool(
-    # name="get_network_appliance_traffic_shaping_uplink_selection",
-    # description="🌐 Get uplink selection settings for traffic shaping"
-    # )
-    # def get_network_appliance_traffic_shaping_uplink_selection(network_id: str):
-    # """
-    # Get uplink selection settings for traffic shaping.
-        
-    # Args:
-    # network_id: Network ID
-            
-    # Returns:
-    # Uplink selection configuration
-    # """
-    # try:
-    # config = meraki_client.dashboard.appliance.getNetworkApplianceTrafficShapingUplinkSelection(network_id)
-            
-    # result = f"# 🌐 Uplink Selection Settings\n\n"
-            
-    # if config.get("activeActiveAutoVpnEnabled") is not None:
-                # result += f"**Active-Active Auto VPN**: {'✅' if config.get('activeActiveAutoVpnEnabled') else '❌'}\n"
-                
-            # if config.get("defaultUplink"):
-                # result += f"**Default Uplink**: {config.get('defaultUplink')}\n"
-                
-            # if config.get("loadBalancingEnabled") is not None:
-                # result += f"**Load Balancing**: {'✅' if config.get('loadBalancingEnabled') else '❌'}\n"
-                
-            # if config.get("wanTrafficUplinkPreferences"):
-                # result += f"\n## WAN Traffic Preferences\n"
-                # for pref in config.get("wanTrafficUplinkPreferences", []):
-                    # result += f"\n### {pref.get('trafficFilters', [{}])[0].get('type', 'Custom')} Rule\n"
-                    # result += f"- **Preferred Uplink**: {pref.get('preferredUplink')}\n"
-                    
-                    # for filter in pref.get("trafficFilters", []):
-                        # if filter.get("value"):
-                            # result += f"- **Filter**: {filter.get('value')}\n"
-                            
-            # if config.get("vpnTrafficUplinkPreferences"):
-                # result += f"\n## VPN Traffic Preferences\n"
-                # for pref in config.get("vpnTrafficUplinkPreferences", []):
-                    # result += f"\n### {pref.get('trafficFilters', [{}])[0].get('type', 'Custom')} Rule\n"
-                    # result += f"- **Preferred Uplink**: {pref.get('preferredUplink')}\n"
-                    # result += f"- **Failover Criterion**: {pref.get('failOverCriterion', 'N/A')}\n"
-                    
-            # return result
-            
-        # except Exception as e:
-            # return f"Error retrieving uplink selection: {str(e)}"
-    
-    @app.tool(
         name="update_network_appliance_traffic_shaping_uplink_selection",
         description="🌐 Update uplink selection settings for traffic shaping"
     )
@@ -3268,4 +2927,3132 @@ def register_appliance_tool_handlers():
             
         except Exception as e:
             return f"Error updating uplink selection: {str(e)}"
+
+# ==================== ADDITIONAL APPLIANCE SDK TOOLS ====================
+# Missing tools restored from backup to achieve complete SDK coverage
+
+def register_additional_appliance_tools():
+    """Register additional appliance tools from backup files."""
+    
+    @app.tool(
+        name="get_network_appliance_vpn_site_to_site_vpn",
+        description="🔐 Get site-to-site VPN settings for network"
+    )
+    def get_network_appliance_vpn_site_to_site_vpn(network_id: str):
+        """Get site-to-site VPN configuration."""
+        try:
+            result = meraki_client.dashboard.appliance.getNetworkApplianceVpnSiteToSiteVpn(network_id)
+            
+            response = f"# 🔐 Site-to-Site VPN Configuration\n\n"
+            response += f"**Mode**: {result.get('mode', 'N/A')}\n"
+            response += f"**Hub Networks**: {result.get('hubs', [])}\n\n"
+            
+            # Subnets
+            subnets = result.get('subnets', [])
+            if subnets:
+                response += f"## Local Subnets ({len(subnets)})\n"
+                for subnet in subnets:
+                    response += f"- {subnet.get('localSubnet', 'N/A')} - {'Use VPN' if subnet.get('useVpn') else 'Local only'}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting VPN settings: {str(e)}"
+
+    @app.tool(
+        name="get_organization_appliance_vpn_stats",
+        description="📊 Get organization VPN statistics"
+    )
+    def get_organization_appliance_vpn_stats(
+        organization_id: str,
+        per_page: int = 1000,
+        network_ids: Optional[str] = None
+    ):
+        """Get VPN statistics for organization."""
+        try:
+            kwargs = {'perPage': per_page, 'total_pages': 'all'}
+            
+            if network_ids:
+                kwargs['networkIds'] = network_ids.split(',')
+            
+            result = meraki_client.dashboard.appliance.getOrganizationApplianceVpnStats(
+                organization_id, **kwargs
+            )
+            
+            response = f"# 📊 Organization VPN Statistics\n\n"
+            
+            if result and isinstance(result, list):
+                response += f"**Total VPN Connections**: {len(result)}\n\n"
+                
+                for vpn in result[:5]:  # Show first 5
+                    response += f"## {vpn.get('networkName', 'Unknown Network')}\n"
+                    response += f"- **Sent**: {vpn.get('bytesSent', 0):,} bytes\n"
+                    response += f"- **Received**: {vpn.get('bytesReceived', 0):,} bytes\n\n"
+                
+                if len(result) > 5:
+                    response += f"*...and {len(result) - 5} more VPN connections*\n"
+            else:
+                response += "*No VPN statistics found*\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting VPN stats: {str(e)}"
+    
+    # Additional appliance tools from consolidated backup
+    @app.tool(
+        name="get_network_appliance_firewall_inbound_rules",
+        description="🔥 Get inbound firewall rules for network"
+    )
+    def get_network_appliance_firewall_inbound_rules(network_id: str):
+        """Get inbound firewall rules for a network appliance."""
+        try:
+            result = meraki_client.dashboard.appliance.getNetworkApplianceFirewallInboundFirewallRules(network_id)
+            
+            response = f"# 🔥 Inbound Firewall Rules - {network_id}\n\n"
+            
+            if result and 'rules' in result:
+                rules = result['rules']
+                response += f"**Total Rules**: {len(rules)}\n"
+                response += f"**Syslog Enabled**: {'✅' if result.get('syslogEnabled') else '❌'}\n\n"
+                
+                for i, rule in enumerate(rules[:10], 1):  # Show first 10 rules
+                    response += f"## Rule {i}: {rule.get('comment', 'No comment')}\n"
+                    response += f"- **Policy**: {rule.get('policy', 'N/A')}\n"
+                    response += f"- **Protocol**: {rule.get('protocol', 'any')}\n"
+                    response += f"- **Source**: {rule.get('srcCidr', 'any')}\n"
+                    
+                    if rule.get('srcPort'):
+                        response += f"- **Source Port**: {rule.get('srcPort')}\n"
+                    
+                    response += f"- **Destination**: {rule.get('destCidr', 'any')}\n"
+                    
+                    if rule.get('destPort'):
+                        response += f"- **Destination Port**: {rule.get('destPort')}\n"
+                    
+                    response += "\n"
+                
+                if len(rules) > 10:
+                    response += f"*...and {len(rules) - 10} more rules*\n"
+            else:
+                response += "*No inbound firewall rules configured*\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting inbound firewall rules: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_firewall_cellular_rules",
+        description="📱 Get cellular firewall rules for network"
+    )
+    def get_network_appliance_firewall_cellular_rules(network_id: str):
+        """Get cellular firewall rules for a network appliance."""
+        try:
+            result = meraki_client.dashboard.appliance.getNetworkApplianceFirewallCellularFirewallRules(network_id)
+            
+            response = f"# 📱 Cellular Firewall Rules - {network_id}\n\n"
+            
+            if result and 'rules' in result:
+                rules = result['rules']
+                response += f"**Total Rules**: {len(rules)}\n\n"
+                
+                for i, rule in enumerate(rules[:10], 1):
+                    response += f"## Rule {i}: {rule.get('comment', 'No comment')}\n"
+                    response += f"- **Policy**: {rule.get('policy', 'N/A')}\n"
+                    response += f"- **Protocol**: {rule.get('protocol', 'any')}\n"
+                    response += f"- **Source**: {rule.get('srcCidr', 'any')}\n"
+                    response += f"- **Destination**: {rule.get('destCidr', 'any')}\n"
+                    
+                    if rule.get('destPort'):
+                        response += f"- **Destination Port**: {rule.get('destPort')}\n"
+                    
+                    response += "\n"
+                
+                if len(rules) > 10:
+                    response += f"*...and {len(rules) - 10} more rules*\n"
+            else:
+                response += "*No cellular firewall rules configured*\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting cellular firewall rules: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_vlan",
+        description="🏷️ Get specific VLAN configuration by VLAN ID"
+    )
+    def get_network_appliance_vlan(network_id: str, vlan_id: str):
+        """Get specific VLAN configuration by VLAN ID."""
+        try:
+            result = meraki_client.dashboard.appliance.getNetworkApplianceVlan(network_id, vlan_id)
+            
+            response = f"# 🏷️ VLAN {vlan_id} Details - {network_id}\n\n"
+            response += f"**Name**: {result.get('name', 'Unnamed')}\n"
+            response += f"**VLAN ID**: {result.get('id', 'N/A')}\n"
+            response += f"**Subnet**: {result.get('subnet', 'N/A')}\n"
+            response += f"**Appliance IP**: {result.get('applianceIp', 'N/A')}\n"
+            response += f"**DHCP Handling**: {result.get('dhcpHandling', 'N/A')}\n"
+            
+            if result.get('dhcpLeaseTime'):
+                response += f"**DHCP Lease Time**: {result.get('dhcpLeaseTime')}\n"
+            
+            if result.get('dnsNameservers'):
+                response += f"**DNS Nameservers**: {result.get('dnsNameservers')}\n"
+            
+            if result.get('groupPolicyId'):
+                response += f"**Group Policy ID**: {result.get('groupPolicyId')}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting VLAN {vlan_id}: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_dhcp_subnets",
+        description="🌐 Get DHCP subnet information for network"
+    )
+    def get_network_appliance_dhcp_subnets(network_id: str):
+        """Get DHCP subnet information for a network appliance."""
+        try:
+            result = meraki_client.dashboard.appliance.getNetworkApplianceDhcpSubnets(network_id)
+            
+            response = f"# 🌐 DHCP Subnets - {network_id}\n\n"
+            
+            if result:
+                response += f"**Total DHCP Subnets**: {len(result)}\n\n"
+                
+                for subnet in result:
+                    response += f"## Subnet: {subnet.get('subnet', 'Unknown')}\n"
+                    response += f"- **VLAN ID**: {subnet.get('vlanId', 'N/A')}\n"
+                    response += f"- **Used Count**: {subnet.get('usedCount', '0')}\n"
+                    response += f"- **Free Count**: {subnet.get('freeCount', '0')}\n"
+                    response += "\n"
+            else:
+                response += "*No DHCP subnets found*\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting DHCP subnets: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_single_lan",
+        description="🔌 Get single LAN configuration for network"
+    )
+    def get_network_appliance_single_lan(network_id: str):
+        """Get single LAN configuration for a network appliance."""
+        try:
+            result = meraki_client.dashboard.appliance.getNetworkApplianceSingleLan(network_id)
+            
+            response = f"# 🔌 Single LAN Configuration - {network_id}\n\n"
+            response += f"**Subnet**: {result.get('subnet', 'N/A')}\n"
+            response += f"**Appliance IP**: {result.get('applianceIp', 'N/A')}\n"
+            
+            ipv6 = result.get('ipv6', {})
+            if ipv6:
+                response += f"\n## IPv6 Configuration\n"
+                response += f"- **Enabled**: {'✅' if ipv6.get('enabled') else '❌'}\n"
+                if ipv6.get('prefixAssignments'):
+                    response += f"- **Prefix Assignments**: {len(ipv6['prefixAssignments'])} configured\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting single LAN configuration: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_traffic_shaping_rules",
+        description="⚡ Get traffic shaping rules for network"
+    )
+    def get_network_appliance_traffic_shaping_rules(network_id: str):
+        """Get traffic shaping rules for a network appliance."""
+        try:
+            result = meraki_client.dashboard.appliance.getNetworkApplianceTrafficShaping(network_id)
+            
+            response = f"# ⚡ Traffic Shaping - {network_id}\n\n"
+            
+            if result:
+                # Global bandwidth limits
+                global_limits = result.get('globalBandwidthLimits')
+                if global_limits:
+                    response += "## Global Bandwidth Limits\n"
+                    response += f"- **Upload Limit**: {global_limits.get('limitUp', 'Unlimited')} Kbps\n"
+                    response += f"- **Download Limit**: {global_limits.get('limitDown', 'Unlimited')} Kbps\n\n"
+                
+                # Rules
+                rules = result.get('rules', [])
+                if rules:
+                    response += f"## Traffic Shaping Rules ({len(rules)})\n"
+                    for i, rule in enumerate(rules[:5], 1):
+                        response += f"### Rule {i}\n"
+                        response += f"- **Priority**: {rule.get('priority', 'N/A')}\n"
+                        
+                        # Definitions
+                        definitions = rule.get('definitions', [])
+                        if definitions:
+                            response += f"- **Definitions**: {len(definitions)} configured\n"
+                        
+                        # Per-client bandwidth limits
+                        per_client = rule.get('perClientBandwidthLimits')
+                        if per_client:
+                            response += f"- **Per-Client Up**: {per_client.get('limitUp', 'Unlimited')} Kbps\n"
+                            response += f"- **Per-Client Down**: {per_client.get('limitDown', 'Unlimited')} Kbps\n"
+                        
+                        response += "\n"
+                    
+                    if len(rules) > 5:
+                        response += f"*...and {len(rules) - 5} more rules*\n"
+                else:
+                    response += "*No traffic shaping rules configured*\n"
+            else:
+                response += "*No traffic shaping configuration*\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting traffic shaping: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_port_forwarding_rules",
+        description="🔀 Get port forwarding rules for network appliance"
+    )
+    def get_network_appliance_port_forwarding_rules(network_id: str):
+        """Get port forwarding rules for a network appliance."""
+        try:
+            result = meraki_client.dashboard.appliance.getNetworkAppliancePortForwardingRules(network_id)
+            
+            response = f"# 🔀 Port Forwarding Rules - {network_id}\n\n"
+            
+            if result and 'rules' in result:
+                rules = result['rules']
+                response += f"**Total Rules**: {len(rules)}\n\n"
+                
+                for i, rule in enumerate(rules[:10], 1):
+                    response += f"## Rule {i}: {rule.get('name', 'Unnamed')}\n"
+                    response += f"- **Protocol**: {rule.get('protocol', 'N/A')}\n"
+                    response += f"- **Public Port**: {rule.get('publicPort', 'N/A')}\n"
+                    response += f"- **Local IP**: {rule.get('localIp', 'N/A')}\n"
+                    response += f"- **Local Port**: {rule.get('localPort', 'N/A')}\n"
+                    response += f"- **Allowed IPs**: {rule.get('allowedIps', 'Any')}\n"
+                    response += f"- **Access Type**: {rule.get('access', 'N/A')}\n"
+                    response += "\n"
+                
+                if len(rules) > 10:
+                    response += f"*...and {len(rules) - 10} more rules*\n"
+            else:
+                response += "*No port forwarding rules configured*\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting port forwarding rules: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_one_to_one_nat_rules",
+        description="🔄 Get 1:1 NAT rules for network appliance"
+    )
+    def get_network_appliance_one_to_one_nat_rules(network_id: str):
+        """Get 1:1 NAT rules for a network appliance."""
+        try:
+            result = meraki_client.dashboard.appliance.getNetworkApplianceOneToOneNatRules(network_id)
+            
+            response = f"# 🔄 1:1 NAT Rules - {network_id}\n\n"
+            
+            if result and 'rules' in result:
+                rules = result['rules']
+                response += f"**Total Rules**: {len(rules)}\n\n"
+                
+                for i, rule in enumerate(rules, 1):
+                    response += f"## Rule {i}: {rule.get('name', 'Unnamed')}\n"
+                    response += f"- **Public IP**: {rule.get('publicIp', 'N/A')}\n"
+                    response += f"- **LAN IP**: {rule.get('lanIp', 'N/A')}\n"
+                    response += f"- **Uplink**: {rule.get('uplink', 'N/A')}\n"
+                    response += f"- **Allowed Inbound**:\n"
+                    
+                    allowed_inbound = rule.get('allowedInbound', [])
+                    for inbound in allowed_inbound:
+                        response += f"  - {inbound.get('protocol', 'N/A')} ports {inbound.get('destinationPorts', 'any')}\n"
+                    
+                    response += "\n"
+            else:
+                response += "*No 1:1 NAT rules configured*\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting 1:1 NAT rules: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_one_to_many_nat_rules",
+        description="🔀 Get 1:many NAT rules for network appliance"
+    )
+    def get_network_appliance_one_to_many_nat_rules(network_id: str):
+        """Get 1:many NAT rules for a network appliance."""
+        try:
+            result = meraki_client.dashboard.appliance.getNetworkApplianceOneToManyNatRules(network_id)
+            
+            response = f"# 🔀 1:Many NAT Rules - {network_id}\n\n"
+            
+            if result and 'rules' in result:
+                rules = result['rules']
+                response += f"**Total Rules**: {len(rules)}\n\n"
+                
+                for i, rule in enumerate(rules, 1):
+                    response += f"## Rule {i}\n"
+                    response += f"- **Public IP**: {rule.get('publicIp', 'N/A')}\n"
+                    response += f"- **Uplink**: {rule.get('uplink', 'N/A')}\n"
+                    
+                    port_rules = rule.get('portRules', [])
+                    if port_rules:
+                        response += f"- **Port Rules**: {len(port_rules)} configured\n"
+                        for pr in port_rules[:3]:  # Show first 3
+                            response += f"  - {pr.get('protocol', 'N/A')} {pr.get('publicPort', 'N/A')} → {pr.get('localIp', 'N/A')}:{pr.get('localPort', 'N/A')}\n"
+                        if len(port_rules) > 3:
+                            response += f"  - *...and {len(port_rules) - 3} more*\n"
+                    
+                    response += "\n"
+            else:
+                response += "*No 1:many NAT rules configured*\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting 1:many NAT rules: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_client_security_events",
+        description="🚨 Get security events for network appliance clients"
+    )
+    def get_network_appliance_client_security_events(
+        network_id: str, 
+        timespan: int = 86400,
+        per_page: int = 1000
+    ):
+        """Get security events for clients on a network appliance."""
+        try:
+            result = meraki_client.dashboard.appliance.getNetworkApplianceClientSecurityEvents(
+                network_id, 
+                timespan=timespan,
+                perPage=per_page,
+                total_pages='all'
+            )
+            
+            response = f"# 🚨 Client Security Events - {network_id}\n\n"
+            response += f"**Timespan**: {timespan} seconds ({timespan/3600:.1f} hours)\n\n"
+            
+            if result:
+                response += f"**Total Events**: {len(result)}\n\n"
+                
+                # Group events by type
+                event_types = {}
+                for event in result:
+                    event_type = event.get('eventType', 'Unknown')
+                    event_types[event_type] = event_types.get(event_type, 0) + 1
+                
+                # Show event type summary
+                response += "## Event Summary\n"
+                for event_type, count in sorted(event_types.items(), key=lambda x: x[1], reverse=True):
+                    response += f"- **{event_type}**: {count} events\n"
+                
+                # Show recent events
+                response += f"\n## Recent Events (showing first 10)\n"
+                for i, event in enumerate(result[:10], 1):
+                    response += f"### {i}. {event.get('eventType', 'Unknown Event')}\n"
+                    response += f"- **Time**: {event.get('ts', 'N/A')}\n"
+                    response += f"- **Client MAC**: {event.get('clientMac', 'N/A')}\n"
+                    response += f"- **Client Name**: {event.get('clientName', 'Unknown')}\n"
+                    
+                    if event.get('srcIp'):
+                        response += f"- **Source IP**: {event.get('srcIp')}\n"
+                    if event.get('destIp'):
+                        response += f"- **Destination IP**: {event.get('destIp')}\n"
+                    if event.get('disposition'):
+                        response += f"- **Action**: {event.get('disposition')}\n"
+                    
+                    response += "\n"
+                
+                if len(result) > 10:
+                    response += f"*...and {len(result) - 10} more events*\n"
+            else:
+                response += "*No security events found in the specified timespan*\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting client security events: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_uplinks_settings",
+        description="📡 Get uplink settings for network appliance"
+    )
+    def get_network_appliance_uplinks_settings(network_id: str):
+        """Get uplink settings for a network appliance."""
+        try:
+            result = meraki_client.dashboard.appliance.getNetworkApplianceUplinksSettings(network_id)
+            
+            response = f"# 📡 Uplink Settings - {network_id}\n\n"
+            
+            interfaces = result.get('interfaces', {})
+            
+            # WAN1 settings
+            wan1 = interfaces.get('wan1', {})
+            if wan1:
+                response += "## WAN1 Interface\n"
+                response += f"- **Enabled**: {'✅' if wan1.get('enabled') else '❌'}\n"
+                response += f"- **Using Static IP**: {'✅' if wan1.get('usingStaticIp') else '❌ DHCP'}\n"
+                
+                if wan1.get('staticIp'):
+                    response += f"- **Static IP**: {wan1.get('staticIp')}\n"
+                if wan1.get('staticSubnetMask'):
+                    response += f"- **Subnet Mask**: {wan1.get('staticSubnetMask')}\n"
+                if wan1.get('staticGatewayIp'):
+                    response += f"- **Gateway**: {wan1.get('staticGatewayIp')}\n"
+                if wan1.get('staticDns'):
+                    response += f"- **DNS**: {wan1.get('staticDns')}\n"
+                
+                response += "\n"
+            
+            # WAN2 settings
+            wan2 = interfaces.get('wan2', {})
+            if wan2:
+                response += "## WAN2 Interface\n"
+                response += f"- **Enabled**: {'✅' if wan2.get('enabled') else '❌'}\n"
+                response += f"- **Using Static IP**: {'✅' if wan2.get('usingStaticIp') else '❌ DHCP'}\n"
+                
+                if wan2.get('staticIp'):
+                    response += f"- **Static IP**: {wan2.get('staticIp')}\n"
+                if wan2.get('staticSubnetMask'):
+                    response += f"- **Subnet Mask**: {wan2.get('staticSubnetMask')}\n"
+                if wan2.get('staticGatewayIp'):
+                    response += f"- **Gateway**: {wan2.get('staticGatewayIp')}\n"
+                if wan2.get('staticDns'):
+                    response += f"- **DNS**: {wan2.get('staticDns')}\n"
+                
+                response += "\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting uplink settings: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_connectivity_monitoring",
+        description="🌐 Get connectivity monitoring destinations"
+    )
+    def get_network_appliance_connectivity_monitoring(network_id: str):
+        """Get connectivity monitoring destinations for a network appliance."""
+        try:
+            result = meraki_client.dashboard.appliance.getNetworkApplianceConnectivityMonitoringDestinations(network_id)
+            
+            response = f"# 🌐 Connectivity Monitoring - {network_id}\n\n"
+            
+            destinations = result.get('destinations', [])
+            if destinations:
+                response += f"**Total Destinations**: {len(destinations)}\n\n"
+                
+                for i, dest in enumerate(destinations, 1):
+                    response += f"## Destination {i}\n"
+                    response += f"- **IP**: {dest.get('ip', 'N/A')}\n"
+                    response += f"- **Description**: {dest.get('description', 'No description')}\n"
+                    response += f"- **Default**: {'✅' if dest.get('default') else '❌'}\n"
+                    response += "\n"
+            else:
+                response += "*No connectivity monitoring destinations configured*\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting connectivity monitoring: {str(e)}"
+    
+    @app.tool(
+        name="get_organization_appliance_security_events",
+        description="🚨 Get organization-wide appliance security events"
+    )
+    def get_organization_appliance_security_events(
+        organization_id: str,
+        timespan: int = 86400,
+        per_page: int = 1000
+    ):
+        """Get organization-wide appliance security events."""
+        try:
+            result = meraki_client.dashboard.appliance.getOrganizationApplianceSecurityEvents(
+                organization_id,
+                timespan=timespan,
+                perPage=per_page,
+                total_pages='all'
+            )
+            
+            response = f"# 🚨 Organization Security Events\n"
+            response += f"*Last {timespan//3600} hours across all networks*\n\n"
+            
+            if not result:
+                response += "✅ No security events detected organization-wide\n"
+                return response
+            
+            response += f"**Total Events**: {len(result)}\n\n"
+            
+            # Group by network and event type
+            network_events = {}
+            event_types = {}
+            
+            for event in result:
+                network_name = event.get('networkName', 'Unknown Network')
+                event_type = event.get('eventType', 'Unknown')
+                
+                if network_name not in network_events:
+                    network_events[network_name] = 0
+                network_events[network_name] += 1
+                
+                if event_type not in event_types:
+                    event_types[event_type] = 0
+                event_types[event_type] += 1
+            
+            # Network summary
+            response += "## Events by Network\n"
+            for network, count in sorted(network_events.items(), key=lambda x: x[1], reverse=True)[:10]:
+                response += f"- **{network}**: {count} events\n"
+            
+            # Event type summary
+            response += "\n## Event Types\n"
+            for event_type, count in sorted(event_types.items(), key=lambda x: x[1], reverse=True):
+                response += f"- **{event_type}**: {count} events\n"
+            
+            response += f"\n## Recent Events (showing first 5)\n"
+            for i, event in enumerate(result[:5], 1):
+                response += f"### {i}. {event.get('eventType', 'Unknown')}\n"
+                response += f"- **Network**: {event.get('networkName', 'Unknown')}\n"
+                response += f"- **Time**: {event.get('ts', 'Unknown')}\n"
+                response += f"- **Source**: {event.get('srcIp', 'Unknown')}\n"
+                response += f"- **Destination**: {event.get('destIp', 'Unknown')}\n"
+                
+                if event.get('message'):
+                    response += f"- **Message**: {event['message']}\n"
+                
+                response += "\n"
+            
+            if len(result) > 5:
+                response += f"*...and {len(result) - 5} more events across the organization*\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting organization security events: {str(e)}"
+    
+    @app.tool(
+        name="get_organization_appliance_security_intrusion",
+        description="🛡️ Get organization-wide IDS/IPS settings"
+    )
+    def get_organization_appliance_security_intrusion(
+        organization_id: str,
+        per_page: int = 1000
+    ):
+        """Get organization-wide appliance intrusion detection settings."""
+        try:
+            result = meraki_client.dashboard.appliance.getOrganizationApplianceSecurityIntrusion(
+                organization_id,
+                perPage=per_page,
+                total_pages='all'
+            )
+            
+            response = f"# 🛡️ Organization IDS/IPS Settings\n\n"
+            
+            if not result:
+                response += "*No networks with appliance intrusion detection configured*\n"
+                return response
+            
+            response += f"**Total Networks**: {len(result)}\n\n"
+            
+            # Group by mode
+            mode_counts = {}
+            for network in result:
+                mode = network.get('mode', 'disabled')
+                mode_counts[mode] = mode_counts.get(mode, 0) + 1
+            
+            response += "## IDS/IPS Mode Summary\n"
+            for mode, count in sorted(mode_counts.items()):
+                if mode == 'prevention':
+                    response += f"- **🛡️ Prevention**: {count} networks (blocking threats)\n"
+                elif mode == 'detection':
+                    response += f"- **🔍 Detection**: {count} networks (monitoring only)\n"
+                else:
+                    response += f"- **❌ Disabled**: {count} networks\n"
+            
+            response += f"\n## Network Details (showing first 10)\n"
+            for network in result[:10]:
+                response += f"### {network.get('networkName', 'Unknown Network')}\n"
+                response += f"- **Network ID**: {network.get('networkId', 'N/A')}\n"
+                response += f"- **Mode**: {network.get('mode', 'disabled')}\n"
+                response += f"- **Ruleset**: {network.get('idsRulesets', 'N/A')}\n"
+                
+                protected = network.get('protectedNetworks', {})
+                if protected:
+                    use_default = protected.get('useDefault', True)
+                    response += f"- **Protected Networks**: {'Default' if use_default else 'Custom'}\n"
+                
+                response += "\n"
+            
+            if len(result) > 10:
+                response += f"*...and {len(result) - 10} more networks*\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting organization IDS/IPS settings: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_dhcp_reservations",
+        description="🏷️ Get DHCP reservations for network appliance VLANs"
+    )
+    def get_network_appliance_dhcp_reservations(network_id: str, vlan_id: str = None):
+        """Get DHCP reservations for network appliance VLANs."""
+        try:
+            vlans = meraki_client.dashboard.appliance.getNetworkApplianceVlans(network_id)
+            
+            response = f"# 🏷️ DHCP Reservations - {network_id}\n\n"
+            
+            total_reservations = 0
+            
+            for vlan in vlans:
+                current_vlan_id = str(vlan.get('id', ''))
+                
+                # Skip if specific VLAN requested and this isn't it
+                if vlan_id and current_vlan_id != str(vlan_id):
+                    continue
+                
+                fixed_assignments = vlan.get('fixedIpAssignments', {})
+                
+                if fixed_assignments:
+                    response += f"## VLAN {current_vlan_id}: {vlan.get('name', 'Unnamed')}\n"
+                    response += f"**Subnet**: {vlan.get('subnet', 'N/A')}\n"
+                    response += f"**Reservations**: {len(fixed_assignments)}\n\n"
+                    
+                    for mac, info in fixed_assignments.items():
+                        response += f"**{mac.upper()}**\n"
+                        response += f"  - IP: `{info.get('ip')}`\n"
+                        response += f"  - Name: {info.get('name', 'No name')}\n"
+                        total_reservations += 1
+                    
+                    response += "\n"
+                elif vlan_id is not None:
+                    response += f"## VLAN {current_vlan_id}: {vlan.get('name', 'Unknown')}\n"
+                    response += "No DHCP reservations configured.\n\n"
+            
+            if vlan_id is not None and total_reservations == 0:
+                response += "No DHCP reservations found for the specified VLAN.\n"
+            elif vlan_id is None and total_reservations == 0:
+                response += "No DHCP reservations configured on any VLAN.\n"
+            else:
+                response += f"**Total Reservations**: {total_reservations}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error listing DHCP reservations: {str(e)}"
+    
+    @app.tool(
+        name="get_organization_appliance_uplink_statuses",
+        description="📡 Get uplink status across organization appliances"
+    )
+    def get_organization_appliance_uplink_statuses(
+        organization_id: str, 
+        per_page: int = 1000,
+        network_ids: Optional[str] = None
+    ):
+        """Get uplink status across organization appliances."""
+        try:
+            kwargs = {'perPage': per_page, 'total_pages': 'all'}
+            
+            if network_ids:
+                kwargs['networkIds'] = network_ids.split(',')
+            
+            result = meraki_client.dashboard.appliance.getOrganizationApplianceUplinkStatuses(
+                organization_id, **kwargs
+            )
+            
+            response = f"# 📡 Organization Appliance Uplink Status\n\n"
+            
+            if not result:
+                response += "*No appliance uplink data found*\n"
+                return response
+            
+            response += f"**Total Networks**: {len(result)}\n\n"
+            
+            # Group by uplink status
+            uplink_summary = {
+                'active': 0,
+                'connecting': 0,
+                'not_connected': 0,
+                'ready': 0,
+                'failed': 0
+            }
+            
+            for network in result:
+                uplinks = network.get('uplinks', [])
+                for uplink in uplinks:
+                    status = uplink.get('status', '').lower().replace(' ', '_')
+                    if status in uplink_summary:
+                        uplink_summary[status] += 1
+            
+            response += "## Uplink Status Summary\n"
+            for status, count in uplink_summary.items():
+                if count > 0:
+                    emoji = "✅" if status == "active" else "🔄" if status == "connecting" else "❌"
+                    response += f"- **{emoji} {status.replace('_', ' ').title()}**: {count} uplinks\n"
+            
+            response += f"\n## Network Details (showing first 10)\n"
+            for network in result[:10]:
+                response += f"### {network.get('networkName', 'Unknown Network')}\n"
+                response += f"- **Network ID**: {network.get('networkId', 'N/A')}\n"
+                response += f"- **Serial**: {network.get('serial', 'N/A')}\n"
+                
+                uplinks = network.get('uplinks', [])
+                for i, uplink in enumerate(uplinks, 1):
+                    status = uplink.get('status', 'Unknown')
+                    emoji = "✅" if status.lower() == "active" else "❌"
+                    response += f"- **Uplink {i}**: {emoji} {status}\n"
+                    if uplink.get('ip'):
+                        response += f"  - IP: {uplink.get('ip')}\n"
+                    if uplink.get('provider'):
+                        response += f"  - Provider: {uplink.get('provider')}\n"
+                
+                response += "\n"
+            
+            if len(result) > 10:
+                response += f"*...and {len(result) - 10} more networks*\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting organization uplink statuses: {str(e)}"
+    
+    @app.tool(
+        name="get_organization_appliance_vpn_third_party_peers",
+        description="🔗 Get third-party VPN peers for organization"
+    )
+    def get_organization_appliance_vpn_third_party_peers(
+        organization_id: str, 
+        per_page: int = 1000
+    ):
+        """Get third-party VPN peers configured across the organization."""
+        try:
+            result = meraki_client.dashboard.appliance.getOrganizationApplianceVpnThirdPartyVpnPeers(
+                organization_id, 
+                perPage=per_page,
+                total_pages='all'
+            )
+            
+            response = f"# 🔗 Third-Party VPN Peers\n\n"
+            
+            if not result:
+                response += "*No third-party VPN peers configured*\n"
+                return response
+            
+            response += f"**Total Peers**: {len(result)}\n\n"
+            
+            # Group by peer type/vendor
+            peer_types = {}
+            for peer in result:
+                peer_name = peer.get('name', 'Unknown')
+                vendor = peer_name.split('-')[0] if '-' in peer_name else 'Unknown'
+                peer_types[vendor] = peer_types.get(vendor, 0) + 1
+            
+            if len(peer_types) > 1:
+                response += "## Peer Distribution\n"
+                for vendor, count in sorted(peer_types.items(), key=lambda x: x[1], reverse=True):
+                    response += f"- **{vendor}**: {count} peers\n"
+                response += "\n"
+            
+            response += "## Peer Details\n"
+            for peer in result:
+                response += f"### {peer.get('name', 'Unnamed Peer')}\n"
+                response += f"- **Public IP**: {peer.get('publicIp', 'N/A')}\n"
+                response += f"- **Remote ID**: {peer.get('remoteId', 'N/A')}\n"
+                
+                # Private subnets
+                private_subnets = peer.get('privateSubnets', [])
+                if private_subnets:
+                    response += f"- **Private Subnets**: {', '.join(private_subnets)}\n"
+                
+                # IPsec policies
+                ipsec_policies = peer.get('ipsecPolicies', {})
+                if ipsec_policies:
+                    response += f"- **IKE Version**: {ipsec_policies.get('ikeVersion', 'N/A')}\n"
+                    if ipsec_policies.get('childLifetime'):
+                        response += f"- **Child Lifetime**: {ipsec_policies.get('childLifetime')}s\n"
+                
+                response += f"- **Secret**: {'Configured' if peer.get('secret') else 'Not configured'}\n"
+                response += "\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting third-party VPN peers: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_firewall_l7_categories",
+        description="🔍 Get L7 application firewall categories"
+    )
+    def get_network_appliance_firewall_l7_categories(network_id: str):
+        """Get L7 application firewall categories."""
+        try:
+            result = meraki_client.dashboard.appliance.getNetworkApplianceFirewallL7FirewallRulesApplicationCategories(network_id)
+            
+            response = f"# 🔍 L7 Application Categories - {network_id}\n\n"
+            
+            categories = result.get('applicationCategories', [])
+            if categories:
+                response += f"**Total Categories**: {len(categories)}\n\n"
+                
+                # Group by category type
+                by_type = {}
+                for cat in categories:
+                    cat_name = cat.get('name', 'Unknown')
+                    cat_id = cat.get('id', 'N/A')
+                    
+                    # Extract category type from name
+                    if '.' in cat_name:
+                        cat_type = cat_name.split('.')[0]
+                    else:
+                        cat_type = 'Other'
+                    
+                    if cat_type not in by_type:
+                        by_type[cat_type] = []
+                    by_type[cat_type].append((cat_name, cat_id))
+                
+                for cat_type, items in sorted(by_type.items()):
+                    response += f"## {cat_type}\n"
+                    for name, cat_id in items[:5]:
+                        response += f"- {name} ({cat_id})\n"
+                    if len(items) > 5:
+                        response += f"  ...and {len(items)-5} more\n"
+                    response += "\n"
+            else:
+                response += "*No application categories available*\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting L7 categories: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_firewall_firewalled_services",
+        description="🛡️ Get firewalled services settings"
+    )
+    def get_network_appliance_firewall_firewalled_services(network_id: str):
+        """Get firewalled services for a network appliance."""
+        try:
+            result = meraki_client.dashboard.appliance.getNetworkApplianceFirewallFirewalledServices(network_id)
+            
+            response = f"# 🛡️ Firewalled Services - {network_id}\n\n"
+            
+            if result and isinstance(result, list):
+                response += f"**Total Services**: {len(result)}\n\n"
+                
+                for service in result:
+                    response += f"## {service.get('service', 'Unknown')}\n"
+                    response += f"- **Access**: {service.get('access', 'N/A')}\n"
+                    
+                    allowed = service.get('allowedIps', [])
+                    if allowed:
+                        response += f"- **Allowed IPs**: {', '.join(allowed)}\n"
+                    else:
+                        response += f"- **Allowed IPs**: Any\n"
+                    
+                    response += "\n"
+            else:
+                response += "*No firewalled services configured*\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting firewalled services: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_prefixes_delegated",
+        description="🔢 Get delegated IPv6 prefixes"
+    )
+    def get_network_appliance_prefixes_delegated(network_id: str):
+        """Get delegated IPv6 prefixes for a network appliance."""
+        try:
+            result = meraki_client.dashboard.appliance.getNetworkAppliancePrefixesDelegated(network_id)
+            
+            response = f"# 🔢 Delegated IPv6 Prefixes - {network_id}\n\n"
+            
+            if result and isinstance(result, list):
+                response += f"**Total Prefixes**: {len(result)}\n\n"
+                
+                for prefix in result:
+                    response += f"## {prefix.get('prefix', 'Unknown')}\n"
+                    response += f"- **Origin**: {prefix.get('origin', 'N/A')}\n"
+                    response += f"- **Description**: {prefix.get('description', 'N/A')}\n"
+                    
+                    if prefix.get('createdAt'):
+                        response += f"- **Created**: {prefix.get('createdAt')}\n"
+                    if prefix.get('updatedAt'):
+                        response += f"- **Updated**: {prefix.get('updatedAt')}\n"
+                    
+                    response += "\n"
+            else:
+                response += "*No delegated prefixes configured*\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting delegated prefixes: {str(e)}"
+    
+    @app.tool(
+        name="get_organization_appliance_vpn_statuses",
+        description="🔗 Get VPN status across organization appliances"  
+    )
+    def get_organization_appliance_vpn_statuses(
+        organization_id: str,
+        per_page: int = 1000,
+        network_ids: Optional[str] = None
+    ):
+        """Get VPN status across organization appliances."""
+        try:
+            kwargs = {'perPage': per_page, 'total_pages': 'all'}
+            
+            if network_ids:
+                kwargs['networkIds'] = network_ids.split(',')
+            
+            result = meraki_client.dashboard.appliance.getOrganizationApplianceVpnStatuses(
+                organization_id, **kwargs
+            )
+            
+            response = f"# 🔗 Organization VPN Status\n\n"
+            
+            if not result:
+                response += "*No VPN status data found*\n"
+                return response
+            
+            response += f"**Total Networks**: {len(result)}\n\n"
+            
+            # Group by VPN status
+            vpn_summary = {
+                'connected': 0,
+                'not_connected': 0,
+                'connecting': 0
+            }
+            
+            for network in result:
+                vpn_mode = network.get('vpnMode', 'None')
+                
+                # Check VPN peer statuses
+                peers = network.get('merakiVpnPeers', [])
+                for peer in peers:
+                    reachability = peer.get('reachability', '').lower().replace(' ', '_')
+                    if reachability == 'reachable':
+                        vpn_summary['connected'] += 1
+                    elif reachability == 'unreachable':
+                        vpn_summary['not_connected'] += 1
+                    else:
+                        vpn_summary['connecting'] += 1
+            
+            response += "## VPN Status Summary\n"
+            for status, count in vpn_summary.items():
+                if count > 0:
+                    emoji = "✅" if status == "connected" else "❌" if status == "not_connected" else "🔄"
+                    response += f"- **{emoji} {status.replace('_', ' ').title()}**: {count} peers\n"
+            
+            response += f"\n## Network Details (showing first 10)\n"
+            for network in result[:10]:
+                response += f"### {network.get('networkName', 'Unknown Network')}\n"
+                response += f"- **Network ID**: {network.get('networkId', 'N/A')}\n"
+                response += f"- **VPN Mode**: {network.get('vpnMode', 'None')}\n"
+                
+                # Show peer status
+                peers = network.get('merakiVpnPeers', [])
+                if peers:
+                    response += f"- **VPN Peers**: {len(peers)} configured\n"
+                    for peer in peers[:3]:  # Show first 3 peers
+                        reachability = peer.get('reachability', 'Unknown')
+                        emoji = "✅" if reachability.lower() == "reachable" else "❌"
+                        response += f"  - {emoji} {peer.get('networkName', 'Unknown')}: {reachability}\n"
+                    if len(peers) > 3:
+                        response += f"  - *...and {len(peers) - 3} more peers*\n"
+                else:
+                    response += f"- **VPN Peers**: None configured\n"
+                
+                response += "\n"
+            
+            if len(result) > 10:
+                response += f"*...and {len(result) - 10} more networks*\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting organization VPN statuses: {str(e)}"
+    
+    @app.tool(
+        name="get_organization_appliance_security_malware",
+        description="🦠 Get organization-wide malware protection settings"
+    )
+    def get_organization_appliance_security_malware(
+        organization_id: str,
+        per_page: int = 1000
+    ):
+        """Get organization-wide appliance malware protection settings."""
+        try:
+            result = meraki_client.dashboard.appliance.getOrganizationApplianceSecurityMalware(
+                organization_id,
+                perPage=per_page,
+                total_pages='all'
+            )
+            
+            response = f"# 🦠 Organization Malware Protection\n\n"
+            
+            if not result:
+                response += "*No networks with malware protection configured*\n"
+                return response
+            
+            response += f"**Total Networks**: {len(result)}\n\n"
+            
+            # Group by malware protection mode
+            mode_counts = {}
+            for network in result:
+                mode = network.get('mode', 'disabled')
+                mode_counts[mode] = mode_counts.get(mode, 0) + 1
+            
+            response += "## Malware Protection Summary\n"
+            for mode, count in sorted(mode_counts.items()):
+                if mode == 'enabled':
+                    response += f"- **🛡️ Enabled**: {count} networks (blocking malware)\n"
+                else:
+                    response += f"- **❌ Disabled**: {count} networks\n"
+            
+            response += f"\n## Network Details (showing first 10)\n"
+            for network in result[:10]:
+                response += f"### {network.get('networkName', 'Unknown Network')}\n"
+                response += f"- **Network ID**: {network.get('networkId', 'N/A')}\n"
+                response += f"- **Mode**: {network.get('mode', 'disabled')}\n"
+                
+                # Show allowed URLs/files if mode is enabled
+                if network.get('mode') == 'enabled':
+                    allowed_urls = network.get('allowedUrls', [])
+                    allowed_files = network.get('allowedFiles', [])
+                    
+                    if allowed_urls:
+                        response += f"- **Allowed URLs**: {len(allowed_urls)} configured\n"
+                    if allowed_files:
+                        response += f"- **Allowed Files**: {len(allowed_files)} configured\n"
+                
+                response += "\n"
+            
+            if len(result) > 10:
+                response += f"*...and {len(result) - 10} more networks*\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting organization malware protection: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_traffic_shaping_custom_classes",
+        description="🎯 Get all custom performance classes for traffic shaping"
+    )
+    def get_network_appliance_traffic_shaping_custom_classes(network_id: str):
+        """Get all custom performance classes for traffic shaping."""
+        try:
+            result = meraki_client.dashboard.appliance.getNetworkApplianceTrafficShapingCustomPerformanceClasses(network_id)
+            
+            response = f"# 🎯 Custom Performance Classes - {network_id}\n\n"
+            
+            if result and isinstance(result, list):
+                response += f"**Total Classes**: {len(result)}\n\n"
+                
+                for class_obj in result:
+                    response += f"## {class_obj.get('name', 'Unnamed')}\n"
+                    response += f"- **ID**: {class_obj.get('customPerformanceClassId', 'N/A')}\n"
+                    response += f"- **Max Latency**: {class_obj.get('maxLatency', 'N/A')}ms\n"
+                    response += f"- **Max Jitter**: {class_obj.get('maxJitter', 'N/A')}ms\n"
+                    response += f"- **Max Loss**: {class_obj.get('maxLossPercentage', 'N/A')}%\n"
+                    response += "\n"
+            else:
+                response += "*No custom performance classes configured*\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting custom performance classes: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_traffic_shaping_custom_class",
+        description="🎯 Get specific custom performance class details"
+    )
+    def get_network_appliance_traffic_shaping_custom_class(
+        network_id: str, 
+        custom_performance_class_id: str
+    ):
+        """Get specific custom performance class details."""
+        try:
+            result = meraki_client.dashboard.appliance.getNetworkApplianceTrafficShapingCustomPerformanceClass(
+                network_id, custom_performance_class_id
+            )
+            
+            response = f"# 🎯 Custom Performance Class Details\n\n"
+            response += f"**ID**: {custom_performance_class_id}\n"
+            response += f"**Name**: {result.get('name', 'N/A')}\n"
+            response += f"**Max Latency**: {result.get('maxLatency', 'N/A')}ms\n"
+            response += f"**Max Jitter**: {result.get('maxJitter', 'N/A')}ms\n"
+            response += f"**Max Loss**: {result.get('maxLossPercentage', 'N/A')}%\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting performance class: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_ssids",
+        description="📶 Get wireless SSID settings for MX appliance"
+    )
+    def get_network_appliance_ssids(network_id: str):
+        """Get wireless SSID settings for an MX appliance."""
+        try:
+            result = meraki_client.dashboard.appliance.getNetworkApplianceSsids(network_id)
+            
+            response = f"# 📶 MX Appliance SSIDs - {network_id}\n\n"
+            
+            if result:
+                response += f"**Total SSIDs**: {len(result)}\n\n"
+                
+                for ssid in result:
+                    response += f"## SSID {ssid.get('number', 'Unknown')}: {ssid.get('name', 'Unnamed')}\n"
+                    response += f"- **Enabled**: {'✅' if ssid.get('enabled') else '❌'}\n"
+                    response += f"- **Auth Mode**: {ssid.get('authMode', 'N/A')}\n"
+                    response += f"- **Encryption**: {ssid.get('encryptionMode', 'N/A')}\n"
+                    response += f"- **WPA Version**: {ssid.get('wpaEncryptionMode', 'N/A')}\n"
+                    
+                    if ssid.get('radiusServers'):
+                        response += f"- **RADIUS Servers**: {len(ssid['radiusServers'])} configured\n"
+                    
+                    response += "\n"
+            else:
+                response += "*No SSID configuration found*\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting appliance SSIDs: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_ssid",
+        description="📶 Get specific SSID configuration for MX appliance"
+    )
+    def get_network_appliance_ssid(network_id: str, number: str):
+        """Get specific SSID configuration for an MX appliance."""
+        try:
+            result = meraki_client.dashboard.appliance.getNetworkApplianceSsid(network_id, number)
+            
+            response = f"# 📶 MX SSID {number} Details - {network_id}\n\n"
+            response += f"**Name**: {result.get('name', 'Unnamed')}\n"
+            response += f"**Enabled**: {'✅' if result.get('enabled') else '❌'}\n"
+            response += f"**Auth Mode**: {result.get('authMode', 'N/A')}\n"
+            response += f"**Encryption**: {result.get('encryptionMode', 'N/A')}\n"
+            response += f"**WPA Version**: {result.get('wpaEncryptionMode', 'N/A')}\n"
+            
+            # RADIUS settings
+            radius_servers = result.get('radiusServers', [])
+            if radius_servers:
+                response += f"\n## RADIUS Servers ({len(radius_servers)})\n"
+                for i, server in enumerate(radius_servers, 1):
+                    response += f"### Server {i}\n"
+                    response += f"- **Host**: {server.get('host', 'N/A')}\n"
+                    response += f"- **Port**: {server.get('port', '1812')}\n"
+                    response += f"- **Secret**: {'Configured' if server.get('secret') else 'Not configured'}\n"
+                    response += "\n"
+            
+            # DHCP settings
+            dhcp_enforced_deauth = result.get('dhcpEnforcedDeauthentication', {})
+            if dhcp_enforced_deauth:
+                response += f"## DHCP Enforced Deauth\n"
+                response += f"- **Enabled**: {'✅' if dhcp_enforced_deauth.get('enabled') else '❌'}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting SSID {number}: {str(e)}"
+    
+    @app.tool(
+        name="get_organization_appliance_uplinks_usage_by_network",
+        description="📊 Get uplink usage by network across organization"
+    )
+    def get_organization_appliance_uplinks_usage_by_network(
+        organization_id: str,
+        per_page: int = 1000,
+        timespan: int = 86400
+    ):
+        """Get uplink usage by network across organization appliances."""
+        try:
+            result = meraki_client.dashboard.appliance.getOrganizationApplianceUplinksUsageByNetwork(
+                organization_id,
+                perPage=per_page,
+                timespan=timespan,
+                total_pages='all'
+            )
+            
+            response = f"# 📊 Organization Uplink Usage by Network\n"
+            response += f"*Last {timespan//3600} hours*\n\n"
+            
+            if not result:
+                response += "*No uplink usage data found*\n"
+                return response
+            
+            response += f"**Total Networks**: {len(result)}\n\n"
+            
+            # Calculate total usage
+            total_sent = sum(network.get('bytesSent', 0) for network in result)
+            total_received = sum(network.get('bytesReceived', 0) for network in result)
+            
+            response += "## Organization Summary\n"
+            response += f"- **Total Sent**: {total_sent:,} bytes ({total_sent/1024/1024/1024:.2f} GB)\n"
+            response += f"- **Total Received**: {total_received:,} bytes ({total_received/1024/1024/1024:.2f} GB)\n"
+            response += f"- **Total Transfer**: {(total_sent + total_received):,} bytes ({(total_sent + total_received)/1024/1024/1024:.2f} GB)\n\n"
+            
+            # Sort by total usage
+            sorted_networks = sorted(result, key=lambda x: x.get('bytesSent', 0) + x.get('bytesReceived', 0), reverse=True)
+            
+            response += "## Top Networks by Usage (first 10)\n"
+            for network in sorted_networks[:10]:
+                sent = network.get('bytesSent', 0)
+                received = network.get('bytesReceived', 0)
+                total = sent + received
+                
+                response += f"### {network.get('networkName', 'Unknown Network')}\n"
+                response += f"- **Network ID**: {network.get('networkId', 'N/A')}\n"
+                response += f"- **Sent**: {sent:,} bytes ({sent/1024/1024:.1f} MB)\n"
+                response += f"- **Received**: {received:,} bytes ({received/1024/1024:.1f} MB)\n"
+                response += f"- **Total**: {total:,} bytes ({total/1024/1024:.1f} MB)\n"
+                response += "\n"
+            
+            if len(sorted_networks) > 10:
+                response += f"*...and {len(sorted_networks) - 10} more networks*\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting uplink usage by network: {str(e)}"
+    
+    # Additional comprehensive appliance tools
+    @app.tool(
+        name="get_organization_appliance_traffic_shaping_vpn_exclusions",
+        description="🚫 Get VPN exclusions for traffic shaping"
+    )
+    def get_organization_appliance_traffic_shaping_vpn_exclusions(
+        organization_id: str, 
+        per_page: int = 1000
+    ):
+        """Get traffic shaping VPN exclusions across organization."""
+        try:
+            result = meraki_client.dashboard.appliance.getOrganizationApplianceTrafficShapingVpnExclusionsByNetwork(
+                organization_id,
+                perPage=per_page,
+                total_pages='all'
+            )
+            
+            response = f"# 🚫 Traffic Shaping VPN Exclusions\n\n"
+            
+            if not result:
+                response += "*No VPN exclusions configured*\n"
+                return response
+            
+            response += f"**Total Networks**: {len(result)}\n\n"
+            
+            for network in result:
+                exclusions = network.get('custom', [])
+                if exclusions:
+                    response += f"## {network.get('networkName', 'Unknown Network')}\n"
+                    response += f"- **Network ID**: {network.get('networkId', 'N/A')}\n"
+                    response += f"- **Custom Exclusions**: {len(exclusions)}\n"
+                    
+                    for exclusion in exclusions[:5]:
+                        response += f"  - {exclusion.get('value', 'N/A')}\n"
+                    
+                    if len(exclusions) > 5:
+                        response += f"  - *...and {len(exclusions) - 5} more*\n"
+                    
+                    response += "\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting VPN exclusions: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_rf_profile",
+        description="📡 Get specific RF profile details"
+    )
+    def get_network_appliance_rf_profile(network_id: str, rf_profile_id: str):
+        """Get specific RF profile details."""
+        try:
+            result = meraki_client.dashboard.appliance.getNetworkApplianceRfProfile(network_id, rf_profile_id)
+            
+            response = f"# 📡 RF Profile Details\n\n"
+            response += f"**Profile ID**: {rf_profile_id}\n"
+            response += f"**Name**: {result.get('name', 'Unknown')}\n"
+            response += f"**Network ID**: {result.get('networkId', 'N/A')}\n"
+            
+            # Two-four GHz settings
+            two_four_ghz = result.get('twoFourGhzSettings', {})
+            if two_four_ghz:
+                response += f"\n## 2.4 GHz Settings\n"
+                response += f"- **Max Power**: {two_four_ghz.get('maxPower', 'N/A')} dBm\n"
+                response += f"- **Min Power**: {two_four_ghz.get('minPower', 'N/A')} dBm\n"
+            
+            # Five GHz settings
+            five_ghz = result.get('fiveGhzSettings', {})
+            if five_ghz:
+                response += f"\n## 5 GHz Settings\n"
+                response += f"- **Max Power**: {five_ghz.get('maxPower', 'N/A')} dBm\n"
+                response += f"- **Min Power**: {five_ghz.get('minPower', 'N/A')} dBm\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting RF profile: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_firewall_l7_application_categories",
+        description="🔍 Get L7 firewall application categories"
+    )
+    def get_network_appliance_firewall_l7_application_categories(network_id: str):
+        """Get L7 firewall application categories."""
+        try:
+            result = meraki_client.dashboard.appliance.getNetworkApplianceFirewallL7FirewallRulesApplicationCategories(network_id)
+            
+            response = f"# 🔍 L7 Application Categories - {network_id}\n\n"
+            
+            categories = result.get('applicationCategories', [])
+            if categories:
+                response += f"**Total Categories**: {len(categories)}\n\n"
+                
+                # Group by category type
+                by_type = {}
+                for cat in categories:
+                    cat_name = cat.get('name', 'Unknown')
+                    cat_id = cat.get('id', 'N/A')
+                    
+                    # Extract category type from name
+                    if '.' in cat_name:
+                        cat_type = cat_name.split('.')[0]
+                    else:
+                        cat_type = 'Other'
+                    
+                    if cat_type not in by_type:
+                        by_type[cat_type] = []
+                    by_type[cat_type].append((cat_name, cat_id))
+                
+                for cat_type, items in sorted(by_type.items()):
+                    response += f"## {cat_type}\n"
+                    for name, cat_id in items[:10]:  # Show first 10
+                        response += f"- {name} ({cat_id})\n"
+                    if len(items) > 10:
+                        response += f"  ...and {len(items)-10} more\n"
+                    response += "\n"
+            else:
+                response += "*No application categories available*\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting L7 categories: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_settings",
+        description="⚙️ Get general appliance settings for network"
+    )
+    def get_network_appliance_settings(network_id: str):
+        """Get general appliance settings for network."""
+        try:
+            result = meraki_client.dashboard.appliance.getNetworkApplianceSettings(network_id)
+            
+            response = f"# ⚙️ Appliance Settings - {network_id}\n\n"
+            
+            # Client tracking method
+            client_tracking = result.get('clientTrackingMethod', 'MAC address')
+            response += f"**Client Tracking Method**: {client_tracking}\n"
+            
+            # Deployment mode
+            deployment_mode = result.get('deploymentMode', 'routed')
+            response += f"**Deployment Mode**: {deployment_mode}\n"
+            
+            # Dynamic DNS
+            dynamic_dns = result.get('dynamicDns', {})
+            if dynamic_dns:
+                response += f"\n## Dynamic DNS\n"
+                response += f"- **Enabled**: {'✅' if dynamic_dns.get('enabled') else '❌'}\n"
+                if dynamic_dns.get('prefix'):
+                    response += f"- **Prefix**: {dynamic_dns.get('prefix')}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting appliance settings: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_traffic_shaping_uplink_bandwidth",
+        description="⚡ Get uplink bandwidth settings for traffic shaping"
+    )
+    def get_network_appliance_traffic_shaping_uplink_bandwidth(network_id: str):
+        """Get uplink bandwidth settings for traffic shaping."""
+        try:
+            result = meraki_client.dashboard.appliance.getNetworkApplianceTrafficShapingUplinkBandwidth(network_id)
+            
+            response = f"# ⚡ Uplink Bandwidth Settings - {network_id}\n\n"
+            
+            # Bandwidth limits
+            bandwidth_limits = result.get('bandwidthLimits', {})
+            
+            # WAN1
+            wan1 = bandwidth_limits.get('wan1', {})
+            if wan1:
+                response += "## WAN1 Bandwidth\n"
+                response += f"- **Limit Up**: {wan1.get('limitUp', 'Unlimited')} Kbps\n"
+                response += f"- **Limit Down**: {wan1.get('limitDown', 'Unlimited')} Kbps\n\n"
+            
+            # WAN2
+            wan2 = bandwidth_limits.get('wan2', {})
+            if wan2:
+                response += "## WAN2 Bandwidth\n"
+                response += f"- **Limit Up**: {wan2.get('limitUp', 'Unlimited')} Kbps\n"
+                response += f"- **Limit Down**: {wan2.get('limitDown', 'Unlimited')} Kbps\n\n"
+            
+            # Cellular
+            cellular = bandwidth_limits.get('cellular', {})
+            if cellular:
+                response += "## Cellular Bandwidth\n"
+                response += f"- **Limit Up**: {cellular.get('limitUp', 'Unlimited')} Kbps\n"
+                response += f"- **Limit Down**: {cellular.get('limitDown', 'Unlimited')} Kbps\n\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting uplink bandwidth settings: {str(e)}"
+    
+    @app.tool(
+        name="get_organization_appliance_devices_statuses",
+        description="📊 Get device status across organization appliances"
+    )
+    def get_organization_appliance_devices_statuses(
+        organization_id: str,
+        per_page: int = 1000,
+        network_ids: Optional[str] = None
+    ):
+        """Get device status across organization appliances."""
+        try:
+            kwargs = {'perPage': per_page, 'total_pages': 'all'}
+            
+            if network_ids:
+                kwargs['networkIds'] = network_ids.split(',')
+            
+            result = meraki_client.dashboard.appliance.getOrganizationApplianceDevicesStatuses(
+                organization_id, **kwargs
+            )
+            
+            response = f"# 📊 Organization Appliance Device Status\n\n"
+            
+            if not result:
+                response += "*No appliance device data found*\n"
+                return response
+            
+            response += f"**Total Appliances**: {len(result)}\n\n"
+            
+            # Group by status
+            status_summary = {
+                'online': 0,
+                'offline': 0,
+                'alerting': 0,
+                'dormant': 0
+            }
+            
+            for device in result:
+                status = device.get('status', '').lower()
+                if status in status_summary:
+                    status_summary[status] += 1
+            
+            response += "## Device Status Summary\n"
+            for status, count in status_summary.items():
+                if count > 0:
+                    emoji = "✅" if status == "online" else "⚠️" if status == "alerting" else "❌"
+                    response += f"- **{emoji} {status.title()}**: {count} devices\n"
+            
+            response += f"\n## Device Details (showing first 10)\n"
+            for device in result[:10]:
+                response += f"### {device.get('name', 'Unknown Device')}\n"
+                response += f"- **Serial**: {device.get('serial', 'N/A')}\n"
+                response += f"- **Model**: {device.get('model', 'N/A')}\n"
+                response += f"- **Status**: {device.get('status', 'Unknown')}\n"
+                response += f"- **Network**: {device.get('networkName', 'Unknown')}\n"
+                
+                if device.get('lastReportedAt'):
+                    response += f"- **Last Reported**: {device.get('lastReportedAt')}\n"
+                
+                response += "\n"
+            
+            if len(result) > 10:
+                response += f"*...and {len(result) - 10} more devices*\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting organization device statuses: {str(e)}"
+    
+    # More comprehensive appliance tools (both GET and UPDATE/CREATE)
+    @app.tool(
+        name="get_network_appliance_uplinks",
+        description="🔗 Get uplink configuration for network appliance"
+    )
+    def get_network_appliance_uplinks(network_id: str):
+        """Get uplink configuration for network appliance."""
+        try:
+            result = meraki_client.dashboard.appliance.getNetworkApplianceUplinks(network_id)
+            
+            response = f"# 🔗 Appliance Uplinks - {network_id}\n\n"
+            
+            if result:
+                response += f"**Total Uplinks**: {len(result)}\n\n"
+                
+                for uplink in result:
+                    response += f"## {uplink.get('interface', 'Unknown Interface')}\n"
+                    response += f"- **Status**: {uplink.get('status', 'Unknown')}\n"
+                    response += f"- **IP**: {uplink.get('ip', 'N/A')}\n"
+                    response += f"- **Gateway**: {uplink.get('gateway', 'N/A')}\n"
+                    response += f"- **DNS**: {', '.join(uplink.get('dns', []))}\n"
+                    response += f"- **Using Static IP**: {'✅' if uplink.get('usingStaticIp') else '❌ DHCP'}\n"
+                    response += "\n"
+            else:
+                response += "*No uplink configuration found*\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting uplinks: {str(e)}"
+    
+    @app.tool(
+        name="update_network_appliance_uplinks_settings",
+        description="🔧 Update uplink settings for network appliance"
+    )
+    def update_network_appliance_uplinks_settings(
+        network_id: str,
+        wan1_enabled: bool = None,
+        wan1_vlan_tagging_enabled: bool = None,
+        wan1_vlan_tagging_vlan_id: int = None,
+        wan1_static_ip: str = None,
+        wan1_static_subnet_mask: str = None,
+        wan1_static_gateway_ip: str = None,
+        wan1_static_dns: str = None
+    ):
+        """Update uplink settings for network appliance."""
+        try:
+            interfaces = {}
+            
+            if any([wan1_enabled is not None, wan1_vlan_tagging_enabled is not None, 
+                   wan1_static_ip, wan1_static_subnet_mask, wan1_static_gateway_ip, wan1_static_dns]):
+                wan1 = {}
+                
+                if wan1_enabled is not None:
+                    wan1['enabled'] = wan1_enabled
+                    
+                if wan1_vlan_tagging_enabled is not None:
+                    wan1['vlanTagging'] = {
+                        'enabled': wan1_vlan_tagging_enabled
+                    }
+                    if wan1_vlan_tagging_vlan_id is not None:
+                        wan1['vlanTagging']['vlanId'] = wan1_vlan_tagging_vlan_id
+                
+                if wan1_static_ip:
+                    wan1['usingStaticIp'] = True
+                    wan1['staticIp'] = wan1_static_ip
+                    if wan1_static_subnet_mask:
+                        wan1['staticSubnetMask'] = wan1_static_subnet_mask
+                    if wan1_static_gateway_ip:
+                        wan1['staticGatewayIp'] = wan1_static_gateway_ip
+                    if wan1_static_dns:
+                        wan1['staticDns'] = wan1_static_dns.split(',')
+                
+                interfaces['wan1'] = wan1
+            
+            result = meraki_client.dashboard.appliance.updateNetworkApplianceUplinksSettings(
+                network_id, interfaces=interfaces
+            )
+            
+            response = f"# ✅ Uplink Settings Updated - {network_id}\n\n"
+            
+            # Show what was updated
+            if 'wan1' in interfaces:
+                response += "## WAN1 Updates\n"
+                wan1_updates = interfaces['wan1']
+                for key, value in wan1_updates.items():
+                    response += f"- **{key}**: {value}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error updating uplink settings: {str(e)}"
+    
+    @app.tool(
+        name="update_network_appliance_static_route",
+        description="🛣️ Update static route for network appliance"
+    )
+    def update_network_appliance_static_route(
+        network_id: str,
+        static_route_id: str,
+        name: str = None,
+        subnet: str = None,
+        gateway_ip: str = None,
+        enabled: bool = None
+    ):
+        """Update static route for network appliance."""
+        try:
+            kwargs = {}
+            
+            if name:
+                kwargs['name'] = name
+            if subnet:
+                kwargs['subnet'] = subnet
+            if gateway_ip:
+                kwargs['gatewayIp'] = gateway_ip
+            if enabled is not None:
+                kwargs['enabled'] = enabled
+            
+            result = meraki_client.dashboard.appliance.updateNetworkApplianceStaticRoute(
+                network_id, static_route_id, **kwargs
+            )
+            
+            response = f"# ✅ Static Route Updated\n\n"
+            response += f"**Route ID**: {static_route_id}\n"
+            
+            for key, value in kwargs.items():
+                response += f"**{key}**: {value}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error updating static route: {str(e)}"
+    
+    @app.tool(
+        name="delete_network_appliance_static_route",
+        description="🗑️ Delete static route from network appliance"
+    )
+    def delete_network_appliance_static_route(network_id: str, static_route_id: str):
+        """Delete static route from network appliance."""
+        try:
+            meraki_client.dashboard.appliance.deleteNetworkApplianceStaticRoute(
+                network_id, static_route_id
+            )
+            
+            response = f"# ✅ Static Route Deleted\n\n"
+            response += f"**Network ID**: {network_id}\n"
+            response += f"**Route ID**: {static_route_id}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error deleting static route: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_static_route",
+        description="🛣️ Get specific static route details"
+    )
+    def get_network_appliance_static_route(network_id: str, static_route_id: str):
+        """Get specific static route details."""
+        try:
+            result = meraki_client.dashboard.appliance.getNetworkApplianceStaticRoute(
+                network_id, static_route_id
+            )
+            
+            response = f"# 🛣️ Static Route Details\n\n"
+            response += f"**Route ID**: {static_route_id}\n"
+            response += f"**Name**: {result.get('name', 'Unnamed')}\n"
+            response += f"**Subnet**: {result.get('subnet', 'N/A')}\n"
+            response += f"**Gateway IP**: {result.get('gatewayIp', 'N/A')}\n"
+            response += f"**Enabled**: {'✅' if result.get('enabled') else '❌'}\n"
+            
+            # Fixed IP assignments
+            fixed_assignments = result.get('fixedIpAssignments', {})
+            if fixed_assignments:
+                response += f"\n## Fixed IP Assignments ({len(fixed_assignments)})\n"
+                for mac, assignment in fixed_assignments.items():
+                    response += f"- **{mac}**: {assignment.get('ip')} ({assignment.get('name', 'No name')})\n"
+            
+            # Reserved IP ranges
+            reserved_ranges = result.get('reservedIpRanges', [])
+            if reserved_ranges:
+                response += f"\n## Reserved IP Ranges ({len(reserved_ranges)})\n"
+                for range_item in reserved_ranges:
+                    response += f"- {range_item.get('start')} - {range_item.get('end')}: {range_item.get('comment', 'No comment')}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting static route: {str(e)}"
+    
+    @app.tool(
+        name="update_network_appliance_settings", 
+        description="⚙️ Update network appliance general settings"
+    )
+    def update_network_appliance_settings(
+        network_id: str,
+        client_tracking_method: str = None,
+        deployment_mode: str = None,
+        dynamic_dns: dict = None
+    ):
+        """Update network appliance general settings."""
+        try:
+            kwargs = {}
+            if client_tracking_method:
+                kwargs['clientTrackingMethod'] = client_tracking_method
+            if deployment_mode:
+                kwargs['deploymentMode'] = deployment_mode
+            if dynamic_dns:
+                kwargs['dynamicDns'] = dynamic_dns
+                
+            result = meraki_client.dashboard.appliance.updateNetworkApplianceSettings(network_id, **kwargs)
+            
+            response = f"# ⚙️ Network Appliance Settings Updated\n\n"
+            response += f"**Network ID**: {network_id}\n"
+            if result.get('clientTrackingMethod'):
+                response += f"**Client Tracking Method**: {result['clientTrackingMethod']}\n"
+            if result.get('deploymentMode'):
+                response += f"**Deployment Mode**: {result['deploymentMode']}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error updating appliance settings: {str(e)}"
+    
+    @app.tool(
+        name="update_network_appliance_ssid",
+        description="📶 Update appliance SSID configuration"
+    )
+    def update_network_appliance_ssid(
+        network_id: str,
+        number: str,
+        name: str = None,
+        enabled: bool = None,
+        default_vlan_id: int = None,
+        auth_mode: str = None,
+        encryption_mode: str = None,
+        psk: str = None,
+        wpa_encryption_mode: str = None,
+        dhcp_enforced_deauthentication: dict = None
+    ):
+        """Update appliance SSID configuration."""
+        try:
+            kwargs = {}
+            if name is not None:
+                kwargs['name'] = name
+            if enabled is not None:
+                kwargs['enabled'] = enabled
+            if default_vlan_id is not None:
+                kwargs['defaultVlanId'] = default_vlan_id
+            if auth_mode:
+                kwargs['authMode'] = auth_mode
+            if encryption_mode:
+                kwargs['encryptionMode'] = encryption_mode
+            if psk:
+                kwargs['psk'] = psk
+            if wpa_encryption_mode:
+                kwargs['wpaEncryptionMode'] = wpa_encryption_mode
+            if dhcp_enforced_deauthentication:
+                kwargs['dhcpEnforcedDeauthentication'] = dhcp_enforced_deauthentication
+                
+            result = meraki_client.dashboard.appliance.updateNetworkApplianceSsid(network_id, number, **kwargs)
+            
+            response = f"# 📶 Appliance SSID Updated\n\n"
+            response += f"**Network ID**: {network_id}\n"
+            response += f"**SSID Number**: {number}\n"
+            if result.get('name'):
+                response += f"**Name**: {result['name']}\n"
+            if 'enabled' in result:
+                response += f"**Enabled**: {result['enabled']}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error updating appliance SSID: {str(e)}"
+    
+    @app.tool(
+        name="update_network_appliance_traffic_shaping",
+        description="🚦 Update network appliance traffic shaping rules"
+    )
+    def update_network_appliance_traffic_shaping(
+        network_id: str,
+        global_bandwidth_limits: dict = None,
+        rules: list = None
+    ):
+        """Update network appliance traffic shaping rules."""
+        try:
+            kwargs = {}
+            if global_bandwidth_limits:
+                kwargs['globalBandwidthLimits'] = global_bandwidth_limits
+            if rules:
+                kwargs['rules'] = rules
+                
+            result = meraki_client.dashboard.appliance.updateNetworkApplianceTrafficShaping(network_id, **kwargs)
+            
+            response = f"# 🚦 Traffic Shaping Updated\n\n"
+            response += f"**Network ID**: {network_id}\n"
+            if result.get('globalBandwidthLimits'):
+                response += f"**Global Limits**: Configured\n"
+            if result.get('rules'):
+                response += f"**Rules Count**: {len(result['rules'])}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error updating traffic shaping: {str(e)}"
+    
+    @app.tool(
+        name="update_network_appliance_traffic_shaping_custom_perf_class",
+        description="🎯 Update custom performance class for traffic shaping"
+    )
+    def update_network_appliance_traffic_shaping_custom_perf_class(
+        network_id: str,
+        custom_performance_class_id: str,
+        name: str = None,
+        max_latency: int = None,
+        max_jitter: int = None,
+        max_loss_percentage: int = None
+    ):
+        """Update custom performance class for appliance traffic shaping."""
+        try:
+            kwargs = {}
+            if name:
+                kwargs['name'] = name
+            if max_latency is not None:
+                kwargs['maxLatency'] = max_latency
+            if max_jitter is not None:
+                kwargs['maxJitter'] = max_jitter
+            if max_loss_percentage is not None:
+                kwargs['maxLossPercentage'] = max_loss_percentage
+                
+            result = meraki_client.dashboard.appliance.updateNetworkApplianceTrafficShapingCustomPerformanceClass(
+                network_id, custom_performance_class_id, **kwargs
+            )
+            
+            response = f"# 🎯 Custom Performance Class Updated\n\n"
+            response += f"**Network ID**: {network_id}\n"
+            response += f"**Class ID**: {custom_performance_class_id}\n"
+            if result.get('name'):
+                response += f"**Name**: {result['name']}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error updating custom performance class: {str(e)}"
+    
+    @app.tool(
+        name="update_network_appliance_traffic_shaping_uplink_bandwidth",
+        description="⬆️ Update uplink bandwidth settings for traffic shaping"
+    )
+    def update_network_appliance_traffic_shaping_uplink_bandwidth(
+        network_id: str,
+        bandwidth_limits: dict = None,
+        cellular_failover: dict = None
+    ):
+        """Update uplink bandwidth settings for appliance traffic shaping."""
+        try:
+            kwargs = {}
+            if bandwidth_limits:
+                kwargs['bandwidthLimits'] = bandwidth_limits
+            if cellular_failover:
+                kwargs['cellularFailover'] = cellular_failover
+                
+            result = meraki_client.dashboard.appliance.updateNetworkApplianceTrafficShapingUplinkBandwidth(
+                network_id, **kwargs
+            )
+            
+            response = f"# ⬆️ Uplink Bandwidth Updated\n\n"
+            response += f"**Network ID**: {network_id}\n"
+            if result.get('bandwidthLimits'):
+                response += f"**Bandwidth Limits**: Configured\n"
+            if result.get('cellularFailover'):
+                response += f"**Cellular Failover**: Configured\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error updating uplink bandwidth: {str(e)}"
+    
+    @app.tool(
+        name="update_network_appliance_vpn_bgp",
+        description="🌐 Update BGP configuration for appliance VPN"
+    )
+    def update_network_appliance_vpn_bgp(
+        network_id: str,
+        enabled: bool,
+        as_number: int = None,
+        ibgp_holdtimer: int = None,
+        neighbors: list = None
+    ):
+        """Update BGP configuration for appliance VPN."""
+        try:
+            kwargs = {'enabled': enabled}
+            if as_number is not None:
+                kwargs['asNumber'] = as_number
+            if ibgp_holdtimer is not None:
+                kwargs['ibgpHoldtimer'] = ibgp_holdtimer
+            if neighbors:
+                kwargs['neighbors'] = neighbors
+                
+            result = meraki_client.dashboard.appliance.updateNetworkApplianceVpnBgp(network_id, **kwargs)
+            
+            response = f"# 🌐 BGP Configuration Updated\n\n"
+            response += f"**Network ID**: {network_id}\n"
+            response += f"**Enabled**: {result.get('enabled', enabled)}\n"
+            if result.get('asNumber'):
+                response += f"**AS Number**: {result['asNumber']}\n"
+            if result.get('neighbors'):
+                response += f"**Neighbors**: {len(result['neighbors'])} configured\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error updating BGP configuration: {str(e)}"
+    
+    @app.tool(
+        name="update_network_appliance_vpn_site_to_site_vpn",
+        description="🔗 Update site-to-site VPN configuration"
+    )
+    def update_network_appliance_vpn_site_to_site_vpn(
+        network_id: str,
+        mode: str,
+        hubs: list = None,
+        subnets: list = None
+    ):
+        """Update site-to-site VPN configuration for appliance."""
+        try:
+            kwargs = {'mode': mode}
+            if hubs:
+                kwargs['hubs'] = hubs
+            if subnets:
+                kwargs['subnets'] = subnets
+                
+            result = meraki_client.dashboard.appliance.updateNetworkApplianceVpnSiteToSiteVpn(network_id, **kwargs)
+            
+            response = f"# 🔗 Site-to-Site VPN Updated\n\n"
+            response += f"**Network ID**: {network_id}\n"
+            response += f"**Mode**: {result.get('mode', mode)}\n"
+            if result.get('hubs'):
+                response += f"**Hubs**: {len(result['hubs'])} configured\n"
+            if result.get('subnets'):
+                response += f"**Subnets**: {len(result['subnets'])} configured\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error updating site-to-site VPN: {str(e)}"
+    
+    @app.tool(
+        name="update_network_appliance_firewall_l3_firewall_rules",
+        description="🔥 Update Layer 3 firewall rules"
+    )
+    def update_network_appliance_firewall_l3_firewall_rules(
+        network_id: str,
+        rules: list,
+        syslog_default_rule: bool = None
+    ):
+        """Update Layer 3 firewall rules for appliance."""
+        try:
+            kwargs = {'rules': rules}
+            if syslog_default_rule is not None:
+                kwargs['syslogDefaultRule'] = syslog_default_rule
+                
+            result = meraki_client.dashboard.appliance.updateNetworkApplianceFirewallL3FirewallRules(
+                network_id, **kwargs
+            )
+            
+            response = f"# 🔥 L3 Firewall Rules Updated\n\n"
+            response += f"**Network ID**: {network_id}\n"
+            response += f"**Rules Count**: {len(result.get('rules', []))}\n"
+            if 'syslogDefaultRule' in result:
+                response += f"**Syslog Default Rule**: {result['syslogDefaultRule']}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error updating L3 firewall rules: {str(e)}"
+    
+    @app.tool(
+        name="update_network_appliance_firewall_l7_firewall_rules",
+        description="🔥 Update Layer 7 firewall rules"
+    )
+    def update_network_appliance_firewall_l7_firewall_rules(
+        network_id: str,
+        rules: list = None
+    ):
+        """Update Layer 7 firewall rules for appliance."""
+        try:
+            kwargs = {}
+            if rules:
+                kwargs['rules'] = rules
+                
+            result = meraki_client.dashboard.appliance.updateNetworkApplianceFirewallL7FirewallRules(
+                network_id, **kwargs
+            )
+            
+            response = f"# 🔥 L7 Firewall Rules Updated\n\n"
+            response += f"**Network ID**: {network_id}\n"
+            response += f"**Rules Count**: {len(result.get('rules', []))}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error updating L7 firewall rules: {str(e)}"
+    
+    @app.tool(
+        name="update_network_appliance_firewall_inbound_firewall_rules",
+        description="🔥 Update inbound firewall rules"
+    )
+    def update_network_appliance_firewall_inbound_firewall_rules(
+        network_id: str,
+        rules: list,
+        syslog_default_rule: bool = None
+    ):
+        """Update inbound firewall rules for appliance."""
+        try:
+            kwargs = {'rules': rules}
+            if syslog_default_rule is not None:
+                kwargs['syslogDefaultRule'] = syslog_default_rule
+                
+            result = meraki_client.dashboard.appliance.updateNetworkApplianceFirewallInboundFirewallRules(
+                network_id, **kwargs
+            )
+            
+            response = f"# 🔥 Inbound Firewall Rules Updated\n\n"
+            response += f"**Network ID**: {network_id}\n"
+            response += f"**Rules Count**: {len(result.get('rules', []))}\n"
+            if 'syslogDefaultRule' in result:
+                response += f"**Syslog Default Rule**: {result['syslogDefaultRule']}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error updating inbound firewall rules: {str(e)}"
+    
+    @app.tool(
+        name="update_network_appliance_firewall_inbound_cellular_fw_rules",
+        description="📱 Update inbound cellular firewall rules"
+    )
+    def update_network_appliance_firewall_inbound_cellular_fw_rules(
+        network_id: str,
+        rules: list = None
+    ):
+        """Update inbound cellular firewall rules for appliance."""
+        try:
+            kwargs = {}
+            if rules:
+                kwargs['rules'] = rules
+                
+            result = meraki_client.dashboard.appliance.updateNetworkApplianceFirewallInboundCellularFirewallRules(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📱 Inbound Cellular Firewall Rules Updated\n\n"
+            response += f"**Network ID**: {network_id}\n"
+            response += f"**Rules Count**: {len(result.get('rules', []))}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error updating inbound cellular firewall rules: {str(e)}"
+    
+    @app.tool(
+        name="update_network_appliance_firewall_one_to_many_nat_rules",
+        description="🔀 Update one-to-many NAT rules"
+    )
+    def update_network_appliance_firewall_one_to_many_nat_rules(
+        network_id: str,
+        rules: list
+    ):
+        """Update one-to-many NAT rules for appliance."""
+        try:
+            result = meraki_client.dashboard.appliance.updateNetworkApplianceFirewallOneToManyNatRules(
+                network_id, rules=rules
+            )
+            
+            response = f"# 🔀 One-to-Many NAT Rules Updated\n\n"
+            response += f"**Network ID**: {network_id}\n"
+            response += f"**Rules Count**: {len(result.get('rules', []))}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error updating one-to-many NAT rules: {str(e)}"
+    
+    @app.tool(
+        name="update_network_appliance_single_lan",
+        description="🏠 Update single LAN configuration"
+    )
+    def update_network_appliance_single_lan(
+        network_id: str,
+        subnet: str = None,
+        appliance_ip: str = None,
+        ipv6: dict = None
+    ):
+        """Update single LAN configuration for appliance."""
+        try:
+            kwargs = {}
+            if subnet:
+                kwargs['subnet'] = subnet
+            if appliance_ip:
+                kwargs['applianceIp'] = appliance_ip
+            if ipv6:
+                kwargs['ipv6'] = ipv6
+                
+            result = meraki_client.dashboard.appliance.updateNetworkApplianceSingleLan(
+                network_id, **kwargs
+            )
+            
+            response = f"# 🏠 Single LAN Updated\n\n"
+            response += f"**Network ID**: {network_id}\n"
+            if result.get('subnet'):
+                response += f"**Subnet**: {result['subnet']}\n"
+            if result.get('applianceIp'):
+                response += f"**Appliance IP**: {result['applianceIp']}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error updating single LAN: {str(e)}"
+    
+    @app.tool(
+        name="update_network_appliance_vlans_settings",
+        description="🏷️ Update VLANs settings for network appliance"
+    )
+    def update_network_appliance_vlans_settings(
+        network_id: str,
+        vlans_enabled: bool = None
+    ):
+        """Update VLANs settings for network appliance."""
+        try:
+            kwargs = {}
+            if vlans_enabled is not None:
+                kwargs['vlansEnabled'] = vlans_enabled
+                
+            result = meraki_client.dashboard.appliance.updateNetworkApplianceVlansSettings(
+                network_id, **kwargs
+            )
+            
+            response = f"# 🏷️ VLANs Settings Updated\n\n"
+            response += f"**Network ID**: {network_id}\n"
+            if 'vlansEnabled' in result:
+                response += f"**VLANs Enabled**: {result['vlansEnabled']}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error updating VLANs settings: {str(e)}"
+    
+    @app.tool(
+        name="update_organization_appliance_vpn_third_party_vpn_peers",
+        description="🔗 Update organization third-party VPN peers"
+    )
+    def update_organization_appliance_vpn_third_party_vpn_peers(
+        organization_id: str,
+        peers: list
+    ):
+        """Update third-party VPN peers for organization appliance."""
+        try:
+            result = meraki_client.dashboard.appliance.updateOrganizationApplianceVpnThirdPartyVPNPeers(
+                organization_id, peers=peers
+            )
+            
+            response = f"# 🔗 Third-Party VPN Peers Updated\n\n"
+            response += f"**Organization ID**: {organization_id}\n"
+            response += f"**Peers Count**: {len(result.get('peers', []))}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error updating third-party VPN peers: {str(e)}"
+    
+    @app.tool(
+        name="update_organization_appliance_vpn_vpn_firewall_rules",
+        description="🔥 Update organization VPN firewall rules"
+    )
+    def update_organization_appliance_vpn_vpn_firewall_rules(
+        organization_id: str,
+        rules: list = None,
+        syslog_default_rule: bool = None
+    ):
+        """Update VPN firewall rules for organization appliance."""
+        try:
+            kwargs = {}
+            if rules:
+                kwargs['rules'] = rules
+            if syslog_default_rule is not None:
+                kwargs['syslogDefaultRule'] = syslog_default_rule
+                
+            result = meraki_client.dashboard.appliance.updateOrganizationApplianceVpnVpnFirewallRules(
+                organization_id, **kwargs
+            )
+            
+            response = f"# 🔥 Organization VPN Firewall Rules Updated\n\n"
+            response += f"**Organization ID**: {organization_id}\n"
+            response += f"**Rules Count**: {len(result.get('rules', []))}\n"
+            if 'syslogDefaultRule' in result:
+                response += f"**Syslog Default Rule**: {result['syslogDefaultRule']}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error updating organization VPN firewall rules: {str(e)}"
+    
+    @app.tool(
+        name="get_device_appliance_performance",
+        description="📊 Get device appliance performance metrics"
+    )
+    def get_device_appliance_performance(serial: str, t0: str = None, t1: str = None, timespan: int = 3600):
+        """Get device appliance performance metrics."""
+        try:
+            kwargs = {}
+            if t0:
+                kwargs['t0'] = t0
+            if t1:
+                kwargs['t1'] = t1
+            if timespan:
+                kwargs['timespan'] = timespan
+                
+            result = meraki_client.dashboard.appliance.getDeviceAppliancePerformance(serial, **kwargs)
+            
+            response = f"# 📊 Device Appliance Performance\n\n"
+            response += f"**Device Serial**: {serial}\n"
+            
+            if result:
+                for metric in result:
+                    response += f"**Timestamp**: {metric.get('startTs', 'N/A')}\n"
+                    if 'perfScore' in metric:
+                        response += f"**Performance Score**: {metric['perfScore']}\n"
+                    if 'latencyMs' in metric:
+                        response += f"**Latency**: {metric['latencyMs']}ms\n"
+                    response += "\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting device performance: {str(e)}"
+    
+    @app.tool(
+        name="update_network_appliance_sdwan_internet_policies",
+        description="🌐 Update SD-WAN internet policies"
+    )
+    def update_network_appliance_sdwan_internet_policies(
+        network_id: str,
+        wan_traffic_uplink_preferences: list = None
+    ):
+        """Update SD-WAN internet policies for appliance."""
+        try:
+            kwargs = {}
+            if wan_traffic_uplink_preferences:
+                kwargs['wanTrafficUplinkPreferences'] = wan_traffic_uplink_preferences
+                
+            result = meraki_client.dashboard.appliance.updateNetworkApplianceSdwanInternetPolicies(network_id, **kwargs)
+            
+            response = f"# 🌐 SD-WAN Internet Policies Updated\n\n"
+            response += f"**Network ID**: {network_id}\n"
+            if result.get('wanTrafficUplinkPreferences'):
+                response += f"**Policies Count**: {len(result['wanTrafficUplinkPreferences'])}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error updating SD-WAN policies: {str(e)}"
+
+    # DNS Management Tools (NEW in 2025 SDK)
+    
+    @app.tool(
+        name="bulk_organization_appliance_dns_local_profiles_assignments_create",
+        description="📋 Bulk create DNS local profile assignments"
+    )
+    def bulk_organization_appliance_dns_local_profiles_assignments_create(
+        organization_id: str,
+        profiles: list
+    ):
+        """Bulk create DNS local profile assignments."""
+        try:
+            result = meraki_client.dashboard.appliance.bulkOrganizationApplianceDnsLocalProfilesAssignmentsCreate(
+                organization_id, profiles=profiles
+            )
+            
+            response = f"# 📋 DNS Profile Assignments Created\n\n"
+            response += f"**Organization ID**: {organization_id}\n"
+            response += f"**Assignments**: {len(result)} created\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error creating DNS profile assignments: {str(e)}"
+    
+    @app.tool(
+        name="create_organization_appliance_dns_local_profile",
+        description="🌐 Create DNS local profile"
+    )
+    def create_organization_appliance_dns_local_profile(
+        organization_id: str,
+        name: str,
+        dns_servers: list,
+        description: str = None
+    ):
+        """Create DNS local profile."""
+        try:
+            kwargs = {'name': name, 'dnsServers': dns_servers}
+            if description:
+                kwargs['description'] = description
+                
+            result = meraki_client.dashboard.appliance.createOrganizationApplianceDnsLocalProfile(
+                organization_id, **kwargs
+            )
+            
+            response = f"# 🌐 DNS Local Profile Created\n\n"
+            response += f"**Profile ID**: {result.get('profileId', 'N/A')}\n"
+            response += f"**Name**: {result.get('name', name)}\n"
+            response += f"**DNS Servers**: {len(result.get('dnsServers', []))}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error creating DNS local profile: {str(e)}"
+    
+    @app.tool(
+        name="create_organization_appliance_dns_local_record",
+        description="📝 Create DNS local record"
+    )
+    def create_organization_appliance_dns_local_record(
+        organization_id: str,
+        profile_id: str,
+        fqdn: str,
+        value: str
+    ):
+        """Create DNS local record."""
+        try:
+            result = meraki_client.dashboard.appliance.createOrganizationApplianceDnsLocalRecord(
+                organization_id, profileId=profile_id, fqdn=fqdn, value=value
+            )
+            
+            response = f"# 📝 DNS Local Record Created\n\n"
+            response += f"**Record ID**: {result.get('recordId', 'N/A')}\n"
+            response += f"**FQDN**: {result.get('fqdn', fqdn)}\n"
+            response += f"**Value**: {result.get('value', value)}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error creating DNS local record: {str(e)}"
+    
+    @app.tool(
+        name="delete_organization_appliance_dns_local_profile",
+        description="🗑️ Delete DNS local profile"
+    )
+    def delete_organization_appliance_dns_local_profile(
+        organization_id: str,
+        profile_id: str
+    ):
+        """Delete DNS local profile."""
+        try:
+            meraki_client.dashboard.appliance.deleteOrganizationApplianceDnsLocalProfile(
+                organization_id, profile_id
+            )
+            
+            response = f"# 🗑️ DNS Local Profile Deleted\n\n"
+            response += f"**Profile ID**: {profile_id}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error deleting DNS local profile: {str(e)}"
+    
+    @app.tool(
+        name="delete_organization_appliance_dns_local_record",
+        description="🗑️ Delete DNS local record"
+    )
+    def delete_organization_appliance_dns_local_record(
+        organization_id: str,
+        record_id: str
+    ):
+        """Delete DNS local record."""
+        try:
+            meraki_client.dashboard.appliance.deleteOrganizationApplianceDnsLocalRecord(
+                organization_id, record_id
+            )
+            
+            response = f"# 🗑️ DNS Local Record Deleted\n\n"
+            response += f"**Record ID**: {record_id}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error deleting DNS local record: {str(e)}"
+    
+    @app.tool(
+        name="get_organization_appliance_dns_local_profiles",
+        description="📋 Get DNS local profiles"
+    )
+    def get_organization_appliance_dns_local_profiles(organization_id: str):
+        """Get DNS local profiles."""
+        try:
+            result = meraki_client.dashboard.appliance.getOrganizationApplianceDnsLocalProfiles(
+                organization_id
+            )
+            
+            response = f"# 📋 DNS Local Profiles\n\n"
+            response += f"**Organization ID**: {organization_id}\n"
+            response += f"**Profiles Count**: {len(result)}\n\n"
+            
+            for profile in result:
+                response += f"## {profile.get('name', 'Unnamed')}\n"
+                response += f"- **Profile ID**: {profile.get('profileId', 'N/A')}\n"
+                response += f"- **DNS Servers**: {len(profile.get('dnsServers', []))}\n\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting DNS local profiles: {str(e)}"
+    
+    @app.tool(
+        name="get_organization_appliance_dns_local_profiles_assignments",
+        description="📋 Get DNS local profile assignments"
+    )
+    def get_organization_appliance_dns_local_profiles_assignments(organization_id: str):
+        """Get DNS local profile assignments."""
+        try:
+            result = meraki_client.dashboard.appliance.getOrganizationApplianceDnsLocalProfilesAssignments(
+                organization_id
+            )
+            
+            response = f"# 📋 DNS Profile Assignments\n\n"
+            response += f"**Organization ID**: {organization_id}\n"
+            response += f"**Assignments Count**: {len(result)}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting DNS profile assignments: {str(e)}"
+    
+    @app.tool(
+        name="get_organization_appliance_dns_local_records",
+        description="📝 Get DNS local records"
+    )
+    def get_organization_appliance_dns_local_records(organization_id: str):
+        """Get DNS local records."""
+        try:
+            result = meraki_client.dashboard.appliance.getOrganizationApplianceDnsLocalRecords(
+                organization_id
+            )
+            
+            response = f"# 📝 DNS Local Records\n\n"
+            response += f"**Organization ID**: {organization_id}\n"
+            response += f"**Records Count**: {len(result)}\n\n"
+            
+            for record in result:
+                response += f"## {record.get('fqdn', 'N/A')}\n"
+                response += f"- **Value**: {record.get('value', 'N/A')}\n"
+                response += f"- **Record ID**: {record.get('recordId', 'N/A')}\n\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting DNS local records: {str(e)}"
+    
+    @app.tool(
+        name="update_organization_appliance_dns_local_profile",
+        description="🔄 Update DNS local profile"
+    )
+    def update_organization_appliance_dns_local_profile(
+        organization_id: str,
+        profile_id: str,
+        name: str = None,
+        dns_servers: list = None,
+        description: str = None
+    ):
+        """Update DNS local profile."""
+        try:
+            kwargs = {}
+            if name:
+                kwargs['name'] = name
+            if dns_servers:
+                kwargs['dnsServers'] = dns_servers
+            if description:
+                kwargs['description'] = description
+                
+            result = meraki_client.dashboard.appliance.updateOrganizationApplianceDnsLocalProfile(
+                organization_id, profile_id, **kwargs
+            )
+            
+            response = f"# 🔄 DNS Local Profile Updated\n\n"
+            response += f"**Profile ID**: {profile_id}\n"
+            response += f"**Name**: {result.get('name', 'N/A')}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error updating DNS local profile: {str(e)}"
+    
+    @app.tool(
+        name="update_organization_appliance_dns_local_record",
+        description="🔄 Update DNS local record"
+    )
+    def update_organization_appliance_dns_local_record(
+        organization_id: str,
+        record_id: str,
+        fqdn: str = None,
+        value: str = None
+    ):
+        """Update DNS local record."""
+        try:
+            kwargs = {}
+            if fqdn:
+                kwargs['fqdn'] = fqdn
+            if value:
+                kwargs['value'] = value
+                
+            result = meraki_client.dashboard.appliance.updateOrganizationApplianceDnsLocalRecord(
+                organization_id, record_id, **kwargs
+            )
+            
+            response = f"# 🔄 DNS Local Record Updated\n\n"
+            response += f"**Record ID**: {record_id}\n"
+            response += f"**FQDN**: {result.get('fqdn', 'N/A')}\n"
+            response += f"**Value**: {result.get('value', 'N/A')}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error updating DNS local record: {str(e)}"
+    
+    # Split DNS Tools (NEW in 2025 SDK)
+    
+    @app.tool(
+        name="create_organization_appliance_dns_split_profile",
+        description="🔀 Create DNS split profile"
+    )
+    def create_organization_appliance_dns_split_profile(
+        organization_id: str,
+        name: str,
+        domains: list,
+        description: str = None
+    ):
+        """Create DNS split profile."""
+        try:
+            kwargs = {'name': name, 'domains': domains}
+            if description:
+                kwargs['description'] = description
+                
+            result = meraki_client.dashboard.appliance.createOrganizationApplianceDnsSplitProfile(
+                organization_id, **kwargs
+            )
+            
+            response = f"# 🔀 DNS Split Profile Created\n\n"
+            response += f"**Profile ID**: {result.get('profileId', 'N/A')}\n"
+            response += f"**Name**: {result.get('name', name)}\n"
+            response += f"**Domains**: {len(result.get('domains', []))}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error creating DNS split profile: {str(e)}"
+    
+    @app.tool(
+        name="delete_organization_appliance_dns_split_profile",
+        description="🗑️ Delete DNS split profile"
+    )
+    def delete_organization_appliance_dns_split_profile(
+        organization_id: str,
+        profile_id: str
+    ):
+        """Delete DNS split profile."""
+        try:
+            meraki_client.dashboard.appliance.deleteOrganizationApplianceDnsSplitProfile(
+                organization_id, profile_id
+            )
+            
+            response = f"# 🗑️ DNS Split Profile Deleted\n\n"
+            response += f"**Profile ID**: {profile_id}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error deleting DNS split profile: {str(e)}"
+    
+    @app.tool(
+        name="get_organization_appliance_dns_split_profiles",
+        description="🔀 Get DNS split profiles"
+    )
+    def get_organization_appliance_dns_split_profiles(organization_id: str):
+        """Get DNS split profiles."""
+        try:
+            result = meraki_client.dashboard.appliance.getOrganizationApplianceDnsSplitProfiles(
+                organization_id
+            )
+            
+            response = f"# 🔀 DNS Split Profiles\n\n"
+            response += f"**Organization ID**: {organization_id}\n"
+            response += f"**Profiles Count**: {len(result)}\n\n"
+            
+            for profile in result:
+                response += f"## {profile.get('name', 'Unnamed')}\n"
+                response += f"- **Profile ID**: {profile.get('profileId', 'N/A')}\n"
+                response += f"- **Domains**: {len(profile.get('domains', []))}\n\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting DNS split profiles: {str(e)}"
+    
+    @app.tool(
+        name="get_organization_appliance_dns_split_profiles_assignments",
+        description="🔀 Get DNS split profile assignments"
+    )
+    def get_organization_appliance_dns_split_profiles_assignments(organization_id: str):
+        """Get DNS split profile assignments."""
+        try:
+            result = meraki_client.dashboard.appliance.getOrganizationApplianceDnsSplitProfilesAssignments(
+                organization_id
+            )
+            
+            response = f"# 🔀 DNS Split Profile Assignments\n\n"
+            response += f"**Organization ID**: {organization_id}\n"
+            response += f"**Assignments Count**: {len(result)}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting DNS split profile assignments: {str(e)}"
+    
+    @app.tool(
+        name="update_organization_appliance_dns_split_profile",
+        description="🔄 Update DNS split profile"
+    )
+    def update_organization_appliance_dns_split_profile(
+        organization_id: str,
+        profile_id: str,
+        name: str = None,
+        domains: list = None,
+        description: str = None
+    ):
+        """Update DNS split profile."""
+        try:
+            kwargs = {}
+            if name:
+                kwargs['name'] = name
+            if domains:
+                kwargs['domains'] = domains
+            if description:
+                kwargs['description'] = description
+                
+            result = meraki_client.dashboard.appliance.updateOrganizationApplianceDnsSplitProfile(
+                organization_id, profile_id, **kwargs
+            )
+            
+            response = f"# 🔄 DNS Split Profile Updated\n\n"
+            response += f"**Profile ID**: {profile_id}\n"
+            response += f"**Name**: {result.get('name', 'N/A')}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error updating DNS split profile: {str(e)}"
+    
+    # Device-Level Appliance Tools
+    
+    @app.tool(
+        name="get_device_appliance_prefixes_delegated",
+        description="📡 Get device appliance delegated prefixes"
+    )
+    def get_device_appliance_prefixes_delegated(serial: str):
+        """Get device appliance delegated prefixes."""
+        try:
+            result = meraki_client.dashboard.appliance.getDeviceAppliancePrefixesDelegated(serial)
+            
+            response = f"# 📡 Device Appliance Delegated Prefixes\n\n"
+            response += f"**Device Serial**: {serial}\n"
+            response += f"**Prefixes Count**: {len(result)}\n\n"
+            
+            for prefix in result:
+                response += f"## Prefix: {prefix.get('prefix', 'N/A')}\n"
+                response += f"- **Origin**: {prefix.get('origin', 'N/A')}\n"
+                response += f"- **Description**: {prefix.get('description', 'N/A')}\n\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting delegated prefixes: {str(e)}"
+    
+    @app.tool(
+        name="get_device_appliance_prefixes_delegated_vlan_assignments",
+        description="🏷️ Get device appliance delegated prefix VLAN assignments"
+    )
+    def get_device_appliance_prefixes_delegated_vlan_assignments(
+        serial: str,
+        prefix_id: str
+    ):
+        """Get device appliance delegated prefix VLAN assignments."""
+        try:
+            result = meraki_client.dashboard.appliance.getDeviceAppliancePrefixesDelegatedVlanAssignments(
+                serial, prefix_id
+            )
+            
+            response = f"# 🏷️ Delegated Prefix VLAN Assignments\n\n"
+            response += f"**Device Serial**: {serial}\n"
+            response += f"**Prefix ID**: {prefix_id}\n"
+            response += f"**Assignments Count**: {len(result)}\n\n"
+            
+            for assignment in result:
+                response += f"## VLAN {assignment.get('vlanId', 'N/A')}\n"
+                response += f"- **Prefix**: {assignment.get('prefix', 'N/A')}\n"
+                response += f"- **Origin**: {assignment.get('origin', 'N/A')}\n\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting VLAN assignments: {str(e)}"
+    
+    @app.tool(
+        name="get_device_appliance_radio_settings",
+        description="📻 Get device appliance radio settings"
+    )
+    def get_device_appliance_radio_settings(serial: str):
+        """Get device appliance radio settings."""
+        try:
+            result = meraki_client.dashboard.appliance.getDeviceApplianceRadioSettings(serial)
+            
+            response = f"# 📻 Device Appliance Radio Settings\n\n"
+            response += f"**Device Serial**: {serial}\n"
+            response += f"**RF Profile ID**: {result.get('rfProfileId', 'N/A')}\n"
+            response += f"**Two Four Ghz Settings**:\n"
+            
+            two_four_ghz = result.get('twoFourGhzSettings', {})
+            response += f"- **Channel**: {two_four_ghz.get('channel', 'N/A')}\n"
+            response += f"- **Target Power**: {two_four_ghz.get('targetPower', 'N/A')}\n"
+            
+            response += f"**Five Ghz Settings**:\n"
+            five_ghz = result.get('fiveGhzSettings', {})
+            response += f"- **Channel**: {five_ghz.get('channel', 'N/A')}\n"
+            response += f"- **Target Power**: {five_ghz.get('targetPower', 'N/A')}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting radio settings: {str(e)}"
+    
+    @app.tool(
+        name="update_device_appliance_radio_settings",
+        description="🔄 Update device appliance radio settings"
+    )
+    def update_device_appliance_radio_settings(
+        serial: str,
+        rf_profile_id: str = None,
+        two_four_ghz_settings: dict = None,
+        five_ghz_settings: dict = None
+    ):
+        """Update device appliance radio settings."""
+        try:
+            kwargs = {}
+            if rf_profile_id:
+                kwargs['rfProfileId'] = rf_profile_id
+            if two_four_ghz_settings:
+                kwargs['twoFourGhzSettings'] = two_four_ghz_settings
+            if five_ghz_settings:
+                kwargs['fiveGhzSettings'] = five_ghz_settings
+                
+            result = meraki_client.dashboard.appliance.updateDeviceApplianceRadioSettings(
+                serial, **kwargs
+            )
+            
+            response = f"# 🔄 Radio Settings Updated\n\n"
+            response += f"**Device Serial**: {serial}\n"
+            response += f"**RF Profile ID**: {result.get('rfProfileId', 'N/A')}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error updating radio settings: {str(e)}"
+    
+    @app.tool(
+        name="get_device_appliance_uplinks_settings",
+        description="⬆️ Get device appliance uplink settings"
+    )
+    def get_device_appliance_uplinks_settings(serial: str):
+        """Get device appliance uplink settings."""
+        try:
+            result = meraki_client.dashboard.appliance.getDeviceApplianceUplinksSettings(serial)
+            
+            response = f"# ⬆️ Device Appliance Uplink Settings\n\n"
+            response += f"**Device Serial**: {serial}\n"
+            
+            interfaces = result.get('interfaces', {})
+            for interface_name, settings in interfaces.items():
+                response += f"## {interface_name}\n"
+                response += f"- **Enabled**: {settings.get('enabled', 'N/A')}\n"
+                response += f"- **VLAN Tagging**: {settings.get('vlanTagging', {}).get('enabled', 'N/A')}\n"
+                response += f"- **SVIS**: {len(settings.get('svis', {}))}\n\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting uplink settings: {str(e)}"
+    
+    @app.tool(
+        name="update_device_appliance_uplinks_settings",
+        description="🔄 Update device appliance uplink settings"
+    )
+    def update_device_appliance_uplinks_settings(
+        serial: str,
+        interfaces: dict
+    ):
+        """Update device appliance uplink settings."""
+        try:
+            result = meraki_client.dashboard.appliance.updateDeviceApplianceUplinksSettings(
+                serial, interfaces=interfaces
+            )
+            
+            response = f"# 🔄 Uplink Settings Updated\n\n"
+            response += f"**Device Serial**: {serial}\n"
+            response += f"**Interfaces**: {len(result.get('interfaces', {}))}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error updating uplink settings: {str(e)}"
+    
+    # VMX Authentication Token
+    
+    @app.tool(
+        name="create_device_appliance_vmx_authentication_token",
+        description="🔐 Create VMX authentication token"
+    )
+    def create_device_appliance_vmx_authentication_token(serial: str):
+        """Create VMX authentication token."""
+        try:
+            result = meraki_client.dashboard.appliance.createDeviceApplianceVmxAuthenticationToken(serial)
+            
+            response = f"# 🔐 VMX Authentication Token Created\n\n"
+            response += f"**Device Serial**: {serial}\n"
+            response += f"**Token**: {result.get('token', 'N/A')}\n"
+            response += f"**Expires At**: {result.get('expiresAt', 'N/A')}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error creating VMX authentication token: {str(e)}"
+    
+    # Multicast, VPN Exclusions and Missing Organization Tools
+    
+    @app.tool(
+        name="get_organization_appliance_firewall_multicast_forwarding_by_network",
+        description="📡 Get multicast forwarding by network"
+    )
+    def get_organization_appliance_firewall_multicast_forwarding_by_network(
+        organization_id: str
+    ):
+        """Get multicast forwarding by network."""
+        try:
+            result = meraki_client.dashboard.appliance.getOrganizationApplianceFirewallMulticastForwardingByNetwork(
+                organization_id
+            )
+            
+            response = f"# 📡 Multicast Forwarding by Network\n\n"
+            response += f"**Organization ID**: {organization_id}\n"
+            response += f"**Networks Count**: {len(result)}\n\n"
+            
+            for network in result:
+                response += f"## Network: {network.get('networkId', 'N/A')}\n"
+                response += f"- **Name**: {network.get('networkName', 'N/A')}\n"
+                response += f"- **Rules**: {len(network.get('rules', []))}\n\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting multicast forwarding: {str(e)}"
+    
+    @app.tool(
+        name="update_network_appliance_firewall_multicast_forwarding",
+        description="🔄 Update multicast forwarding"
+    )
+    def update_network_appliance_firewall_multicast_forwarding(
+        network_id: str,
+        rules: list
+    ):
+        """Update multicast forwarding."""
+        try:
+            result = meraki_client.dashboard.appliance.updateNetworkApplianceFirewallMulticastForwarding(
+                network_id, rules=rules
+            )
+            
+            response = f"# 🔄 Multicast Forwarding Updated\n\n"
+            response += f"**Network ID**: {network_id}\n"
+            response += f"**Rules**: {len(result.get('rules', []))}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error updating multicast forwarding: {str(e)}"
+    
+    @app.tool(
+        name="get_organization_appliance_traffic_shaping_vpn_exclusions_by_network",
+        description="🚫 Get VPN exclusions by network"
+    )
+    def get_organization_appliance_traffic_shaping_vpn_exclusions_by_network(
+        organization_id: str
+    ):
+        """Get VPN exclusions by network."""
+        try:
+            result = meraki_client.dashboard.appliance.getOrganizationApplianceTrafficShapingVpnExclusionsByNetwork(
+                organization_id
+            )
+            
+            response = f"# 🚫 VPN Exclusions by Network\n\n"
+            response += f"**Organization ID**: {organization_id}\n"
+            response += f"**Networks Count**: {len(result)}\n\n"
+            
+            for network in result:
+                response += f"## Network: {network.get('networkId', 'N/A')}\n"
+                response += f"- **Name**: {network.get('networkName', 'N/A')}\n"
+                response += f"- **Custom**: {len(network.get('custom', []))}\n"
+                response += f"- **Major Applications**: {len(network.get('majorApplications', []))}\n\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting VPN exclusions: {str(e)}"
+    
+    @app.tool(
+        name="update_network_appliance_traffic_shaping_vpn_exclusions",
+        description="🔄 Update VPN exclusions"
+    )
+    def update_network_appliance_traffic_shaping_vpn_exclusions(
+        network_id: str,
+        custom: list = None,
+        major_applications: list = None
+    ):
+        """Update VPN exclusions."""
+        try:
+            kwargs = {}
+            if custom:
+                kwargs['custom'] = custom
+            if major_applications:
+                kwargs['majorApplications'] = major_applications
+                
+            result = meraki_client.dashboard.appliance.updateNetworkApplianceTrafficShapingVpnExclusions(
+                network_id, **kwargs
+            )
+            
+            response = f"# 🔄 VPN Exclusions Updated\n\n"
+            response += f"**Network ID**: {network_id}\n"
+            response += f"**Custom**: {len(result.get('custom', []))}\n"
+            response += f"**Major Applications**: {len(result.get('majorApplications', []))}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error updating VPN exclusions: {str(e)}"
+    
+    @app.tool(
+        name="get_organization_appliance_uplinks_statuses_overview",
+        description="📊 Get uplinks statuses overview"
+    )
+    def get_organization_appliance_uplinks_statuses_overview(organization_id: str):
+        """Get uplinks statuses overview."""
+        try:
+            result = meraki_client.dashboard.appliance.getOrganizationApplianceUplinksStatusesOverview(
+                organization_id
+            )
+            
+            response = f"# 📊 Uplinks Statuses Overview\n\n"
+            response += f"**Organization ID**: {organization_id}\n"
+            response += f"**Counts**:\n"
+            
+            counts = result.get('counts', {})
+            response += f"- **Total**: {counts.get('total', 0)}\n"
+            response += f"- **Online**: {counts.get('online', 0)}\n"
+            response += f"- **Offline**: {counts.get('offline', 0)}\n"
+            response += f"- **Warning**: {counts.get('warning', 0)}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting uplinks overview: {str(e)}"
+    
+    # Missing Network-Level Appliance Tools
+    
+    @app.tool(
+        name="get_network_appliance_connectivity_monitoring_destinations",
+        description="🔍 Get connectivity monitoring destinations"
+    )
+    def get_network_appliance_connectivity_monitoring_destinations(network_id: str):
+        """Get connectivity monitoring destinations."""
+        try:
+            result = meraki_client.dashboard.appliance.getNetworkApplianceConnectivityMonitoringDestinations(
+                network_id
+            )
+            
+            response = f"# 🔍 Connectivity Monitoring Destinations\n\n"
+            response += f"**Network ID**: {network_id}\n"
+            response += f"**Destinations Count**: {len(result.get('destinations', []))}\n\n"
+            
+            for dest in result.get('destinations', []):
+                response += f"## {dest.get('ip', 'N/A')}\n"
+                response += f"- **Description**: {dest.get('description', 'N/A')}\n"
+                response += f"- **Default**: {dest.get('default', False)}\n\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting monitoring destinations: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_firewall_cellular_firewall_rules",
+        description="📱 Get cellular firewall rules"
+    )
+    def get_network_appliance_firewall_cellular_firewall_rules(network_id: str):
+        """Get cellular firewall rules."""
+        try:
+            result = meraki_client.dashboard.appliance.getNetworkApplianceFirewallCellularFirewallRules(
+                network_id
+            )
+            
+            response = f"# 📱 Cellular Firewall Rules\n\n"
+            response += f"**Network ID**: {network_id}\n"
+            response += f"**Rules Count**: {len(result.get('rules', []))}\n\n"
+            
+            for rule in result.get('rules', []):
+                response += f"## Rule: {rule.get('comment', 'No comment')}\n"
+                response += f"- **Policy**: {rule.get('policy', 'N/A')}\n"
+                response += f"- **Protocol**: {rule.get('protocol', 'N/A')}\n"
+                response += f"- **Source**: {rule.get('srcCidr', 'N/A')}\n\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting cellular firewall rules: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_firewall_firewalled_service",
+        description="🔥 Get firewalled service"
+    )
+    def get_network_appliance_firewall_firewalled_service(
+        network_id: str,
+        service: str
+    ):
+        """Get firewalled service."""
+        try:
+            result = meraki_client.dashboard.appliance.getNetworkApplianceFirewallFirewalledService(
+                network_id, service
+            )
+            
+            response = f"# 🔥 Firewalled Service\n\n"
+            response += f"**Network ID**: {network_id}\n"
+            response += f"**Service**: {result.get('service', service)}\n"
+            response += f"**Access**: {result.get('access', 'N/A')}\n"
+            response += f"**Allowed IPs**: {result.get('allowedIps', [])}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting firewalled service: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_firewall_l7_firewall_rules_application_categories",
+        description="📱 Get L7 firewall application categories"
+    )
+    def get_network_appliance_firewall_l7_firewall_rules_application_categories(
+        network_id: str
+    ):
+        """Get L7 firewall application categories."""
+        try:
+            result = meraki_client.dashboard.appliance.getNetworkApplianceFirewallL7FirewallRulesApplicationCategories(
+                network_id
+            )
+            
+            response = f"# 📱 L7 Firewall Application Categories\n\n"
+            response += f"**Network ID**: {network_id}\n"
+            response += f"**Categories Count**: {len(result.get('applicationCategories', []))}\n\n"
+            
+            for category in result.get('applicationCategories', []):
+                response += f"## {category.get('name', 'N/A')}\n"
+                response += f"- **ID**: {category.get('id', 'N/A')}\n"
+                response += f"- **Applications**: {len(category.get('applications', []))}\n\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting application categories: {str(e)}"
+    
+    @app.tool(
+        name="get_network_appliance_traffic_shaping_custom_performance_classes",
+        description="🎯 Get custom performance classes"
+    )
+    def get_network_appliance_traffic_shaping_custom_performance_classes(
+        network_id: str
+    ):
+        """Get custom performance classes."""
+        try:
+            result = meraki_client.dashboard.appliance.getNetworkApplianceTrafficShapingCustomPerformanceClasses(
+                network_id
+            )
+            
+            response = f"# 🎯 Custom Performance Classes\n\n"
+            response += f"**Network ID**: {network_id}\n"
+            response += f"**Classes Count**: {len(result)}\n\n"
+            
+            for perf_class in result:
+                response += f"## {perf_class.get('name', 'Unnamed')}\n"
+                response += f"- **ID**: {perf_class.get('customPerformanceClassId', 'N/A')}\n"
+                response += f"- **Max Latency**: {perf_class.get('maxLatency', 'N/A')}ms\n"
+                response += f"- **Max Jitter**: {perf_class.get('maxJitter', 'N/A')}ms\n"
+                response += f"- **Max Loss**: {perf_class.get('maxLossPercentage', 'N/A')}%\n\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error getting custom performance classes: {str(e)}"
+    
+    @app.tool(
+        name="create_network_appliance_rf_profile",
+        description="📻 Create RF profile"
+    )
+    def create_network_appliance_rf_profile(
+        network_id: str,
+        name: str,
+        two_four_ghz_settings: dict = None,
+        five_ghz_settings: dict = None,
+        per_ssid_settings: dict = None
+    ):
+        """Create RF profile."""
+        try:
+            kwargs = {'name': name}
+            if two_four_ghz_settings:
+                kwargs['twoFourGhzSettings'] = two_four_ghz_settings
+            if five_ghz_settings:
+                kwargs['fiveGhzSettings'] = five_ghz_settings
+            if per_ssid_settings:
+                kwargs['perSsidSettings'] = per_ssid_settings
+                
+            result = meraki_client.dashboard.appliance.createNetworkApplianceRfProfile(
+                network_id, **kwargs
+            )
+            
+            response = f"# 📻 RF Profile Created\n\n"
+            response += f"**Profile ID**: {result.get('id', 'N/A')}\n"
+            response += f"**Name**: {result.get('name', name)}\n"
+            response += f"**Network ID**: {result.get('networkId', network_id)}\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ Error creating RF profile: {str(e)}"
+    
+# Register additional appliance tools in main handler
 
