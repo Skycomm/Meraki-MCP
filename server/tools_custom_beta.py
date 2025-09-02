@@ -8,6 +8,9 @@ app = None
 meraki_client = None
 
 def register_beta_tools(mcp_app, meraki):
+    global app, meraki_client
+    app = mcp_app
+    meraki_client = meraki
     """
     Register beta/early access tools with the MCP server.
     
@@ -15,9 +18,6 @@ def register_beta_tools(mcp_app, meraki):
         mcp_app: MCP server instance
         meraki: Meraki client instance
     """
-    global app, meraki_client
-    app = mcp_app
-    meraki_client = meraki
     
     # Register all beta tools
     register_beta_tool_handlers()

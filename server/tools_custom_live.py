@@ -9,6 +9,9 @@ app = None
 meraki_client = None
 
 def register_live_tools(mcp_app, meraki):
+    global app, meraki_client
+    app = mcp_app
+    meraki_client = meraki
     """
     Register live tools with the MCP server.
     
@@ -16,9 +19,6 @@ def register_live_tools(mcp_app, meraki):
         mcp_app: MCP server instance
         meraki: Meraki client instance
     """
-    global app, meraki_client
-    app = mcp_app
-    meraki_client = meraki
     
     # Register all live tool handlers
     register_live_tool_handlers()

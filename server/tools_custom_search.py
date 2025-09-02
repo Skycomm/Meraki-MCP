@@ -8,10 +8,10 @@ app = None
 meraki_client = None
 
 def register_search_tools(mcp_app, meraki):
-    """Register search tools with the MCP server."""
     global app, meraki_client
     app = mcp_app
     meraki_client = meraki
+    """Register search tools with the MCP server."""
     
     @app.tool(
         name="search_device_by_serial",

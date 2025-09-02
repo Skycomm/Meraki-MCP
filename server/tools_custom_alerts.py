@@ -7,6 +7,9 @@ app = None
 meraki_client = None
 
 def register_alert_tools(mcp_app, meraki):
+    global app, meraki_client
+    app = mcp_app
+    meraki_client = meraki
     """
     Register alert and webhook tools with the MCP server.
     
@@ -14,9 +17,6 @@ def register_alert_tools(mcp_app, meraki):
         mcp_app: MCP server instance
         meraki: Meraki client instance
     """
-    global app, meraki_client
-    app = mcp_app
-    meraki_client = meraki
     
     # Register all alert tools
     register_alert_tool_handlers()
