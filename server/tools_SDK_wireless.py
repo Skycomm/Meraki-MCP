@@ -2473,7 +2473,7 @@ def register_wireless_sdk_tools():
         name="get_network_wireless_clients_latency_stats",
         description="📶 Get network wirelessClientsLatencyStats"
     )
-    def get_network_wireless_clients_latency_stats(network_id: str, per_page: int = 500):
+    def get_network_wireless_clients_latency_stats(network_id: str, timespan: int = 86400, per_page: int = 500):
         """Get get network wirelessclientslatencystats."""
         try:
             kwargs = {}
@@ -4116,21 +4116,13 @@ def register_wireless_sdk_tools():
     
     @app.tool(
         name="get_network_wireless_ssid_firewall_l3_firewall_rules",
-        description="📶 Get network wirelessSsidFirewallL3FirewallRules"
+        description="📶 Get network wirelessSsidFirewallL3FirewallRules (REQUIRES: ssid_number)"
     )
-    def get_network_wireless_ssid_firewall_l3_firewall_rules(network_id: str, per_page: int = 1000):
+    def get_network_wireless_ssid_firewall_l3_firewall_rules(network_id: str, ssid_number: str = "0"):
         """Get get network wirelessssidfirewalll3firewallrules."""
         try:
-            kwargs = {}
-            
-            # Add pagination for GET methods
-            if "per_page" in locals():
-                kwargs["perPage"] = per_page
-            if "timespan" in locals():
-                kwargs["timespan"] = timespan
-                
             result = meraki_client.dashboard.wireless.getNetworkWirelessSsidFirewallL3FirewallRules(
-                network_id, **kwargs
+                network_id, ssid_number
             )
             
             response = f"# 📶 Get Network Wirelessssidfirewalll3Firewallrules\n\n"
@@ -4669,21 +4661,13 @@ def register_wireless_sdk_tools():
     
     @app.tool(
         name="get_network_wireless_ssid_traffic_shaping_rules",
-        description="📶 Get network wirelessSsidTrafficShapingRules"
+        description="📶 Get network wirelessSsidTrafficShapingRules (REQUIRES: ssid_number)"
     )
-    def get_network_wireless_ssid_traffic_shaping_rules(network_id: str, per_page: int = 1000):
+    def get_network_wireless_ssid_traffic_shaping_rules(network_id: str, ssid_number: str = "0"):
         """Get get network wirelessssidtrafficshapingrules."""
         try:
-            kwargs = {}
-            
-            # Add pagination for GET methods
-            if "per_page" in locals():
-                kwargs["perPage"] = per_page
-            if "timespan" in locals():
-                kwargs["timespan"] = timespan
-                
             result = meraki_client.dashboard.wireless.getNetworkWirelessSsidTrafficShapingRules(
-                network_id, **kwargs
+                network_id, ssid_number
             )
             
             response = f"# 📶 Get Network Wirelessssidtrafficshapingrules\n\n"
@@ -5295,7 +5279,7 @@ def register_wireless_sdk_tools():
         name="get_org_wireless_devices_channel_utilization_by_network",
         description="📶 Get organization wireless devicesChannelUtilizationBy network"
     )
-    def get_organization_wireless_devices_channel_utilization_by_network(network_id: str, per_page: int = 500):
+    def get_organization_wireless_devices_channel_utilization_by_network(organization_id: str, per_page: int = 500):
         """Get get organization wireless deviceschannelutilizationby network."""
         try:
             kwargs = {}
