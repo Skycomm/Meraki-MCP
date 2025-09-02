@@ -429,7 +429,7 @@ def register_wireless_sdk_tools():
             return f"❌ Error in create_network_wireless_ssid_identity_psk: {str(e)}"
     
     @app.tool(
-        name="create_organization_wireless_devices_radsec_certificates_authority",
+        name="create_org_wireless_devices_radsec_certs_authority",
         description="➕ Create organization wireless devicesRadsecCertificatesAuthority"
     )
     def create_organization_wireless_devices_radsec_certificates_authority(network_id: str, serial: str):
@@ -587,7 +587,7 @@ def register_wireless_sdk_tools():
             return f"❌ Error in create_organization_wireless_location_scanning_receiver: {str(e)}"
     
     @app.tool(
-        name="create_organization_wireless_ssids_firewall_isolation_allowlist_entry",
+        name="create_org_wireless_ssids_firewall_isolation_allowlist_entry",
         description="➕ Create organization wirelessSsidsFirewallIsolationAllowlistEntry"
     )
     def create_organization_wireless_ssids_firewall_isolation_allowlist_entry(organization_id: str):
@@ -1061,7 +1061,7 @@ def register_wireless_sdk_tools():
             return f"❌ Error in delete_organization_wireless_location_scanning_receiver: {str(e)}"
     
     @app.tool(
-        name="delete_organization_wireless_ssids_firewall_isolation_allowlist_entry",
+        name="delete_org_wireless_ssids_firewall_isolation_allowlist_entry",
         description="❌ Delete organization wirelessSsidsFirewallIsolationAllowlistEntry"
     )
     def delete_organization_wireless_ssids_firewall_isolation_allowlist_entry(organization_id: str):
@@ -5327,7 +5327,7 @@ def register_wireless_sdk_tools():
             return f"❌ Error in get_organization_wireless_devices_channel_utilization_by_device: {str(e)}"
     
     @app.tool(
-        name="get_organization_wireless_devices_channel_utilization_by_network",
+        name="get_org_wireless_devices_channel_utilization_by_network",
         description="📶 Get organization wireless devicesChannelUtilizationBy network"
     )
     def get_organization_wireless_devices_channel_utilization_by_network(network_id: str, per_page: int = 500):
@@ -5406,7 +5406,7 @@ def register_wireless_sdk_tools():
             return f"❌ Error in get_organization_wireless_devices_channel_utilization_by_network: {str(e)}"
     
     @app.tool(
-        name="get_organization_wireless_devices_channel_utilization_history_by_device_by_interval",
+        name="get_org_wireless_devices_channel_util_hist_by_dev_by_interval",
         description="📶 Get organization wireless devicesChannelUtilizationHistoryBy deviceByInterval"
     )
     def get_organization_wireless_devices_channel_utilization_history_by_device_by_interval(network_id: str, serial: str, timespan: int = 86400):
@@ -5485,7 +5485,7 @@ def register_wireless_sdk_tools():
             return f"❌ Error in get_organization_wireless_devices_channel_utilization_history_by_device_by_interval: {str(e)}"
     
     @app.tool(
-        name="get_organization_wireless_devices_channel_utilization_history_by_network_by_interval",
+        name="get_org_wireless_devices_channel_util_hist_by_net_by_interval",
         description="📶 Get organization wireless devicesChannelUtilizationHistoryBy networkByInterval"
     )
     def get_organization_wireless_devices_channel_utilization_history_by_network_by_interval(network_id: str, timespan: int = 86400):
@@ -5959,7 +5959,7 @@ def register_wireless_sdk_tools():
             return f"❌ Error in get_organization_wireless_devices_power_mode_history: {str(e)}"
     
     @app.tool(
-        name="get_organization_wireless_devices_radsec_certificates_authorities",
+        name="get_org_wireless_devices_radsec_certs_authorities",
         description="📶 Get organization wireless devicesRadsecCertificatesAuthorities"
     )
     def get_organization_wireless_devices_radsec_certificates_authorities(network_id: str, serial: str, per_page: int = 500):
@@ -6038,7 +6038,7 @@ def register_wireless_sdk_tools():
             return f"❌ Error in get_organization_wireless_devices_radsec_certificates_authorities: {str(e)}"
     
     @app.tool(
-        name="get_organization_wireless_devices_radsec_certificates_authorities_crls",
+        name="get_org_wireless_devices_radsec_certs_authorities_crls",
         description="📶 Get organization wireless devicesRadsecCertificatesAuthoritiesCrls"
     )
     def get_organization_wireless_devices_radsec_certificates_authorities_crls(network_id: str, serial: str, per_page: int = 500):
@@ -6117,7 +6117,7 @@ def register_wireless_sdk_tools():
             return f"❌ Error in get_organization_wireless_devices_radsec_certificates_authorities_crls: {str(e)}"
     
     @app.tool(
-        name="get_organization_wireless_devices_radsec_certificates_authorities_crls_deltas",
+        name="get_org_wireless_devices_radsec_certs_authorities_crls_deltas",
         description="📶 Get organization wireless devicesRadsecCertificatesAuthoritiesCrlsDeltas"
     )
     def get_organization_wireless_devices_radsec_certificates_authorities_crls_deltas(network_id: str, serial: str, per_page: int = 500):
@@ -6275,7 +6275,7 @@ def register_wireless_sdk_tools():
             return f"❌ Error in get_organization_wireless_devices_system_cpu_load_history: {str(e)}"
     
     @app.tool(
-        name="get_organization_wireless_devices_wireless_controllers_by_device",
+        name="get_org_wireless_devices_wireless_controllers_by_device",
         description="📶 Get organization wireless devices wirelessControllersBy device"
     )
     def get_organization_wireless_devices_wireless_controllers_by_device(network_id: str, serial: str, per_page: int = 500):
@@ -6591,7 +6591,7 @@ def register_wireless_sdk_tools():
             return f"❌ Error in get_organization_wireless_rf_profiles_assignments_by_device: {str(e)}"
     
     @app.tool(
-        name="get_organization_wireless_ssids_firewall_isolation_allowlist_entries",
+        name="get_org_wireless_ssids_firewall_isolation_allowlist_entries",
         description="📶 Get organization wirelessSsidsFirewallIsolationAllowlistEntries"
     )
     def get_organization_wireless_ssids_firewall_isolation_allowlist_entries(organization_id: str, per_page: int = 1000):
@@ -8961,7 +8961,7 @@ def register_wireless_sdk_tools():
             return f"❌ Error in update_network_wireless_ssid_vpn: {str(e)}"
     
     @app.tool(
-        name="update_organization_wireless_devices_radsec_certificates_authorities",
+        name="update_org_wireless_devices_radsec_certs_authorities",
         description="✏️ Update organization wireless devicesRadsecCertificatesAuthorities"
     )
     def update_organization_wireless_devices_radsec_certificates_authorities(network_id: str, serial: str):
@@ -9119,7 +9119,7 @@ def register_wireless_sdk_tools():
             return f"❌ Error in update_organization_wireless_location_scanning_receiver: {str(e)}"
     
     @app.tool(
-        name="update_organization_wireless_ssids_firewall_isolation_allowlist_entry",
+        name="update_org_wireless_ssids_firewall_isolation_allowlist_entry",
         description="✏️ Update organization wirelessSsidsFirewallIsolationAllowlistEntry"
     )
     def update_organization_wireless_ssids_firewall_isolation_allowlist_entry(organization_id: str):

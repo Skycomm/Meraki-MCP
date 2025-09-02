@@ -398,7 +398,7 @@ def register_licensing_sdk_tools():
             return f"❌ Error in get_administered_licensing_subscription_subscriptions: {str(e)}"
     
     @app.tool(
-        name="get_administered_licensing_subscription_subscriptions_compliance_statuses",
+        name="get_admin_licensing_subscription_subs_compliance_statuses",
         description="📄 Get administered licensing subscription subscriptionsComplianceStatuses"
     )
     def get_administered_licensing_subscription_subscriptions_compliance_statuses(per_page: int = 100):
@@ -670,7 +670,7 @@ def register_licensing_sdk_tools():
             return f"❌ Error in move_organization_licensing_coterm_licenses: {str(e)}"
     
     @app.tool(
-        name="validate_administered_licensing_subscription_subscriptions_claim_key",
+        name="validate_admin_licensing_subscription_subscriptions_claim_key",
         description="🔑 Claim administered licensing subscription subscriptionsClaimKey"
     )
     def validate_administered_licensing_subscription_subscriptions_claim_key(claim_key: str, name: str):

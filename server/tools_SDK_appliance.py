@@ -5207,7 +5207,7 @@ def register_additional_appliance_tools():
     # DNS Management Tools (NEW in 2025 SDK)
     
     @app.tool(
-        name="bulk_organization_appliance_dns_local_profiles_assignments_create",
+        name="bulk_org_appliance_dns_local_profiles_assignments_create",
         description="📋 Bulk create DNS local profile assignments"
     )
     def bulk_organization_appliance_dns_local_profiles_assignments_create(
@@ -5762,7 +5762,7 @@ def register_additional_appliance_tools():
     # Multicast, VPN Exclusions and Missing Organization Tools
     
     @app.tool(
-        name="get_organization_appliance_firewall_multicast_forwarding_by_network",
+        name="get_org_appliance_firewall_multicast_forwarding_by_network",
         description="📡 Get multicast forwarding by network"
     )
     def get_organization_appliance_firewall_multicast_forwarding_by_network(
@@ -5810,7 +5810,7 @@ def register_additional_appliance_tools():
             return f"❌ Error updating multicast forwarding: {str(e)}"
     
     @app.tool(
-        name="get_organization_appliance_traffic_shaping_vpn_exclusions_by_network",
+        name="get_org_appliance_traffic_shaping_vpn_exclusions_by_network",
         description="🚫 Get VPN exclusions by network"
     )
     def get_organization_appliance_traffic_shaping_vpn_exclusions_by_network(
@@ -5967,7 +5967,7 @@ def register_additional_appliance_tools():
             return f"❌ Error getting firewalled service: {str(e)}"
     
     @app.tool(
-        name="get_network_appliance_firewall_l7_firewall_rules_application_categories",
+        name="get_network_appliance_firewall_l7_fw_rules_app_categories",
         description="📱 Get L7 firewall application categories"
     )
     def get_network_appliance_firewall_l7_firewall_rules_application_categories(
@@ -5993,7 +5993,7 @@ def register_additional_appliance_tools():
             return f"❌ Error getting application categories: {str(e)}"
     
     @app.tool(
-        name="get_network_appliance_traffic_shaping_custom_performance_classes",
+        name="get_network_appliance_traffic_shaping_custom_perf_classes",
         description="🎯 Get custom performance classes"
     )
     def get_network_appliance_traffic_shaping_custom_performance_classes(

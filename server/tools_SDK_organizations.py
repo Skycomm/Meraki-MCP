@@ -848,7 +848,7 @@ def register_organizations_sdk_tools():
             return f"❌ Error in create_organization_inventory_devices_swaps_bulk: {str(e)}"
     
     @app.tool(
-        name="create_organization_inventory_onboarding_cloud_monitoring_export_event",
+        name="create_org_inventory_onboarding_cloud_monitoring_export_event",
         description="➕ Create organizationInventoryOnboardingCloudMonitoringExportEvent"
     )
     def create_organization_inventory_onboarding_cloud_monitoring_export_event(organization_id: str):
@@ -885,7 +885,7 @@ def register_organizations_sdk_tools():
             return f"❌ Error in create_organization_inventory_onboarding_cloud_monitoring_export_event: {str(e)}"
     
     @app.tool(
-        name="create_organization_inventory_onboarding_cloud_monitoring_import",
+        name="create_org_inventory_onboarding_cloud_monitoring_import",
         description="➕ Create organizationInventoryOnboardingCloudMonitoringImport"
     )
     def create_organization_inventory_onboarding_cloud_monitoring_import(organization_id: str):
@@ -922,7 +922,7 @@ def register_organizations_sdk_tools():
             return f"❌ Error in create_organization_inventory_onboarding_cloud_monitoring_import: {str(e)}"
     
     @app.tool(
-        name="create_organization_inventory_onboarding_cloud_monitoring_prepare",
+        name="create_org_inventory_onboarding_cloud_monitoring_prepare",
         description="➕ Create organizationInventoryOnboardingCloudMonitoringPrepare"
     )
     def create_organization_inventory_onboarding_cloud_monitoring_prepare(organization_id: str):
@@ -1995,7 +1995,7 @@ def register_organizations_sdk_tools():
             return f"❌ Error in enable_organization_integrations_xdr_networks: {str(e)}"
     
     @app.tool(
-        name="generate_organization_devices_packet_capture_capture_download_url",
+        name="generate_org_devices_packet_capture_capture_download_url",
         description="🏢 generate organizationDevicesPacketCaptureCaptureDownloadUrl"
     )
     def generate_organization_devices_packet_capture_capture_download_url(organization_id: str):
@@ -2587,7 +2587,7 @@ def register_organizations_sdk_tools():
             return f"❌ Error in get_organization_api_requests_overview: {str(e)}"
     
     @app.tool(
-        name="get_organization_api_requests_overview_response_codes_by_interval",
+        name="get_org_api_requests_overview_response_codes_by_interval",
         description="📊 Get organizationApiRequestsOverviewResponseCodesByInterval"
     )
     def get_organization_api_requests_overview_response_codes_by_interval(organization_id: str, per_page: int = 100):
@@ -3586,7 +3586,7 @@ def register_organizations_sdk_tools():
             return f"❌ Error in get_organization_devices_statuses_overview: {str(e)}"
     
     @app.tool(
-        name="get_organization_devices_system_memory_usage_history_by_interval",
+        name="get_org_devices_system_memory_usage_history_by_interval",
         description="📊 Get organizationDevicesSystemMemoryUsageHistoryByInterval"
     )
     def get_organization_devices_system_memory_usage_history_by_interval(organization_id: str, per_page: int = 1000):

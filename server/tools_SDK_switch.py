@@ -449,7 +449,7 @@ def register_switch_sdk_tools():
             return f"❌ Error in create_network_switch_access_policy: {str(e)}"
     
     @app.tool(
-        name="create_network_switch_dhcp_server_policy_arp_inspection_trusted_server",
+        name="create_network_switch_dhcp_server_policy_arp_trusted_server",
         description="➕ Create network switchDhcpServerPolicyArpInspectionTrustedServer"
     )
     def create_network_switch_dhcp_server_policy_arp_inspection_trusted_server(network_id: str):
@@ -1453,7 +1453,7 @@ def register_switch_sdk_tools():
             return f"❌ Error in delete_network_switch_access_policy: {str(e)}"
     
     @app.tool(
-        name="delete_network_switch_dhcp_server_policy_arp_inspection_trusted_server",
+        name="delete_network_switch_dhcp_server_policy_arp_trusted_server",
         description="❌ Delete network switchDhcpServerPolicyArpInspectionTrustedServer"
     )
     def delete_network_switch_dhcp_server_policy_arp_inspection_trusted_server(network_id: str, confirmed: bool = False):
@@ -3390,7 +3390,7 @@ def register_switch_sdk_tools():
             return f"❌ Error in get_network_switch_dhcp_server_policy: {str(e)}"
     
     @app.tool(
-        name="get_network_switch_dhcp_server_policy_arp_inspection_trusted_servers",
+        name="get_network_switch_dhcp_server_policy_arp_trusted_servers",
         description="🔌 Get network switchDhcpServerPolicyArpInspectionTrustedServers"
     )
     def get_network_switch_dhcp_server_policy_arp_inspection_trusted_servers(network_id: str):
@@ -3473,7 +3473,7 @@ def register_switch_sdk_tools():
             return f"❌ Error in get_network_switch_dhcp_server_policy_arp_inspection_trusted_servers: {str(e)}"
     
     @app.tool(
-        name="get_network_switch_dhcp_server_policy_arp_inspection_warnings_by_device",
+        name="get_network_switch_dhcp_server_policy_arp_warnings_by_device",
         description="🔌 Get network switchDhcpServerPolicyArpInspectionWarningsBy device"
     )
     def get_network_switch_dhcp_server_policy_arp_inspection_warnings_by_device(network_id: str):
@@ -6153,7 +6153,7 @@ def register_switch_sdk_tools():
             return f"❌ Error in get_organization_switch_ports_topology_discovery_by_device: {str(e)}"
     
     @app.tool(
-        name="get_organization_switch_ports_usage_history_by_device_by_interval",
+        name="get_org_switch_ports_usage_history_by_device_by_interval",
         description="🔌 Get organization switchPortsUsageHistoryBy deviceByInterval"
     )
     def get_organization_switch_ports_usage_history_by_device_by_interval(organization_id: str, per_page: int = 1000):
@@ -7070,7 +7070,7 @@ def register_switch_sdk_tools():
             return f"❌ Error in update_network_switch_dhcp_server_policy: {str(e)}"
     
     @app.tool(
-        name="update_network_switch_dhcp_server_policy_arp_inspection_trusted_server",
+        name="update_network_switch_dhcp_server_policy_arp_trusted_server",
         description="✏️ Update network switchDhcpServerPolicyArpInspectionTrustedServer"
     )
     def update_network_switch_dhcp_server_policy_arp_inspection_trusted_server(network_id: str):

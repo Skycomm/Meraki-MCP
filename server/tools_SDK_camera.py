@@ -2914,7 +2914,7 @@ def register_camera_sdk_tools():
             return f"❌ Error in get_organization_camera_custom_analytics_artifacts: {str(e)}"
     
     @app.tool(
-        name="get_organization_camera_detections_history_by_boundary_by_interval",
+        name="get_org_camera_detections_history_by_boundary_by_interval",
         description="📹 Get organization cameraDetectionsHistoryByBoundaryByInterval"
     )
     def get_organization_camera_detections_history_by_boundary_by_interval(organization_id: str, timespan: int = 86400):

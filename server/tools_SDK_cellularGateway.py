@@ -111,7 +111,7 @@ def register_cellular_gateway_sdk_tools():
             return f"❌ Error in create_org_cg_esims_service_provider_account: {str(e)}"
     
     @app.tool(
-        name="create_organization_cellular_gateway_esims_swap",
+        name="create_org_cg_esims_swap",
         description="➕ CreateOrganization cellular gatewayEsimsSwap"
     )
     def create_organization_cellular_gateway_esims_swap(organization_id: str):

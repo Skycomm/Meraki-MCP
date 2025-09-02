@@ -1,4 +1,0 @@
-! [unified-main] Fix productType parameter issue for getNetworkEvents API
- * [main] Fix productType parameter issue for getNetworkEvents API
---
-+* [unified-main] Fix productType parameter issue for getNetworkEvents API
