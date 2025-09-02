@@ -3524,17 +3524,29 @@ def register_organizations_sdk_tools():
                 organization_id, **kwargs
             )
             
-            response = f"# 📊 Get Organizationdevicesstatuses\n\n"
+            response = f"# 📊 Organization Device Status\n\n"
             
             if result:
                 if isinstance(result, list):
-                    response += f"**Total Items**: {len(result)}\n\n"
+                    response += f"**Total Devices**: {len(result)}\n\n"
                     
                     for i, item in enumerate(result[:10], 1):
-                        response += f"{i}. **{item.get('name', item.get('id', 'Item'))}**\n"
+                        device_name = item.get('name', 'Unnamed Device')
+                        response += f"{i}. **{device_name}**\n"
                         if isinstance(item, dict):
-                            for key, value in list(item.items())[:3]:
-                                response += f"   - {key}: {value}\n"
+                            # Show complete device information
+                            if 'serial' in item:
+                                response += f"   - Serial: {item.get('serial')}\n"
+                            if 'model' in item:
+                                response += f"   - Model: {item.get('model')}\n"
+                            if 'mac' in item:
+                                response += f"   - MAC: {item.get('mac')}\n"
+                            if 'productType' in item:
+                                response += f"   - Type: {item.get('productType')}\n"
+                            if 'networkId' in item:
+                                response += f"   - Network ID: {item.get('networkId')}\n"
+                            if 'status' in item:
+                                response += f"   - Status: {item.get('status')}\n"
                         response += "\n"
                     
                     if len(result) > 10:

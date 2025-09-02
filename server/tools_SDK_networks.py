@@ -3862,35 +3862,35 @@ def register_networks_sdk_tools():
         try:
             result = meraki_client.dashboard.networks.getNetworkDevices(network_id)
             
-            response = f"# 🌐 Get Networkdevices\n\n"
+            response = f"# 🌐 Network Devices\n\n"
             
             if result is not None:
                 if isinstance(result, list):
-                    response += f"**Total Items**: {len(result)}\n\n"
+                    response += f"**Total Devices**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
+                    # Show devices with complete device information
                     for idx, item in enumerate(result[:10], 1):
                         if isinstance(item, dict):
-                            name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
+                            name = item.get('name', 'Unnamed Device')
                             response += f"**{idx}. {name}**\n"
                             
-                            # Show key network-specific fields
-                            if 'status' in item:
-                                response += f"   - Status: {item.get('status')}\n"
-                            if 'ip' in item:
-                                response += f"   - IP: {item.get('ip')}\n"
+                            # Show complete device specifications
+                            if 'serial' in item:
+                                response += f"   - Serial: {item.get('serial')}\n"
+                            if 'model' in item:
+                                response += f"   - Model: {item.get('model')}\n"
                             if 'mac' in item:
                                 response += f"   - MAC: {item.get('mac')}\n"
-                            if 'vlan' in item:
-                                response += f"   - VLAN: {item.get('vlan')}\n"
-                            if 'manufacturer' in item:
-                                response += f"   - Manufacturer: {item.get('manufacturer')}\n"
-                            if 'lastSeen' in item:
-                                response += f"   - Last Seen: {item.get('lastSeen')}\n"
-                            if 'usage' in item:
-                                usage = item.get('usage', {})
-                                if isinstance(usage, dict):
-                                    response += f"   - Usage: {usage.get('sent', 0) + usage.get('recv', 0)} bytes\n"
+                            if 'productType' in item:
+                                response += f"   - Type: {item.get('productType')}\n"
+                            if 'firmware' in item:
+                                response += f"   - Firmware: {item.get('firmware')}\n"
+                            if 'address' in item:
+                                response += f"   - Address: {item.get('address')}\n"
+                            if 'lat' in item and 'lng' in item:
+                                lat = item.get('lat', 'N/A')
+                                lng = item.get('lng', 'N/A') 
+                                response += f"   - Location: {lat}, {lng}\n"
                                     
                         else:
                             response += f"**{idx}. {item}**\n"
