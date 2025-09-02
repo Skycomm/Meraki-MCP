@@ -1764,19 +1764,11 @@ def register_wireless_sdk_tools():
         name="get_network_wireless_billing",
         description="📶 Get network wirelessBilling"
     )
-    def get_network_wireless_billing(network_id: str, per_page: int = 1000):
+    def get_network_wireless_billing(network_id: str):
         """Get get network wirelessbilling."""
         try:
-            kwargs = {}
-            
-            # Add pagination for GET methods
-            if "per_page" in locals():
-                kwargs["perPage"] = per_page
-            if "timespan" in locals():
-                kwargs["timespan"] = timespan
-                
             result = meraki_client.dashboard.wireless.getNetworkWirelessBilling(
-                network_id, **kwargs
+                network_id
             )
             
             response = f"# 📶 Get Network Wirelessbilling\n\n"
@@ -1997,9 +1989,9 @@ def register_wireless_sdk_tools():
     
     @app.tool(
         name="get_network_wireless_client_connection_stats",
-        description="📶 Get network wirelessClientConnectionStats"
+        description="📶 Get network wirelessClientConnectionStats (REQUIRES: client_id, timespan)"
     )
-    def get_network_wireless_client_connection_stats(network_id: str, per_page: int = 1000):
+    def get_network_wireless_client_connection_stats(network_id: str, client_id: str, timespan: int = 86400, per_page: int = 1000):
         """Get get network wirelessclientconnectionstats."""
         try:
             kwargs = {}
@@ -2011,7 +2003,7 @@ def register_wireless_sdk_tools():
                 kwargs["timespan"] = timespan
                 
             result = meraki_client.dashboard.wireless.getNetworkWirelessClientConnectionStats(
-                network_id, **kwargs
+                network_id, client_id, **kwargs
             )
             
             response = f"# 📶 Get Network Wirelessclientconnectionstats\n\n"
