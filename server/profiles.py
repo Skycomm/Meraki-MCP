@@ -32,8 +32,7 @@ PROFILES = {
         'description': 'Switch, appliance, and network infrastructure',
         'modules': [
             'resources',
-            'networks',
-            'networks_complete',
+            'SDK_networks',  # New consolidated Networks SDK module (100% coverage)
             'switch',
             'appliance',  # Consolidated appliance module
             'cellularGateway',
@@ -91,7 +90,7 @@ PROFILES = {
             'devices',
             'insight',
             'licensing',
-            'networks',
+            'SDK_networks',  # 100% SDK Networks coverage
             'organizations',
             'sensor',
             'sm',

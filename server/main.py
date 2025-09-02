@@ -17,7 +17,7 @@ app = FastMCP(SERVER_NAME)
 # Import all resources and tools modules - they will register with the app
 from server.resources import register_resources
 from server.tools_organizations_core import register_organizations_core_tools
-from server.tools_networks import register_network_tools
+from server.tools_SDK_networks import register_networks_tools
 from server.tools_devices import register_device_tools
 from server.tools_wireless import register_wireless_tools
 from server.tools_wireless_firewall import register_wireless_firewall_tools
@@ -61,7 +61,7 @@ from server.tools_adaptive_policy import register_adaptive_policy_tools
 # Register resources and tools
 register_resources(app, meraki)
 register_organizations_core_tools(app, meraki)
-register_network_tools(app, meraki)
+register_networks_tools(app, meraki)
 register_device_tools(app, meraki)
 register_wireless_tools(app, meraki)
 register_wireless_firewall_tools(app, meraki)
