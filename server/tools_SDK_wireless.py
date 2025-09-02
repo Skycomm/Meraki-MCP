@@ -1222,19 +1222,16 @@ def register_wireless_sdk_tools():
         name="get_device_wireless_connection_stats",
         description="📶 Get device wirelessConnectionStats"
     )
-    def get_device_wireless_connection_stats(network_id: str, serial: str, per_page: int = 1000):
+    def get_device_wireless_connection_stats(serial: str, timespan: int = 86400):
         """Get get device wirelessconnectionstats."""
         try:
             kwargs = {}
             
-            # Add pagination for GET methods
-            if "per_page" in locals():
-                kwargs["perPage"] = per_page
             if "timespan" in locals():
                 kwargs["timespan"] = timespan
                 
             result = meraki_client.dashboard.wireless.getDeviceWirelessConnectionStats(
-                network_id, serial, **kwargs  
+                serial, **kwargs  
             )
             
             response = f"# 📶 Get Device Wirelessconnectionstats\n\n"
@@ -1538,19 +1535,11 @@ def register_wireless_sdk_tools():
         name="get_device_wireless_status",
         description="📶 Get device wirelessStatus"
     )
-    def get_device_wireless_status(network_id: str, serial: str, per_page: int = 1000):
+    def get_device_wireless_status(serial: str):
         """Get get device wirelessstatus."""
         try:
-            kwargs = {}
-            
-            # Add pagination for GET methods
-            if "per_page" in locals():
-                kwargs["perPage"] = per_page
-            if "timespan" in locals():
-                kwargs["timespan"] = timespan
-                
             result = meraki_client.dashboard.wireless.getDeviceWirelessStatus(
-                network_id, serial, **kwargs  
+                serial 
             )
             
             response = f"# 📶 Get Device Wirelessstatus\n\n"
@@ -1854,19 +1843,11 @@ def register_wireless_sdk_tools():
         name="get_network_wireless_bluetooth_settings",
         description="📶 Get network wirelessBluetoothSettings"
     )
-    def get_network_wireless_bluetooth_settings(network_id: str, per_page: int = 1000):
+    def get_network_wireless_bluetooth_settings(network_id: str):
         """Get get network wirelessbluetoothsettings."""
         try:
-            kwargs = {}
-            
-            # Add pagination for GET methods
-            if "per_page" in locals():
-                kwargs["perPage"] = per_page
-            if "timespan" in locals():
-                kwargs["timespan"] = timespan
-                
             result = meraki_client.dashboard.wireless.getNetworkWirelessBluetoothSettings(
-                network_id, **kwargs
+                network_id
             )
             
             response = f"# 📶 Get Network Wirelessbluetoothsettings\n\n"
@@ -1931,9 +1912,9 @@ def register_wireless_sdk_tools():
     
     @app.tool(
         name="get_network_wireless_channel_utilization_history",
-        description="📶 Get network wirelessChannelUtilizationHistory"
+        description="📶 Get network wirelessChannelUtilizationHistory (REQUIRES: device_serial+band OR client_id)"
     )
-    def get_network_wireless_channel_utilization_history(network_id: str, timespan: int = 86400):
+    def get_network_wireless_channel_utilization_history(network_id: str, device_serial: str = None, client_id: str = None, band: str = '5', timespan: int = 86400):
         """Get get network wirelesschannelutilizationhistory."""
         try:
             kwargs = {}
@@ -1943,6 +1924,12 @@ def register_wireless_sdk_tools():
                 kwargs["perPage"] = per_page
             if "timespan" in locals():
                 kwargs["timespan"] = timespan
+            if "device_serial" in locals() and device_serial:
+                kwargs["deviceSerial"] = device_serial
+            if "client_id" in locals() and client_id:
+                kwargs["clientId"] = client_id
+            if "band" in locals() and band:
+                kwargs["band"] = band
                 
             result = meraki_client.dashboard.wireless.getNetworkWirelessChannelUtilizationHistory(
                 network_id, **kwargs
@@ -2089,9 +2076,9 @@ def register_wireless_sdk_tools():
     
     @app.tool(
         name="get_network_wireless_client_connectivity_events",
-        description="📶 Get network wirelessClientConnectivityEvents"
+        description="📶 Get network wirelessClientConnectivityEvents (REQUIRES: client_id)"
     )
-    def get_network_wireless_client_connectivity_events(network_id: str, per_page: int = 500):
+    def get_network_wireless_client_connectivity_events(network_id: str, client_id: str, per_page: int = 500):
         """Get get network wirelessclientconnectivityevents."""
         try:
             kwargs = {}
@@ -2103,7 +2090,7 @@ def register_wireless_sdk_tools():
                 kwargs["timespan"] = timespan
                 
             result = meraki_client.dashboard.wireless.getNetworkWirelessClientConnectivityEvents(
-                network_id, **kwargs
+                network_id, client_id, **kwargs
             )
             
             response = f"# 📶 Get Network Wirelessclientconnectivityevents\n\n"
@@ -2565,7 +2552,7 @@ def register_wireless_sdk_tools():
         name="get_network_wireless_connection_stats",
         description="📶 Get network wirelessConnectionStats"
     )
-    def get_network_wireless_connection_stats(network_id: str, per_page: int = 1000):
+    def get_network_wireless_connection_stats(network_id: str, timespan: int = 86400, per_page: int = 1000):
         """Get get network wirelessconnectionstats."""
         try:
             kwargs = {}
@@ -3189,7 +3176,7 @@ def register_wireless_sdk_tools():
         name="get_network_wireless_failed_connections",
         description="📶 Get network wirelessFailedConnections"
     )
-    def get_network_wireless_failed_connections(network_id: str, per_page: int = 1000):
+    def get_network_wireless_failed_connections(network_id: str, timespan: int = 86400, per_page: int = 1000):
         """Get get network wirelessfailedconnections."""
         try:
             kwargs = {}
@@ -3347,7 +3334,7 @@ def register_wireless_sdk_tools():
         name="get_network_wireless_latency_stats",
         description="📶 Get network wirelessLatencyStats"
     )
-    def get_network_wireless_latency_stats(network_id: str, per_page: int = 1000):
+    def get_network_wireless_latency_stats(network_id: str, timespan: int = 86400, per_page: int = 1000):
         """Get get network wirelesslatencystats."""
         try:
             kwargs = {}
@@ -3426,7 +3413,7 @@ def register_wireless_sdk_tools():
         name="get_network_wireless_mesh_statuses",
         description="📶 Get network wirelessMeshStatuses"
     )
-    def get_network_wireless_mesh_statuses(network_id: str, per_page: int = 1000):
+    def get_network_wireless_mesh_statuses(network_id: str, per_page: int = 500):
         """Get get network wirelessmeshstatuses."""
         try:
             kwargs = {}
@@ -3730,9 +3717,9 @@ def register_wireless_sdk_tools():
     
     @app.tool(
         name="get_network_wireless_signal_quality_history",
-        description="📶 Get network wirelessSignalQualityHistory"
+        description="📶 Get network wirelessSignalQualityHistory (REQUIRES: device_serial OR client_id)"
     )
-    def get_network_wireless_signal_quality_history(network_id: str, timespan: int = 86400):
+    def get_network_wireless_signal_quality_history(network_id: str, device_serial: str = None, client_id: str = None, timespan: int = 86400):
         """Get get network wirelesssignalqualityhistory."""
         try:
             kwargs = {}
@@ -3742,6 +3729,10 @@ def register_wireless_sdk_tools():
                 kwargs["perPage"] = per_page
             if "timespan" in locals():
                 kwargs["timespan"] = timespan
+            if "device_serial" in locals() and device_serial:
+                kwargs["deviceSerial"] = device_serial
+            if "client_id" in locals() and client_id:
+                kwargs["clientId"] = client_id
                 
             result = meraki_client.dashboard.wireless.getNetworkWirelessSignalQualityHistory(
                 network_id, **kwargs
@@ -4905,9 +4896,9 @@ def register_wireless_sdk_tools():
     
     @app.tool(
         name="get_network_wireless_usage_history",
-        description="📶 Get network wirelessUsageHistory"
+        description="📶 Get network wirelessUsageHistory (TIP: Provide device_serial for device-specific usage)"
     )
-    def get_network_wireless_usage_history(network_id: str, timespan: int = 86400):
+    def get_network_wireless_usage_history(network_id: str, device_serial: str = None, timespan: int = 86400):
         """Get get network wirelessusagehistory."""
         try:
             kwargs = {}
@@ -4917,6 +4908,8 @@ def register_wireless_sdk_tools():
                 kwargs["perPage"] = per_page
             if "timespan" in locals():
                 kwargs["timespan"] = timespan
+            if "device_serial" in locals() and device_serial:
+                kwargs["deviceSerial"] = device_serial
                 
             result = meraki_client.dashboard.wireless.getNetworkWirelessUsageHistory(
                 network_id, **kwargs
@@ -5539,7 +5532,7 @@ def register_wireless_sdk_tools():
         name="get_organization_wireless_devices_ethernet_statuses",
         description="📶 Get organization wireless devicesEthernetStatuses"
     )
-    def get_organization_wireless_devices_ethernet_statuses(network_id: str, serial: str, per_page: int = 500):
+    def get_organization_wireless_devices_ethernet_statuses(organization_id: str, per_page: int = 500):
         """Get get organization wireless devicesethernetstatuses."""
         try:
             kwargs = {}
@@ -5776,7 +5769,7 @@ def register_wireless_sdk_tools():
         name="get_organization_wireless_devices_packet_loss_by_network",
         description="📶 Get organization wireless devicesPacketLossBy network"
     )
-    def get_organization_wireless_devices_packet_loss_by_network(network_id: str, per_page: int = 500):
+    def get_organization_wireless_devices_packet_loss_by_network(organization_id: str, per_page: int = 500):
         """Get get organization wireless devicespacketlossby network."""
         try:
             kwargs = {}

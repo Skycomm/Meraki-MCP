@@ -3940,15 +3940,18 @@ def register_networks_sdk_tools():
     
     @app.tool(
         name="get_network_events",
-        description="🌐 Get networkEvents"
+        description="🌐 Get networkEvents (TIP: Use product_type='wireless' for multi-device networks)"
     )
-    def get_network_events(network_id: str, per_page: int = 1000):
+    def get_network_events(network_id: str, product_type: str = 'wireless', per_page: int = 1000):
         """Get get networkevents."""
         try:
             kwargs = {}
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
+            
+            if 'product_type' in locals() and product_type:
+                kwargs['productType'] = product_type
             
             result = meraki_client.dashboard.networks.getNetworkEvents(network_id, **kwargs)
             
