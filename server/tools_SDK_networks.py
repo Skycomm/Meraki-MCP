@@ -3857,15 +3857,10 @@ def register_networks_sdk_tools():
         name="get_network_devices",
         description="🌐 Get networkDevices"
     )
-    def get_network_devices(network_id: str, per_page: int = 1000):
-        """Get get networkdevices."""
+    def get_network_devices(network_id: str):
+        """Get all devices in a network."""
         try:
-            kwargs = {}
-            
-            if 'per_page' in locals() and per_page:
-                kwargs['perPage'] = min(per_page, 1000)
-            
-            result = meraki_client.dashboard.networks.getNetworkDevices(network_id, **kwargs)
+            result = meraki_client.dashboard.networks.getNetworkDevices(network_id)
             
             response = f"# 🌐 Get Networkdevices\n\n"
             
