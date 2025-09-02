@@ -5365,14 +5365,10 @@ def register_organizations_sdk_tools():
         name="get_organizations",
         description="📊 Get organizations"
     )
-    def get_organizations(organization_id: str, per_page: int = 1000):
-        """Get get organizations."""
+    def get_organizations():
+        """Get all organizations accessible to the API key."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
-            
-            result = meraki_client.dashboard.organizations.getOrganizations(
-                organization_id, **kwargs
-            )
+            result = meraki_client.dashboard.organizations.getOrganizations()
             
             response = f"# 📊 Get Organizations\n\n"
             
