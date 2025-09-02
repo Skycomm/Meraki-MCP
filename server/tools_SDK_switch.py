@@ -2219,15 +2219,10 @@ def register_switch_sdk_tools():
         name="get_device_switch_ports",
         description="🔌 Get device switchPorts"
     )
-    def get_device_switch_ports(serial: str, per_page: int = 1000):
+    def get_device_switch_ports(serial: str):
         """Get get device switchports."""
         try:
-            kwargs = {}
-            
-            if 'per_page' in locals() and per_page:
-                kwargs['perPage'] = min(per_page, 1000)
-            
-            result = meraki_client.dashboard.switch.getDeviceSwitchPorts(serial, **kwargs)
+            result = meraki_client.dashboard.switch.getDeviceSwitchPorts(serial)
             
             response = f"# 🔌 Get Device Switchports\n\n"
             
