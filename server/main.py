@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-Cisco Meraki MCP Server - Modern implementation using FastMCP.
+Cisco Meraki MCP Server - Clean SDK Implementation
+100% SDK Coverage with consolidated modules.
 """
 
 from mcp.server.fastmcp import FastMCP
@@ -14,94 +15,72 @@ meraki = MerakiClient()
 # Initialize MCP server with the modern FastMCP class
 app = FastMCP(SERVER_NAME)
 
-# Import all resources and tools modules - they will register with the app
+# Import resources
 from server.resources import register_resources
-from server.tools_organizations_core import register_organizations_core_tools
-from server.tools_SDK_networks import register_networks_tools
-from server.tools_devices import register_device_tools
-from server.tools_wireless import register_wireless_tools
-from server.tools_wireless_firewall import register_wireless_firewall_tools
-from server.tools_wireless_advanced import register_wireless_advanced_tools
-from server.tools_wireless_ssid_features import register_wireless_complete_tools
-from server.tools_wireless_organization import register_wireless_final_tools
-from server.tools_wireless_client_analytics import register_wireless_100_tools
-from server.tools_wireless_infrastructure import register_wireless_missing_tools
-from server.tools_switch import register_switch_tools
-from server.tools_analytics import register_analytics_tools
-from server.tools_alerts import register_alert_tools
-from server.tools_appliance import register_appliance_tools
-from server.tools_camera import register_camera_tools
-from server.tools_vpn import register_vpn_tools
-from server.tools_sm import register_sm_tools
-from server.tools_licensing import register_licensing_tools
-from server.tools_policy import register_policy_tools
-from server.tools_monitoring import register_monitoring_tools
-from server.tools_beta import register_beta_tools
-from server.tools_administered import register_administered_tools
-from server.tools_insight import register_insight_tools
-from server.tools_organizations_earlyAccess import register_early_access_tools
-from server.tools_organizations_adaptive_policy import register_adaptive_policy_tools
-from server.tools_organizations_admin import register_admin_tools
-from server.tools_organizations_inventory import register_inventory_tools
-from server.tools_organizations_licensing import register_licensing_tools
-from server.tools_organizations_alerts import register_alerts_tools
-from server.tools_organizations_misc import register_misc_tools
-from server.tools_organizations_config import register_config_tools
-from server.tools_sensor import register_sensor_tools
-from server.tools_appliance_additional import register_appliance_extended_tools
-from server.tools_appliance_firewall import register_appliance_firewall_tools
-from server.tools_cellularGateway import register_cellular_gateway_tools
-from server.tools_batch import register_batch_tools
-from server.tools_live import register_live_tools
-from server.tools_helpers import register_helper_tools
-from server.tools_search import register_search_tools
-from server.tools_networks_complete import register_networks_complete_tools
-from server.tools_adaptive_policy import register_adaptive_policy_tools
 
-# Register resources and tools
+# Import ALL SDK modules (complete coverage)
+from server.tools_SDK_administered import register_administered_tools      # 4 methods
+from server.tools_SDK_appliance import register_appliance_tools            # 130 methods  
+from server.tools_SDK_batch import register_batch_tools                    # 12 methods
+from server.tools_SDK_camera import register_camera_tools                  # 45 methods
+from server.tools_SDK_cellularGateway import register_cellular_gateway_tools  # 24 methods
+from server.tools_SDK_devices import register_device_tools                 # 27 methods
+from server.tools_SDK_insight import register_insight_tools                # 7 methods
+from server.tools_SDK_licensing import register_licensing_tools            # 8 methods
+from server.tools_SDK_networks import register_networks_tools              # 114 methods
+from server.tools_SDK_organizations import register_organizations_tools    # 173 methods
+from server.tools_SDK_sensor import register_sensor_tools                  # 18 methods
+from server.tools_SDK_sm import register_sm_tools                          # 49 methods
+from server.tools_SDK_switch import register_switch_tools                  # 101 methods
+from server.tools_SDK_wireless import register_wireless_tools              # 116 methods
+
+# Import custom tools (non-SDK extensions)
+from server.tools_Custom_alerts import register_alert_tools
+from server.tools_Custom_analytics import register_analytics_tools
+from server.tools_Custom_batch import register_custom_batch_tools
+from server.tools_Custom_beta import register_beta_tools
+from server.tools_Custom_helpers import register_helper_tools
+from server.tools_Custom_live import register_live_tools
+from server.tools_Custom_monitoring import register_monitoring_tools
+from server.tools_Custom_policy import register_policy_tools
+from server.tools_Custom_search import register_search_tools
+from server.tools_Custom_vpn import register_vpn_tools
+
+# Register resources first
 register_resources(app, meraki)
-register_organizations_core_tools(app, meraki)
-register_networks_tools(app, meraki)
-register_device_tools(app, meraki)
-register_wireless_tools(app, meraki)
-register_wireless_firewall_tools(app, meraki)
-register_wireless_advanced_tools(app, meraki)
-register_wireless_complete_tools(app, meraki)
-register_wireless_final_tools(app, meraki)
-register_wireless_100_tools(app, meraki)
-register_wireless_missing_tools(app, meraki)
-register_switch_tools(app, meraki)
-register_analytics_tools(app, meraki)
-register_alert_tools(app, meraki)
-register_appliance_tools(app, meraki)
-register_camera_tools(app, meraki)
-register_vpn_tools(app, meraki)
-register_sm_tools(app, meraki)
-register_licensing_tools(app, meraki)
-register_policy_tools(app, meraki)
-register_monitoring_tools(app, meraki)
-register_beta_tools(app, meraki)
-register_administered_tools(app, meraki)
-register_insight_tools(app, meraki)
-register_early_access_tools(app, meraki)
-register_adaptive_policy_tools(app, meraki)
-register_admin_tools(app, meraki)
-register_inventory_tools(app, meraki)
-register_licensing_tools(app, meraki)
-register_alerts_tools(app, meraki)
-register_misc_tools(app, meraki)
-register_config_tools(app, meraki)
-register_sensor_tools(app, meraki)
-register_appliance_extended_tools(app, meraki)
-register_appliance_firewall_tools(app, meraki)
-register_cellular_gateway_tools(app, meraki)
-register_batch_tools(app, meraki)
-register_live_tools(app, meraki)
-register_helper_tools(app, meraki)
-register_search_tools(app, meraki)
-register_networks_complete_tools(app, meraki)
-register_adaptive_policy_tools(app, meraki)
 
-# When run directly, start the server
+# Register ALL SDK modules (complete coverage)
+print("🎯 Registering ALL SDK Modules (complete coverage)...")
+register_administered_tools(app, meraki)      # 4 methods
+register_appliance_tools(app, meraki)         # 130 methods
+register_batch_tools(app, meraki)             # 12 methods
+register_camera_tools(app, meraki)            # 45 methods
+register_cellular_gateway_tools(app, meraki)  # 24 methods
+register_device_tools(app, meraki)            # 27 methods
+register_insight_tools(app, meraki)           # 7 methods
+register_licensing_tools(app, meraki)         # 8 methods
+register_networks_tools(app, meraki)          # 114 methods
+register_organizations_tools(app, meraki)     # 173 methods
+register_sensor_tools(app, meraki)            # 18 methods
+register_sm_tools(app, meraki)                # 49 methods
+register_switch_tools(app, meraki)            # 101 methods
+register_wireless_tools(app, meraki)          # 116 methods
+
+# Register custom tools (non-SDK extensions)
+print("🔧 Registering Custom Tools...")
+register_alert_tools(app, meraki)
+register_analytics_tools(app, meraki)
+register_custom_batch_tools(app, meraki)
+register_beta_tools(app, meraki)
+register_helper_tools(app, meraki)
+register_live_tools(app, meraki)
+register_monitoring_tools(app, meraki)
+register_policy_tools(app, meraki)
+register_search_tools(app, meraki)
+register_vpn_tools(app, meraki)
+
+print("✅ Cisco Meraki MCP Server initialized with clean SDK structure")
+
 if __name__ == "__main__":
-    app.run()
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

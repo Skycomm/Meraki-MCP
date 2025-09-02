@@ -20,9 +20,9 @@ PROFILES = {
         'description': 'Wireless network management and optimization',
         'modules': [
             'resources',
-            'wireless',  # Consolidated wireless module
-            'custom_helpers',
-            'custom_search'
+            'SDK_wireless',  # Consolidated wireless module
+            'helpers',
+            'search'
         ],
         'tool_count': 160
     },
@@ -32,15 +32,14 @@ PROFILES = {
         'description': 'Switch, appliance, and network infrastructure',
         'modules': [
             'resources',
-            'SDK_networks',  # New consolidated Networks SDK module (100% coverage)
-            'switch',
-            'appliance',  # Consolidated appliance module
-            'cellularGateway',
-            'custom_vpn',
-            'custom_helpers',
-            'custom_search'
+            'SDK_networks',        # 117 tools (100% coverage)
+            'SDK_switch',          # ~130 tools (100% coverage)  
+            'SDK_appliance',       # ~130 tools (consolidated)
+            'SDK_cellularGateway', # ~50 tools
+            'helpers',
+            'search'
         ],
-        'tool_count': 350
+        'tool_count': 450
     },
     
     'ORGANIZATIONS': {
@@ -48,11 +47,11 @@ PROFILES = {
         'description': 'Organization-level administration and policies',
         'modules': [
             'resources',
-            'organizations',  # Consolidated organizations module
-            'administered',
-            'licensing',
-            'custom_helpers',
-            'custom_search'
+            'SDK_organizations',  # Consolidated organizations module
+            'SDK_administered',
+            'SDK_licensing',
+            'helpers',
+            'search'
         ],
         'tool_count': 140
     },
@@ -62,42 +61,41 @@ PROFILES = {
         'description': 'Device management, cameras, and sensors',
         'modules': [
             'resources', 
-            'devices',
-            'camera',
-            'sensor',
-            'sm',
-            'insight',
-            'custom_monitoring',
-            'custom_analytics',
-            'custom_live',
-            'custom_helpers',
-            'custom_search'
+            'SDK_devices',
+            'SDK_camera',
+            'SDK_sensor',
+            'SDK_sm',
+            'SDK_insight',
+            'monitoring',
+            'analytics',
+            'live',
+            'helpers',
+            'search'
         ],
         'tool_count': 200
     },
     
     'SDK_CORE': {
-        'name': 'SDK Core Categories',
+        'name': 'Pure SDK Categories (816 methods)',
         'description': 'Pure SDK categories - matches official Meraki SDK exactly',
         'modules': [
             'resources',
-            # Official SDK categories only
-            'administered',
-            'appliance', 
-            'batch',
-            'camera',
-            'cellularGateway',
-            'devices',
-            'insight',
-            'licensing',
-            'SDK_networks',  # 100% SDK Networks coverage
-            'organizations',
-            'sensor',
-            'sm',
-            'switch',
-            'wireless'
+            # Official SDK categories only (13 categories, 816 total methods)
+            'SDK_administered',      # 4 methods
+            'SDK_appliance',         # 130 methods 
+            'SDK_camera',            # 45 methods
+            'SDK_cellularGateway',   # 24 methods
+            'SDK_devices',           # 27 methods
+            'SDK_insight',           # 7 methods
+            'SDK_licensing',         # 8 methods
+            'SDK_networks',          # 114 methods
+            'SDK_organizations',     # 173 methods
+            'SDK_sensor',            # 18 methods
+            'SDK_sm',                # 49 methods
+            'SDK_switch',            # 101 methods
+            'SDK_wireless'           # 116 methods
         ],
-        'tool_count': 600
+        'tool_count': 816
     },
     
     'MINIMAL': {
@@ -105,10 +103,10 @@ PROFILES = {
         'description': 'Basic read-only operations',
         'modules': [
             'resources',
-            'organizations',
-            'networks', 
-            'devices',
-            'custom_helpers'
+            'SDK_organizations',
+            'SDK_networks', 
+            'SDK_devices',
+            'helpers'
         ],
         'tool_count': 80
     }
@@ -118,57 +116,54 @@ PROFILES = {
 MODULE_GROUPS = {
     'sdk_core': [
         'resources',
-        'administered',
-        'appliance',
-        'batch', 
-        'camera',
-        'cellularGateway',
-        'devices',
-        'insight',
-        'licensing',
-        'networks',
-        'organizations',
-        'sensor',
-        'sm',
-        'switch',
-        'wireless'
+        'SDK_administered',
+        'SDK_appliance',
+        'SDK_camera',
+        'SDK_cellularGateway',
+        'SDK_devices',
+        'SDK_insight',
+        'SDK_licensing',
+        'SDK_networks',
+        'SDK_organizations',
+        'SDK_sensor',
+        'SDK_sm',
+        'SDK_switch',
+        'SDK_wireless'
     ],
     'custom_tools': [
-        'custom_helpers',
-        'custom_search',
-        'custom_alerts',
-        'custom_analytics',
-        'custom_live',
-        'custom_monitoring',
-        'custom_monitoring_dashboard',
-        'custom_policy',
-        'custom_vpn',
-        'custom_event_analysis',
-        'custom_beta'
+        'Custom_alerts',
+        'Custom_analytics',
+        'Custom_batch',
+        'Custom_beta',
+        'Custom_helpers',
+        'Custom_live',
+        'Custom_monitoring',
+        'Custom_policy',
+        'Custom_search',
+        'Custom_vpn'
     ],
     'network_stack': [
-        'networks',
-        'networks_complete',
-        'switch',
-        'appliance',
-        'cellularGateway',
-        'custom_vpn'
+        'SDK_networks',
+        'SDK_switch',
+        'SDK_appliance',
+        'SDK_cellularGateway',
+        'vpn'
     ],
     'device_management': [
-        'devices',
-        'camera',
-        'sensor',
-        'sm',
-        'insight',
-        'custom_monitoring',
-        'custom_live'
+        'SDK_devices',
+        'SDK_camera',
+        'SDK_sensor',
+        'SDK_sm',
+        'SDK_insight',
+        'monitoring',
+        'live'
     ],
     'admin_tools': [
-        'organizations',
-        'administered',
-        'licensing',
-        'batch',
-        'custom_policy'
+        'SDK_organizations',
+        'SDK_administered',
+        'SDK_licensing',
+        'SDK_batch',
+        'policy'
     ]
 }
 
