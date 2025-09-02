@@ -48,6 +48,8 @@ def verify_coverage():
             'get_network_client_details': 'getNetworkClient',
             'get_network_vlan_profiles_assignments_by_device': 'getNetworkVlanProfilesAssignmentsByDevice',
             'rollbacks_network_firmware_upgrades_staged_events': 'rollbacksNetworkFirmwareUpgradesStagedEvents',
+            'get_network_events': 'getNetworkEvents',
+            'get_network_events_fixed': 'getNetworkEvents',  # This is a duplicate/fixed version
         }
         
         if name in special_cases:

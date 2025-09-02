@@ -357,6 +357,92 @@ def test_get_methods():
         print(f"   ❌ Failed: {str(e)}")
         results['failed'].append('getNetworkSplashLoginAttempts')
     
+    # Test 31: getNetworkVlanProfiles (NEW)
+    print("31. Testing getNetworkVlanProfiles...")
+    try:
+        profiles = meraki.dashboard.networks.getNetworkVlanProfiles(test_network_id)
+        print(f"   ✅ Success: Found {len(profiles)} VLAN profiles")
+        results['success'].append('getNetworkVlanProfiles')
+        
+        # Save first profile for specific test
+        test_profile_iname = None
+        if profiles:
+            test_profile_iname = profiles[0].get('iname')
+    except Exception as e:
+        print(f"   ❌ Failed: {str(e)}")
+        results['failed'].append('getNetworkVlanProfiles')
+    
+    # Test 32: getNetworkVlanProfile (NEW) 
+    if test_profile_iname:
+        print(f"32. Testing getNetworkVlanProfile with ID {test_profile_iname}...")
+        try:
+            profile = meraki.dashboard.networks.getNetworkVlanProfile(test_network_id, test_profile_iname)
+            print(f"   ✅ Success: Got VLAN profile details")
+            results['success'].append('getNetworkVlanProfile')
+        except Exception as e:
+            print(f"   ❌ Failed: {str(e)}")
+            results['failed'].append('getNetworkVlanProfile')
+    else:
+        print("32. Skipping getNetworkVlanProfile - no profiles found")
+        results['skipped'].append('getNetworkVlanProfile')
+    
+    # Test 33: getNetworkVlanProfilesAssignmentsByDevice (NEW)
+    print("33. Testing getNetworkVlanProfilesAssignmentsByDevice...")
+    try:
+        assignments = meraki.dashboard.networks.getNetworkVlanProfilesAssignmentsByDevice(
+            test_network_id, perPage=10
+        )
+        print(f"   ✅ Success: Found {len(assignments)} VLAN profile assignments")
+        results['success'].append('getNetworkVlanProfilesAssignmentsByDevice')
+    except Exception as e:
+        print(f"   ❌ Failed: {str(e)}")
+        results['failed'].append('getNetworkVlanProfilesAssignmentsByDevice')
+    
+    # Test 34: getNetworkWebhooksHttpServer (NEW) - need existing server
+    webhook_servers = []
+    try:
+        webhook_servers = meraki.dashboard.networks.getNetworkWebhooksHttpServers(test_network_id)
+    except:
+        pass
+        
+    if webhook_servers:
+        print(f"34. Testing getNetworkWebhooksHttpServer with ID {webhook_servers[0].get('id')}...")
+        try:
+            server = meraki.dashboard.networks.getNetworkWebhooksHttpServer(
+                test_network_id, webhook_servers[0].get('id')
+            )
+            print(f"   ✅ Success: Got webhook HTTP server details")
+            results['success'].append('getNetworkWebhooksHttpServer')
+        except Exception as e:
+            print(f"   ❌ Failed: {str(e)}")
+            results['failed'].append('getNetworkWebhooksHttpServer')
+    else:
+        print("34. Skipping getNetworkWebhooksHttpServer - no servers found")
+        results['skipped'].append('getNetworkWebhooksHttpServer')
+    
+    # Test 35: getNetworkWebhooksPayloadTemplate (NEW) - need existing template
+    payload_templates = []
+    try:
+        payload_templates = meraki.dashboard.networks.getNetworkWebhooksPayloadTemplates(test_network_id)
+    except:
+        pass
+        
+    if payload_templates:
+        template_id = payload_templates[0].get('payloadTemplateId')
+        print(f"35. Testing getNetworkWebhooksPayloadTemplate with ID {template_id}...")
+        try:
+            template = meraki.dashboard.networks.getNetworkWebhooksPayloadTemplate(
+                test_network_id, template_id
+            )
+            print(f"   ✅ Success: Got payload template details")
+            results['success'].append('getNetworkWebhooksPayloadTemplate')
+        except Exception as e:
+            print(f"   ❌ Failed: {str(e)}")
+            results['failed'].append('getNetworkWebhooksPayloadTemplate')
+    else:
+        print("35. Skipping getNetworkWebhooksPayloadTemplate - no templates found")
+        results['skipped'].append('getNetworkWebhooksPayloadTemplate')
+    
     # Print summary
     print("\n" + "=" * 60)
     print("📊 TEST SUMMARY")
