@@ -1309,182 +1309,134 @@ def register_organizations_sdk_tools():
         name="delete_organization_action_batch",
         description="❌ Delete organizationActionBatch"
     )
-    def delete_organization_action_batch(organization_id: str):
-        """Delete delete organizationactionbatch."""
+    def delete_organization_action_batch(organization_id: str, action_batch_id: str):
+        """
+        Delete action batch from the organization.
+        
+        Args:
+            organization_id: Organization ID
+            action_batch_id: Action Batch ID to delete
+        """
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
-            
-            result = meraki_client.dashboard.organizations.deleteOrganizationActionBatch(
-                organization_id, **kwargs
+            # Delete the action batch (API returns no content on success)
+            meraki_client.dashboard.organizations.deleteOrganizationActionBatch(
+                organization_id, action_batch_id
             )
             
-            response = f"# ❌ Delete Organizationactionbatch\n\n"
-            
-            if result:
-                if isinstance(result, list):
-                    response += f"**Total Items**: {len(result)}\n\n"
-                    
-                    for i, item in enumerate(result[:10], 1):
-                        response += f"{i}. **{item.get('name', item.get('id', 'Item'))}**\n"
-                        if isinstance(item, dict):
-                            for key, value in list(item.items())[:3]:
-                                response += f"   - {key}: {value}\n"
-                        response += "\n"
-                    
-                    if len(result) > 10:
-                        response += f"... and {len(result)-10} more items\n"
-                else:
-                    response += f"**Result**: {result}\n"
-            else:
-                response += "*No data available*\n"
+            # Success response for deletion
+            response = f"# ✅ Action Batch Deleted Successfully\n\n"
+            response += f"**Organization ID**: {organization_id}\n"
+            response += f"**Action Batch ID**: {action_batch_id}\n\n"
+            response += f"📋 **Status**: Action Batch has been removed from the organization\n"
             
             return response
         except Exception as e:
-            return f"❌ Error in delete_organization_action_batch: {str(e)}"
-    
+            return f"❌ Error in delete_organization_action_batch: {str(e)}" 
     @app.tool(
         name="delete_organization_adaptive_policy_acl",
         description="❌ Delete organizationAdaptivePolicyAcl"
     )
-    def delete_organization_adaptive_policy_acl(organization_id: str):
-        """Delete delete organizationadaptivepolicyacl."""
+    def delete_organization_adaptive_policy_acl(organization_id: str, acl_id: str):
+        """
+        Delete acl from the organization.
+        
+        Args:
+            organization_id: Organization ID
+            acl_id: ACL ID to delete
+        """
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
-            
-            result = meraki_client.dashboard.organizations.deleteOrganizationAdaptivePolicyAcl(
-                organization_id, **kwargs
+            # Delete the acl (API returns no content on success)
+            meraki_client.dashboard.organizations.deleteOrganizationAdaptivePolicyAcl(
+                organization_id, acl_id
             )
             
-            response = f"# ❌ Delete Organizationadaptivepolicyacl\n\n"
-            
-            if result:
-                if isinstance(result, list):
-                    response += f"**Total Items**: {len(result)}\n\n"
-                    
-                    for i, item in enumerate(result[:10], 1):
-                        response += f"{i}. **{item.get('name', item.get('id', 'Item'))}**\n"
-                        if isinstance(item, dict):
-                            for key, value in list(item.items())[:3]:
-                                response += f"   - {key}: {value}\n"
-                        response += "\n"
-                    
-                    if len(result) > 10:
-                        response += f"... and {len(result)-10} more items\n"
-                else:
-                    response += f"**Result**: {result}\n"
-            else:
-                response += "*No data available*\n"
+            # Success response for deletion
+            response = f"# ✅ ACL Deleted Successfully\n\n"
+            response += f"**Organization ID**: {organization_id}\n"
+            response += f"**ACL ID**: {acl_id}\n\n"
+            response += f"📋 **Status**: ACL has been removed from the organization\n"
             
             return response
         except Exception as e:
-            return f"❌ Error in delete_organization_adaptive_policy_acl: {str(e)}"
-    
+            return f"❌ Error in delete_organization_adaptive_policy_acl: {str(e)}" 
     @app.tool(
         name="delete_organization_adaptive_policy_group",
         description="❌ Delete organizationAdaptivePolicyGroup"
     )
-    def delete_organization_adaptive_policy_group(organization_id: str):
-        """Delete delete organizationadaptivepolicygroup."""
+    def delete_organization_adaptive_policy_group(organization_id: str, group_id: str):
+        """
+        Delete policy group from the organization.
+        
+        Args:
+            organization_id: Organization ID
+            group_id: Policy Group ID to delete
+        """
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
-            
-            result = meraki_client.dashboard.organizations.deleteOrganizationAdaptivePolicyGroup(
-                organization_id, **kwargs
+            # Delete the policy group (API returns no content on success)
+            meraki_client.dashboard.organizations.deleteOrganizationAdaptivePolicyGroup(
+                organization_id, group_id
             )
             
-            response = f"# ❌ Delete Organizationadaptivepolicygroup\n\n"
-            
-            if result:
-                if isinstance(result, list):
-                    response += f"**Total Items**: {len(result)}\n\n"
-                    
-                    for i, item in enumerate(result[:10], 1):
-                        response += f"{i}. **{item.get('name', item.get('id', 'Item'))}**\n"
-                        if isinstance(item, dict):
-                            for key, value in list(item.items())[:3]:
-                                response += f"   - {key}: {value}\n"
-                        response += "\n"
-                    
-                    if len(result) > 10:
-                        response += f"... and {len(result)-10} more items\n"
-                else:
-                    response += f"**Result**: {result}\n"
-            else:
-                response += "*No data available*\n"
+            # Success response for deletion
+            response = f"# ✅ Policy Group Deleted Successfully\n\n"
+            response += f"**Organization ID**: {organization_id}\n"
+            response += f"**Policy Group ID**: {group_id}\n\n"
+            response += f"📋 **Status**: Policy Group has been removed from the organization\n"
             
             return response
         except Exception as e:
-            return f"❌ Error in delete_organization_adaptive_policy_group: {str(e)}"
-    
+            return f"❌ Error in delete_organization_adaptive_policy_group: {str(e)}" 
     @app.tool(
         name="delete_organization_adaptive_policy_policy",
         description="❌ Delete organizationAdaptivePolicyPolicy"
     )
-    def delete_organization_adaptive_policy_policy(organization_id: str):
-        """Delete delete organizationadaptivepolicypolicy."""
+    def delete_organization_adaptive_policy_policy(organization_id: str, policy_id: str):
+        """
+        Delete policy from the organization.
+        
+        Args:
+            organization_id: Organization ID
+            policy_id: Policy ID to delete
+        """
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
-            
-            result = meraki_client.dashboard.organizations.deleteOrganizationAdaptivePolicyPolicy(
-                organization_id, **kwargs
+            # Delete the policy (API returns no content on success)
+            meraki_client.dashboard.organizations.deleteOrganizationAdaptivePolicyPolicy(
+                organization_id, policy_id
             )
             
-            response = f"# ❌ Delete Organizationadaptivepolicypolicy\n\n"
-            
-            if result:
-                if isinstance(result, list):
-                    response += f"**Total Items**: {len(result)}\n\n"
-                    
-                    for i, item in enumerate(result[:10], 1):
-                        response += f"{i}. **{item.get('name', item.get('id', 'Item'))}**\n"
-                        if isinstance(item, dict):
-                            for key, value in list(item.items())[:3]:
-                                response += f"   - {key}: {value}\n"
-                        response += "\n"
-                    
-                    if len(result) > 10:
-                        response += f"... and {len(result)-10} more items\n"
-                else:
-                    response += f"**Result**: {result}\n"
-            else:
-                response += "*No data available*\n"
+            # Success response for deletion
+            response = f"# ✅ Policy Deleted Successfully\n\n"
+            response += f"**Organization ID**: {organization_id}\n"
+            response += f"**Policy ID**: {policy_id}\n\n"
+            response += f"📋 **Status**: Policy has been removed from the organization\n"
             
             return response
         except Exception as e:
-            return f"❌ Error in delete_organization_adaptive_policy_policy: {str(e)}"
-    
+            return f"❌ Error in delete_organization_adaptive_policy_policy: {str(e)}" 
     @app.tool(
         name="delete_organization_admin",
-        description="❌ Delete organizationAdmin"
+        description="❌ Delete organization admin - Remove administrator from organization"
     )
-    def delete_organization_admin(organization_id: str):
-        """Delete delete organizationadmin."""
+    def delete_organization_admin(organization_id: str, admin_id: str):
+        """
+        Delete an administrator from the organization.
+        
+        Args:
+            organization_id: Organization ID
+            admin_id: Admin ID to remove
+        """
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
-            
-            result = meraki_client.dashboard.organizations.deleteOrganizationAdmin(
-                organization_id, **kwargs
+            # Delete the admin (API returns no content on success)
+            meraki_client.dashboard.organizations.deleteOrganizationAdmin(
+                organization_id, admin_id
             )
             
-            response = f"# ❌ Delete Organizationadmin\n\n"
-            
-            if result:
-                if isinstance(result, list):
-                    response += f"**Total Items**: {len(result)}\n\n"
-                    
-                    for i, item in enumerate(result[:10], 1):
-                        response += f"{i}. **{item.get('name', item.get('id', 'Item'))}**\n"
-                        if isinstance(item, dict):
-                            for key, value in list(item.items())[:3]:
-                                response += f"   - {key}: {value}\n"
-                        response += "\n"
-                    
-                    if len(result) > 10:
-                        response += f"... and {len(result)-10} more items\n"
-                else:
-                    response += f"**Result**: {result}\n"
-            else:
-                response += "*No data available*\n"
+            # Success response for deletion
+            response = f"# ✅ Admin Deleted Successfully\n\n"
+            response += f"**Organization ID**: {organization_id}\n"
+            response += f"**Admin ID**: {admin_id}\n\n"
+            response += f"📋 **Status**: Administrator has been removed from the organization\n"
+            response += f"💡 **Note**: The admin will no longer have access to the Meraki dashboard\n"
             
             return response
         except Exception as e:
@@ -1494,446 +1446,326 @@ def register_organizations_sdk_tools():
         name="delete_organization_alerts_profile",
         description="❌ Delete organizationAlertsProfile"
     )
-    def delete_organization_alerts_profile(organization_id: str):
-        """Delete delete organizationalertsprofile."""
+    def delete_organization_alerts_profile(organization_id: str, profile_id: str):
+        """
+        Delete alerts profile from the organization.
+        
+        Args:
+            organization_id: Organization ID
+            profile_id: Alerts Profile ID to delete
+        """
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
-            
-            result = meraki_client.dashboard.organizations.deleteOrganizationAlertsProfile(
-                organization_id, **kwargs
+            # Delete the alerts profile (API returns no content on success)
+            meraki_client.dashboard.organizations.deleteOrganizationAlertsProfile(
+                organization_id, profile_id
             )
             
-            response = f"# ❌ Delete Organizationalertsprofile\n\n"
-            
-            if result:
-                if isinstance(result, list):
-                    response += f"**Total Items**: {len(result)}\n\n"
-                    
-                    for i, item in enumerate(result[:10], 1):
-                        response += f"{i}. **{item.get('name', item.get('id', 'Item'))}**\n"
-                        if isinstance(item, dict):
-                            for key, value in list(item.items())[:3]:
-                                response += f"   - {key}: {value}\n"
-                        response += "\n"
-                    
-                    if len(result) > 10:
-                        response += f"... and {len(result)-10} more items\n"
-                else:
-                    response += f"**Result**: {result}\n"
-            else:
-                response += "*No data available*\n"
+            # Success response for deletion
+            response = f"# ✅ Alerts Profile Deleted Successfully\n\n"
+            response += f"**Organization ID**: {organization_id}\n"
+            response += f"**Alerts Profile ID**: {profile_id}\n\n"
+            response += f"📋 **Status**: Alerts Profile has been removed from the organization\n"
             
             return response
         except Exception as e:
-            return f"❌ Error in delete_organization_alerts_profile: {str(e)}"
-    
+            return f"❌ Error in delete_organization_alerts_profile: {str(e)}" 
     @app.tool(
         name="delete_organization_branding_policy",
         description="❌ Delete organizationBrandingPolicy"
     )
-    def delete_organization_branding_policy(organization_id: str):
-        """Delete delete organizationbrandingpolicy."""
+    def delete_organization_branding_policy(organization_id: str, branding_policy_id: str):
+        """
+        Delete branding policy from the organization.
+        
+        Args:
+            organization_id: Organization ID
+            branding_policy_id: Branding Policy ID to delete
+        """
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
-            
-            result = meraki_client.dashboard.organizations.deleteOrganizationBrandingPolicy(
-                organization_id, **kwargs
+            # Delete the branding policy (API returns no content on success)
+            meraki_client.dashboard.organizations.deleteOrganizationBrandingPolicy(
+                organization_id, branding_policy_id
             )
             
-            response = f"# ❌ Delete Organizationbrandingpolicy\n\n"
-            
-            if result:
-                if isinstance(result, list):
-                    response += f"**Total Items**: {len(result)}\n\n"
-                    
-                    for i, item in enumerate(result[:10], 1):
-                        response += f"{i}. **{item.get('name', item.get('id', 'Item'))}**\n"
-                        if isinstance(item, dict):
-                            for key, value in list(item.items())[:3]:
-                                response += f"   - {key}: {value}\n"
-                        response += "\n"
-                    
-                    if len(result) > 10:
-                        response += f"... and {len(result)-10} more items\n"
-                else:
-                    response += f"**Result**: {result}\n"
-            else:
-                response += "*No data available*\n"
+            # Success response for deletion
+            response = f"# ✅ Branding Policy Deleted Successfully\n\n"
+            response += f"**Organization ID**: {organization_id}\n"
+            response += f"**Branding Policy ID**: {branding_policy_id}\n\n"
+            response += f"📋 **Status**: Branding Policy has been removed from the organization\n"
             
             return response
         except Exception as e:
-            return f"❌ Error in delete_organization_branding_policy: {str(e)}"
-    
+            return f"❌ Error in delete_organization_branding_policy: {str(e)}" 
     @app.tool(
         name="delete_organization_config_template",
         description="❌ Delete organizationConfigTemplate"
     )
-    def delete_organization_config_template(organization_id: str):
-        """Delete delete organizationconfigtemplate."""
+    def delete_organization_config_template(organization_id: str, config_template_id: str):
+        """
+        Delete config template from the organization.
+        
+        Args:
+            organization_id: Organization ID
+            config_template_id: Config Template ID to delete
+        """
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
-            
-            result = meraki_client.dashboard.organizations.deleteOrganizationConfigTemplate(
-                organization_id, **kwargs
+            # Delete the config template (API returns no content on success)
+            meraki_client.dashboard.organizations.deleteOrganizationConfigTemplate(
+                organization_id, config_template_id
             )
             
-            response = f"# ❌ Delete Organizationconfigtemplate\n\n"
-            
-            if result:
-                if isinstance(result, list):
-                    response += f"**Total Items**: {len(result)}\n\n"
-                    
-                    for i, item in enumerate(result[:10], 1):
-                        response += f"{i}. **{item.get('name', item.get('id', 'Item'))}**\n"
-                        if isinstance(item, dict):
-                            for key, value in list(item.items())[:3]:
-                                response += f"   - {key}: {value}\n"
-                        response += "\n"
-                    
-                    if len(result) > 10:
-                        response += f"... and {len(result)-10} more items\n"
-                else:
-                    response += f"**Result**: {result}\n"
-            else:
-                response += "*No data available*\n"
+            # Success response for deletion
+            response = f"# ✅ Config Template Deleted Successfully\n\n"
+            response += f"**Organization ID**: {organization_id}\n"
+            response += f"**Config Template ID**: {config_template_id}\n\n"
+            response += f"📋 **Status**: Config Template has been removed from the organization\n"
             
             return response
         except Exception as e:
-            return f"❌ Error in delete_organization_config_template: {str(e)}"
-    
+            return f"❌ Error in delete_organization_config_template: {str(e)}" 
     @app.tool(
         name="delete_organization_devices_packet_capture_capture",
         description="❌ Delete organizationDevicesPacketCaptureCapture"
     )
-    def delete_organization_devices_packet_capture_capture(organization_id: str):
-        """Delete delete organizationdevicespacketcapturecapture."""
+    def delete_organization_devices_packet_capture_capture(organization_id: str, capture_id: str):
+        """
+        Delete packet capture from the organization.
+        
+        Args:
+            organization_id: Organization ID
+            capture_id: Packet Capture ID to delete
+        """
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
-            
-            result = meraki_client.dashboard.organizations.deleteOrganizationDevicesPacketCaptureCapture(
-                organization_id, **kwargs
+            # Delete the packet capture (API returns no content on success)
+            meraki_client.dashboard.organizations.deleteOrganizationDevicesPacketCaptureCapture(
+                organization_id, capture_id
             )
             
-            response = f"# ❌ Delete Organizationdevicespacketcapturecapture\n\n"
-            
-            if result:
-                if isinstance(result, list):
-                    response += f"**Total Items**: {len(result)}\n\n"
-                    
-                    for i, item in enumerate(result[:10], 1):
-                        response += f"{i}. **{item.get('name', item.get('id', 'Item'))}**\n"
-                        if isinstance(item, dict):
-                            for key, value in list(item.items())[:3]:
-                                response += f"   - {key}: {value}\n"
-                        response += "\n"
-                    
-                    if len(result) > 10:
-                        response += f"... and {len(result)-10} more items\n"
-                else:
-                    response += f"**Result**: {result}\n"
-            else:
-                response += "*No data available*\n"
+            # Success response for deletion
+            response = f"# ✅ Packet Capture Deleted Successfully\n\n"
+            response += f"**Organization ID**: {organization_id}\n"
+            response += f"**Packet Capture ID**: {capture_id}\n\n"
+            response += f"📋 **Status**: Packet Capture has been removed from the organization\n"
             
             return response
         except Exception as e:
-            return f"❌ Error in delete_organization_devices_packet_capture_capture: {str(e)}"
-    
+            return f"❌ Error in delete_organization_devices_packet_capture_capture: {str(e)}" 
     @app.tool(
         name="delete_organization_devices_packet_capture_schedule",
         description="❌ Delete organizationDevicesPacketCaptureSchedule"
     )
-    def delete_organization_devices_packet_capture_schedule(organization_id: str):
-        """Delete delete organizationdevicespacketcaptureschedule."""
+    def delete_organization_devices_packet_capture_schedule(organization_id: str, schedule_id: str):
+        """
+        Delete packet capture schedule from the organization.
+        
+        Args:
+            organization_id: Organization ID
+            schedule_id: Packet Capture Schedule ID to delete
+        """
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
-            
-            result = meraki_client.dashboard.organizations.deleteOrganizationDevicesPacketCaptureSchedule(
-                organization_id, **kwargs
+            # Delete the packet capture schedule (API returns no content on success)
+            meraki_client.dashboard.organizations.deleteOrganizationDevicesPacketCaptureSchedule(
+                organization_id, schedule_id
             )
             
-            response = f"# ❌ Delete Organizationdevicespacketcaptureschedule\n\n"
-            
-            if result:
-                if isinstance(result, list):
-                    response += f"**Total Items**: {len(result)}\n\n"
-                    
-                    for i, item in enumerate(result[:10], 1):
-                        response += f"{i}. **{item.get('name', item.get('id', 'Item'))}**\n"
-                        if isinstance(item, dict):
-                            for key, value in list(item.items())[:3]:
-                                response += f"   - {key}: {value}\n"
-                        response += "\n"
-                    
-                    if len(result) > 10:
-                        response += f"... and {len(result)-10} more items\n"
-                else:
-                    response += f"**Result**: {result}\n"
-            else:
-                response += "*No data available*\n"
+            # Success response for deletion
+            response = f"# ✅ Packet Capture Schedule Deleted Successfully\n\n"
+            response += f"**Organization ID**: {organization_id}\n"
+            response += f"**Packet Capture Schedule ID**: {schedule_id}\n\n"
+            response += f"📋 **Status**: Packet Capture Schedule has been removed from the organization\n"
             
             return response
         except Exception as e:
-            return f"❌ Error in delete_organization_devices_packet_capture_schedule: {str(e)}"
-    
+            return f"❌ Error in delete_organization_devices_packet_capture_schedule: {str(e)}" 
     @app.tool(
         name="delete_organization_early_access_features_opt_in",
         description="❌ Delete organizationEarlyAccessFeaturesOptIn"
     )
-    def delete_organization_early_access_features_opt_in(organization_id: str):
-        """Delete delete organizationearlyaccessfeaturesoptin."""
+    def delete_organization_early_access_features_opt_in(organization_id: str, opt_in_id: str):
+        """
+        Delete opt-in from the organization.
+        
+        Args:
+            organization_id: Organization ID
+            opt_in_id: Opt-in ID to delete
+        """
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
-            
-            result = meraki_client.dashboard.organizations.deleteOrganizationEarlyAccessFeaturesOptIn(
-                organization_id, **kwargs
+            # Delete the opt-in (API returns no content on success)
+            meraki_client.dashboard.organizations.deleteOrganizationEarlyAccessFeaturesOptIn(
+                organization_id, opt_in_id
             )
             
-            response = f"# ❌ Delete Organizationearlyaccessfeaturesoptin\n\n"
-            
-            if result:
-                if isinstance(result, list):
-                    response += f"**Total Items**: {len(result)}\n\n"
-                    
-                    for i, item in enumerate(result[:10], 1):
-                        response += f"{i}. **{item.get('name', item.get('id', 'Item'))}**\n"
-                        if isinstance(item, dict):
-                            for key, value in list(item.items())[:3]:
-                                response += f"   - {key}: {value}\n"
-                        response += "\n"
-                    
-                    if len(result) > 10:
-                        response += f"... and {len(result)-10} more items\n"
-                else:
-                    response += f"**Result**: {result}\n"
-            else:
-                response += "*No data available*\n"
+            # Success response for deletion
+            response = f"# ✅ Opt-in Deleted Successfully\n\n"
+            response += f"**Organization ID**: {organization_id}\n"
+            response += f"**Opt-in ID**: {opt_in_id}\n\n"
+            response += f"📋 **Status**: Opt-in has been removed from the organization\n"
             
             return response
         except Exception as e:
-            return f"❌ Error in delete_organization_early_access_features_opt_in: {str(e)}"
-    
+            return f"❌ Error in delete_organization_early_access_features_opt_in: {str(e)}" 
     @app.tool(
         name="delete_organization_policy_object",
         description="❌ Delete organizationPolicyObject"
     )
-    def delete_organization_policy_object(organization_id: str):
-        """Delete delete organizationpolicyobject."""
+    def delete_organization_policy_object(organization_id: str, policy_object_id: str):
+        """
+        Delete policy object from the organization.
+        
+        Args:
+            organization_id: Organization ID
+            policy_object_id: Policy Object ID to delete
+        """
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
-            
-            result = meraki_client.dashboard.organizations.deleteOrganizationPolicyObject(
-                organization_id, **kwargs
+            # Delete the policy object (API returns no content on success)
+            meraki_client.dashboard.organizations.deleteOrganizationPolicyObject(
+                organization_id, policy_object_id
             )
             
-            response = f"# ❌ Delete Organizationpolicyobject\n\n"
-            
-            if result:
-                if isinstance(result, list):
-                    response += f"**Total Items**: {len(result)}\n\n"
-                    
-                    for i, item in enumerate(result[:10], 1):
-                        response += f"{i}. **{item.get('name', item.get('id', 'Item'))}**\n"
-                        if isinstance(item, dict):
-                            for key, value in list(item.items())[:3]:
-                                response += f"   - {key}: {value}\n"
-                        response += "\n"
-                    
-                    if len(result) > 10:
-                        response += f"... and {len(result)-10} more items\n"
-                else:
-                    response += f"**Result**: {result}\n"
-            else:
-                response += "*No data available*\n"
+            # Success response for deletion
+            response = f"# ✅ Policy Object Deleted Successfully\n\n"
+            response += f"**Organization ID**: {organization_id}\n"
+            response += f"**Policy Object ID**: {policy_object_id}\n\n"
+            response += f"📋 **Status**: Policy Object has been removed from the organization\n"
             
             return response
         except Exception as e:
-            return f"❌ Error in delete_organization_policy_object: {str(e)}"
-    
+            return f"❌ Error in delete_organization_policy_object: {str(e)}" 
     @app.tool(
         name="delete_organization_policy_objects_group",
         description="❌ Delete organizationPolicyObjectsGroup"
     )
-    def delete_organization_policy_objects_group(organization_id: str):
-        """Delete delete organizationpolicyobjectsgroup."""
+    def delete_organization_policy_objects_group(organization_id: str, policy_object_group_id: str):
+        """
+        Delete policy object group from the organization.
+        
+        Args:
+            organization_id: Organization ID
+            policy_object_group_id: Policy Object Group ID to delete
+        """
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
-            
-            result = meraki_client.dashboard.organizations.deleteOrganizationPolicyObjectsGroup(
-                organization_id, **kwargs
+            # Delete the policy object group (API returns no content on success)
+            meraki_client.dashboard.organizations.deleteOrganizationPolicyObjectsGroup(
+                organization_id, policy_object_group_id
             )
             
-            response = f"# ❌ Delete Organizationpolicyobjectsgroup\n\n"
-            
-            if result:
-                if isinstance(result, list):
-                    response += f"**Total Items**: {len(result)}\n\n"
-                    
-                    for i, item in enumerate(result[:10], 1):
-                        response += f"{i}. **{item.get('name', item.get('id', 'Item'))}**\n"
-                        if isinstance(item, dict):
-                            for key, value in list(item.items())[:3]:
-                                response += f"   - {key}: {value}\n"
-                        response += "\n"
-                    
-                    if len(result) > 10:
-                        response += f"... and {len(result)-10} more items\n"
-                else:
-                    response += f"**Result**: {result}\n"
-            else:
-                response += "*No data available*\n"
+            # Success response for deletion
+            response = f"# ✅ Policy Object Group Deleted Successfully\n\n"
+            response += f"**Organization ID**: {organization_id}\n"
+            response += f"**Policy Object Group ID**: {policy_object_group_id}\n\n"
+            response += f"📋 **Status**: Policy Object Group has been removed from the organization\n"
             
             return response
         except Exception as e:
-            return f"❌ Error in delete_organization_policy_objects_group: {str(e)}"
-    
+            return f"❌ Error in delete_organization_policy_objects_group: {str(e)}" 
     @app.tool(
         name="delete_organization_saml_idp",
         description="❌ Delete organizationSamlIdp"
     )
-    def delete_organization_saml_idp(organization_id: str):
-        """Delete delete organizationsamlidp."""
+    def delete_organization_saml_idp(organization_id: str, idp_id: str):
+        """
+        Delete saml idp from the organization.
+        
+        Args:
+            organization_id: Organization ID
+            idp_id: SAML IdP ID to delete
+        """
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
-            
-            result = meraki_client.dashboard.organizations.deleteOrganizationSamlIdp(
-                organization_id, **kwargs
+            # Delete the saml idp (API returns no content on success)
+            meraki_client.dashboard.organizations.deleteOrganizationSamlIdp(
+                organization_id, idp_id
             )
             
-            response = f"# ❌ Delete Organizationsamlidp\n\n"
-            
-            if result:
-                if isinstance(result, list):
-                    response += f"**Total Items**: {len(result)}\n\n"
-                    
-                    for i, item in enumerate(result[:10], 1):
-                        response += f"{i}. **{item.get('name', item.get('id', 'Item'))}**\n"
-                        if isinstance(item, dict):
-                            for key, value in list(item.items())[:3]:
-                                response += f"   - {key}: {value}\n"
-                        response += "\n"
-                    
-                    if len(result) > 10:
-                        response += f"... and {len(result)-10} more items\n"
-                else:
-                    response += f"**Result**: {result}\n"
-            else:
-                response += "*No data available*\n"
+            # Success response for deletion
+            response = f"# ✅ SAML IdP Deleted Successfully\n\n"
+            response += f"**Organization ID**: {organization_id}\n"
+            response += f"**SAML IdP ID**: {idp_id}\n\n"
+            response += f"📋 **Status**: SAML IdP has been removed from the organization\n"
             
             return response
         except Exception as e:
-            return f"❌ Error in delete_organization_saml_idp: {str(e)}"
-    
+            return f"❌ Error in delete_organization_saml_idp: {str(e)}" 
     @app.tool(
         name="delete_organization_saml_role",
         description="❌ Delete organizationSamlRole"
     )
-    def delete_organization_saml_role(organization_id: str):
-        """Delete delete organizationsamlrole."""
+    def delete_organization_saml_role(organization_id: str, saml_role_id: str):
+        """
+        Delete saml role from the organization.
+        
+        Args:
+            organization_id: Organization ID
+            saml_role_id: SAML Role ID to delete
+        """
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
-            
-            result = meraki_client.dashboard.organizations.deleteOrganizationSamlRole(
-                organization_id, **kwargs
+            # Delete the saml role (API returns no content on success)
+            meraki_client.dashboard.organizations.deleteOrganizationSamlRole(
+                organization_id, saml_role_id
             )
             
-            response = f"# ❌ Delete Organizationsamlrole\n\n"
-            
-            if result:
-                if isinstance(result, list):
-                    response += f"**Total Items**: {len(result)}\n\n"
-                    
-                    for i, item in enumerate(result[:10], 1):
-                        response += f"{i}. **{item.get('name', item.get('id', 'Item'))}**\n"
-                        if isinstance(item, dict):
-                            for key, value in list(item.items())[:3]:
-                                response += f"   - {key}: {value}\n"
-                        response += "\n"
-                    
-                    if len(result) > 10:
-                        response += f"... and {len(result)-10} more items\n"
-                else:
-                    response += f"**Result**: {result}\n"
-            else:
-                response += "*No data available*\n"
+            # Success response for deletion
+            response = f"# ✅ SAML Role Deleted Successfully\n\n"
+            response += f"**Organization ID**: {organization_id}\n"
+            response += f"**SAML Role ID**: {saml_role_id}\n\n"
+            response += f"📋 **Status**: SAML Role has been removed from the organization\n"
             
             return response
         except Exception as e:
-            return f"❌ Error in delete_organization_saml_role: {str(e)}"
-    
+            return f"❌ Error in delete_organization_saml_role: {str(e)}" 
     @app.tool(
         name="delete_organization_splash_asset",
         description="❌ Delete organizationSplashAsset"
     )
-    def delete_organization_splash_asset(organization_id: str):
-        """Delete delete organizationsplashasset."""
+    def delete_organization_splash_asset(organization_id: str, asset_id: str):
+        """
+        Delete splash asset from the organization.
+        
+        Args:
+            organization_id: Organization ID
+            asset_id: Splash Asset ID to delete
+        """
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
-            
-            result = meraki_client.dashboard.organizations.deleteOrganizationSplashAsset(
-                organization_id, **kwargs
+            # Delete the splash asset (API returns no content on success)
+            meraki_client.dashboard.organizations.deleteOrganizationSplashAsset(
+                organization_id, asset_id
             )
             
-            response = f"# ❌ Delete Organizationsplashasset\n\n"
-            
-            if result:
-                if isinstance(result, list):
-                    response += f"**Total Items**: {len(result)}\n\n"
-                    
-                    for i, item in enumerate(result[:10], 1):
-                        response += f"{i}. **{item.get('name', item.get('id', 'Item'))}**\n"
-                        if isinstance(item, dict):
-                            for key, value in list(item.items())[:3]:
-                                response += f"   - {key}: {value}\n"
-                        response += "\n"
-                    
-                    if len(result) > 10:
-                        response += f"... and {len(result)-10} more items\n"
-                else:
-                    response += f"**Result**: {result}\n"
-            else:
-                response += "*No data available*\n"
+            # Success response for deletion
+            response = f"# ✅ Splash Asset Deleted Successfully\n\n"
+            response += f"**Organization ID**: {organization_id}\n"
+            response += f"**Splash Asset ID**: {asset_id}\n\n"
+            response += f"📋 **Status**: Splash Asset has been removed from the organization\n"
             
             return response
         except Exception as e:
-            return f"❌ Error in delete_organization_splash_asset: {str(e)}"
-    
+            return f"❌ Error in delete_organization_splash_asset: {str(e)}" 
     @app.tool(
         name="delete_organization_splash_theme",
         description="❌ Delete organizationSplashTheme"
     )
-    def delete_organization_splash_theme(organization_id: str):
-        """Delete delete organizationsplashtheme."""
+    def delete_organization_splash_theme(organization_id: str, theme_id: str):
+        """
+        Delete splash theme from the organization.
+        
+        Args:
+            organization_id: Organization ID
+            theme_id: Splash Theme ID to delete
+        """
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
-            
-            result = meraki_client.dashboard.organizations.deleteOrganizationSplashTheme(
-                organization_id, **kwargs
+            # Delete the splash theme (API returns no content on success)
+            meraki_client.dashboard.organizations.deleteOrganizationSplashTheme(
+                organization_id, theme_id
             )
             
-            response = f"# ❌ Delete Organizationsplashtheme\n\n"
-            
-            if result:
-                if isinstance(result, list):
-                    response += f"**Total Items**: {len(result)}\n\n"
-                    
-                    for i, item in enumerate(result[:10], 1):
-                        response += f"{i}. **{item.get('name', item.get('id', 'Item'))}**\n"
-                        if isinstance(item, dict):
-                            for key, value in list(item.items())[:3]:
-                                response += f"   - {key}: {value}\n"
-                        response += "\n"
-                    
-                    if len(result) > 10:
-                        response += f"... and {len(result)-10} more items\n"
-                else:
-                    response += f"**Result**: {result}\n"
-            else:
-                response += "*No data available*\n"
+            # Success response for deletion
+            response = f"# ✅ Splash Theme Deleted Successfully\n\n"
+            response += f"**Organization ID**: {organization_id}\n"
+            response += f"**Splash Theme ID**: {theme_id}\n\n"
+            response += f"📋 **Status**: Splash Theme has been removed from the organization\n"
             
             return response
         except Exception as e:
-            return f"❌ Error in delete_organization_splash_theme: {str(e)}"
-    
+            return f"❌ Error in delete_organization_splash_theme: {str(e)}" 
     @app.tool(
         name="disable_organization_integrations_xdr_networks",
         description="🏢 disable organizationIntegrationsXdrNetworks"
