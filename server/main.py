@@ -36,12 +36,13 @@ from server.tools_SDK_wireless import register_wireless_tools              # 116
 
 # Import custom tools (non-SDK extensions) 
 from server.tools_Custom_alerts_filtered import register_alerts_tools_filtered    # 7 unique webhook tools
-from server.tools_Custom_analytics import register_analytics_tools
 from server.tools_Custom_batch import register_custom_batch_tools
-from server.tools_Custom_beta import register_beta_tools
-from server.tools_Custom_helpers import register_helper_tools
 from server.tools_Custom_monitoring_filtered import register_monitoring_tools_filtered  # 6 unique analytics tools
-from server.tools_Custom_search import register_search_tools
+# Note: Some custom modules may not exist in this version
+# from server.tools_Custom_analytics import register_analytics_tools
+# from server.tools_Custom_beta import register_beta_tools
+# from server.tools_Custom_helpers import register_helper_tools
+# from server.tools_Custom_search import register_search_tools
 
 # Register resources first
 register_resources(app, meraki)
@@ -66,12 +67,13 @@ register_wireless_tools(app, meraki)          # 116 methods
 # Register custom tools (non-SDK extensions)
 print("🔧 Registering Custom Tools...")
 register_alerts_tools_filtered(app, meraki)        # 7 unique webhook tools
-register_analytics_tools(app, meraki)
 register_custom_batch_tools(app, meraki)
-register_beta_tools(app, meraki)
-register_helper_tools(app, meraki)
 register_monitoring_tools_filtered(app, meraki)    # 6 unique analytics tools
-register_search_tools(app, meraki)
+# Commented out missing modules
+# register_analytics_tools(app, meraki)
+# register_beta_tools(app, meraki)
+# register_helper_tools(app, meraki)
+# register_search_tools(app, meraki)
 
 print("✅ Cisco Meraki MCP Server initialized with clean SDK structure")
 

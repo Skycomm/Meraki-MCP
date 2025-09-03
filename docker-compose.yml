@@ -1,34 +1,28 @@
 version: '3.8'
 
 services:
-  meraki-mcp-server:
+  meraki-mcp:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.streamable
     container_name: meraki-mcp-server
     restart: unless-stopped
-    env_file:
-      - .env
     environment:
       - MERAKI_API_KEY=${MERAKI_API_KEY}
-    # If you want to expose the server externally, uncomment the ports section
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=8100
+      - MCP_AUTH_TOKEN=${MCP_AUTH_TOKEN:-test-token-123}
+      - MCP_READ_ONLY_MODE=${MCP_READ_ONLY_MODE:-false}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
     ports:
-      - "8000:8000"
+      - "8100:8100"
     volumes:
-      # Optional: For development, mount the code directory for hot-reloading
-      # - ./:/app
-      # For logs persistence
       - ./logs:/app/logs
-    # Healthcheck to ensure the server is running properly
-    # healthcheck:
-    #   test: ["CMD", "uv", "run", "-c", "import socket; socket.socket().connect(('localhost', 8000))"]
-    #   interval: 30s
-    #   timeout: 10s
-    #   retries: 3
-    #   start_period: 5s
+      - ./.env:/app/.env:ro
     networks:
-      - meraki-network
+      - default
 
 networks:
-  meraki-network:
+  default:
+    name: meraki-mcp-network
     driver: bridge

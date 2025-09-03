@@ -1,0 +1,56 @@
+FROM python:3.11-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    python3-dev \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies directly
+RUN pip install --no-cache-dir \
+    fastmcp \
+    meraki \
+    python-dotenv \
+    httpx \
+    uvicorn \
+    fastapi
+
+# Copy application code
+COPY *.py ./
+COPY server/ ./server/
+COPY utils/ ./utils/
+COPY data/ ./data/
+COPY certs/ ./certs/
+COPY adapters/ ./adapters/
+COPY config.py ./
+COPY meraki_client.py ./
+COPY meraki_http_streamable.py ./
+
+# Create logs directory
+RUN mkdir -p /app/logs
+
+# Environment variables
+ENV PYTHONUNBUFFERED=1
+ENV MERAKI_API_KEY=""
+ENV SERVER_HOST="0.0.0.0"
+ENV SERVER_PORT="8100"
+ENV MCP_AUTH_TOKEN=""
+ENV MCP_READ_ONLY_MODE="false"
+ENV LOG_LEVEL="INFO"
+
+# Expose the HTTP server port
+EXPOSE 8100
+
+# Health check - FastMCP provides built-in health endpoint
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:${SERVER_PORT}/health || \
+    curl -f http://localhost:${SERVER_PORT}/mcp -X POST \
+    -H "Content-Type: application/json" \
+    -d '{"jsonrpc":"2.0","method":"ping","id":1}' || exit 1
+
+# Run the Debug MCP server to see what n8n is doing
+CMD ["python", "mcp_debug_server.py"]

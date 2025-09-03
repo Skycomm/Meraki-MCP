@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  # Native FastMCP Streamable HTTP Server (MCP Server Only)
+  meraki-mcp-streamable:
+    build:
+      context: .
+      dockerfile: Dockerfile.streamable
+    container_name: meraki-mcp-streamable
+    restart: unless-stopped
+    environment:
+      # Meraki API Configuration
+      - MERAKI_API_KEY=${MERAKI_API_KEY}
+      
+      # Server Configuration
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=8100
+      
+      # Optional Authentication
+      - MCP_AUTH_TOKEN=${MCP_AUTH_TOKEN:-}
+      
+      # Options
+      - MCP_READ_ONLY_MODE=${MCP_READ_ONLY_MODE:-false}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    ports:
+      - "8100:8100"
+    volumes:
+      - ./logs:/app/logs
+      - ./.env:/app/.env:ro
+    networks:
+      - meraki-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8100/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  meraki-network:
+    driver: bridge
