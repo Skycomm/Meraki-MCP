@@ -1810,10 +1810,9 @@ def register_organizations_sdk_tools():
     def dismiss_organization_assurance_alerts(organization_id: str):
         """Manage dismiss organizationassurancealerts."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
-            
+            # This is a PUT operation - no pagination parameters needed
             result = meraki_client.dashboard.organizations.dismissOrganizationAssuranceAlerts(
-                organization_id, **kwargs
+                organization_id
             )
             
             response = f"# 🏢 Dismiss Organizationassurancealerts\n\n"
@@ -2547,7 +2546,7 @@ def register_organizations_sdk_tools():
         name="get_organization_assurance_alerts",
         description="📊 Get organizationAssuranceAlerts"
     )
-    def get_organization_assurance_alerts(organization_id: str, per_page: int = 1000):
+    def get_organization_assurance_alerts(organization_id: str, per_page: int = 300):
         """Get get organizationassurancealerts."""
         try:
             kwargs = {"perPage": per_page} if "per_page" in locals() else {}
@@ -3558,10 +3557,33 @@ def register_organizations_sdk_tools():
         name="get_organization_devices_uplinks_loss_and_latency",
         description="📊 Get organizationDevicesUplinksLossAndLatency"
     )
-    def get_organization_devices_uplinks_loss_and_latency(organization_id: str, per_page: int = 1000):
-        """Get get organizationdevicesuplinkslossandlatency."""
+    def get_organization_devices_uplinks_loss_and_latency(
+        organization_id: str, 
+        timespan: int = 300,
+        t0: str = None,
+        t1: str = None,
+        uplink: str = None,
+        ip: str = None
+    ):
+        """Get uplink loss and latency for all MX devices in organization (max 5 minutes lookback)."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {}
+            
+            # Time parameters - only use timespan OR t0/t1, not both
+            if t0 and t1:
+                kwargs["t0"] = t0
+                kwargs["t1"] = t1
+            else:
+                # Ensure timespan doesn't exceed API limit of 300 seconds
+                if timespan > 300:
+                    timespan = 300
+                kwargs["timespan"] = timespan
+            
+            # Optional filters
+            if uplink:
+                kwargs["uplink"] = uplink
+            if ip:
+                kwargs["ip"] = ip
             
             result = meraki_client.dashboard.organizations.getOrganizationDevicesUplinksLossAndLatency(
                 organization_id, **kwargs

@@ -1612,11 +1612,31 @@ def register_devices_sdk_tools():
         name="get_device_loss_and_latency_history",
         description="🔍 Get deviceLossAndLatencyHistory"
     )
-    def get_device_loss_and_latency_history(device_serial: str):
-        """Get get devicelossandlatencyhistory."""
+    def get_device_loss_and_latency_history(
+        device_serial: str, 
+        ip: str,
+        t0: str = None,
+        t1: str = None,
+        timespan: int = 86400,
+        resolution: int = 60,
+        uplink: str = "wan1"
+    ):
+        """Get device loss and latency history for a specific destination IP."""
         try:
-            kwargs = {}
+            kwargs = {"ip": ip}
             
+            # Time parameters - only use timespan OR t0/t1, not both
+            if t0 and t1:
+                kwargs["t0"] = t0
+                kwargs["t1"] = t1
+            else:
+                kwargs["timespan"] = timespan
+            
+            # Optional parameters
+            if resolution:
+                kwargs["resolution"] = resolution
+            if uplink:
+                kwargs["uplink"] = uplink
             
             result = meraki_client.dashboard.devices.getDeviceLossAndLatencyHistory(device_serial, **kwargs)
             
