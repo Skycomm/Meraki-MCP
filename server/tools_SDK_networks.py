@@ -4745,15 +4745,10 @@ def register_networks_sdk_tools():
         name="get_network_group_policies",
         description="🌐 Get networkGroupPolicies"
     )
-    def get_network_group_policies(network_id: str, per_page: int = 1000):
+    def get_network_group_policies(network_id: str):
         """Get get networkgrouppolicies."""
         try:
-            kwargs = {}
-            
-            if 'per_page' in locals() and per_page:
-                kwargs['perPage'] = min(per_page, 1000)
-            
-            result = meraki_client.dashboard.networks.getNetworkGroupPolicies(network_id, **kwargs)
+            result = meraki_client.dashboard.networks.getNetworkGroupPolicies(network_id)
             
             response = f"# 🌐 Get Networkgrouppolicies\n\n"
             

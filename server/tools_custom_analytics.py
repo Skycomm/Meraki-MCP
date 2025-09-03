@@ -51,14 +51,14 @@ def register_analytics_tool_handlers():
                 timespan = 300
                 # Note: API limit is 300 seconds (5 minutes)
                 
-            loss_latency = meraki_client.get_organization_devices_uplinks_loss_and_latency(organization_id, timespan)
+            loss_latency = meraki_client.dashboard.organizations.getOrganizationDevicesUplinksLossAndLatency(organization_id, timespan=timespan)
             
             if not loss_latency:
-                return f"No uplink loss/latency data found for organization {org_id}."
+                return f"No uplink loss/latency data found for organization {organization_id}."
             
             # Build result
             result = f"# 🚨 UPLINK LOSS & LATENCY REPORT\n\n"
-            result += f"**Organization**: {org_id}\n"
+            result += f"**Organization**: {organization_id}\n"
             result += f"**Time Period**: Last {timespan//60} minutes\n"
             result += f"**Total Uplinks**: {len(loss_latency)}\n\n"
             

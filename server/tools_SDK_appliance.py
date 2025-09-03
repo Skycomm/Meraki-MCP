@@ -3206,39 +3206,6 @@ def register_additional_appliance_tools():
         except Exception as e:
             return f"❌ Error getting traffic shaping: {str(e)}"
     
-    @app.tool(
-        name="get_network_appliance_port_forwarding_rules",
-        description="🔀 Get port forwarding rules for network appliance"
-    )
-    def get_network_appliance_port_forwarding_rules(network_id: str):
-        """Get port forwarding rules for a network appliance."""
-        try:
-            result = meraki_client.dashboard.appliance.getNetworkAppliancePortForwardingRules(network_id)
-            
-            response = f"# 🔀 Port Forwarding Rules - {network_id}\n\n"
-            
-            if result and 'rules' in result:
-                rules = result['rules']
-                response += f"**Total Rules**: {len(rules)}\n\n"
-                
-                for i, rule in enumerate(rules[:10], 1):
-                    response += f"## Rule {i}: {rule.get('name', 'Unnamed')}\n"
-                    response += f"- **Protocol**: {rule.get('protocol', 'N/A')}\n"
-                    response += f"- **Public Port**: {rule.get('publicPort', 'N/A')}\n"
-                    response += f"- **Local IP**: {rule.get('localIp', 'N/A')}\n"
-                    response += f"- **Local Port**: {rule.get('localPort', 'N/A')}\n"
-                    response += f"- **Allowed IPs**: {rule.get('allowedIps', 'Any')}\n"
-                    response += f"- **Access Type**: {rule.get('access', 'N/A')}\n"
-                    response += "\n"
-                
-                if len(rules) > 10:
-                    response += f"*...and {len(rules) - 10} more rules*\n"
-            else:
-                response += "*No port forwarding rules configured*\n"
-            
-            return response
-        except Exception as e:
-            return f"❌ Error getting port forwarding rules: {str(e)}"
     
     @app.tool(
         name="get_network_appliance_one_to_one_nat_rules",
