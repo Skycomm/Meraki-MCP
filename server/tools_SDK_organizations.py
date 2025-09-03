@@ -40,8 +40,6 @@ def register_organizations_sdk_tools():
     def assign_organization_licenses_seats(organization_id: str):
         """Assign assign organizationlicensesseats."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
-            
             result = meraki_client.dashboard.organizations.assignOrganizationLicensesSeats(
                 organization_id, **kwargs
             )
@@ -77,8 +75,6 @@ def register_organizations_sdk_tools():
     def bulk_organization_devices_packet_capture_captures_create(organization_id: str):
         """Create bulk organizationdevicespacketcapturecapturescreate."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
-            
             result = meraki_client.dashboard.organizations.bulkOrganizationDevicesPacketCaptureCapturesCreate(
                 organization_id, **kwargs
             )
@@ -114,8 +110,6 @@ def register_organizations_sdk_tools():
     def bulk_organization_devices_packet_capture_captures_delete(organization_id: str):
         """Delete bulk organizationdevicespacketcapturecapturesdelete."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
-            
             result = meraki_client.dashboard.organizations.bulkOrganizationDevicesPacketCaptureCapturesDelete(
                 organization_id, **kwargs
             )
@@ -151,8 +145,6 @@ def register_organizations_sdk_tools():
     def bulk_update_organization_devices_details(organization_id: str):
         """Update bulkupdate organizationdevicesdetails."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
-            
             result = meraki_client.dashboard.organizations.bulkUpdateOrganizationDevicesDetails(
                 organization_id, **kwargs
             )
@@ -188,8 +180,6 @@ def register_organizations_sdk_tools():
     def claim_into_organization(organization_id: str):
         """Claim claiminto organization."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
-            
             result = meraki_client.dashboard.organizations.claimIntoOrganization(
                 organization_id, **kwargs
             )
@@ -225,8 +215,6 @@ def register_organizations_sdk_tools():
     def claim_into_organization_inventory(organization_id: str):
         """Claim claiminto organizationinventory."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
-            
             result = meraki_client.dashboard.organizations.claimIntoOrganizationInventory(
                 organization_id, **kwargs
             )
@@ -262,8 +250,6 @@ def register_organizations_sdk_tools():
     def clone_organization(organization_id: str):
         """Clone clone organization."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
-            
             result = meraki_client.dashboard.organizations.cloneOrganization(
                 organization_id, **kwargs
             )
@@ -299,8 +285,6 @@ def register_organizations_sdk_tools():
     def combine_organization_networks(organization_id: str):
         """Combine combine organizationnetworks."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
-            
             result = meraki_client.dashboard.organizations.combineOrganizationNetworks(
                 organization_id, **kwargs
             )
@@ -336,8 +320,6 @@ def register_organizations_sdk_tools():
     def create_organization(organization_id: str):
         """Create create organization."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
-            
             result = meraki_client.dashboard.organizations.createOrganization(
                 organization_id, **kwargs
             )
@@ -373,8 +355,6 @@ def register_organizations_sdk_tools():
     def create_organization_action_batch(organization_id: str):
         """Create create organizationactionbatch."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
-            
             result = meraki_client.dashboard.organizations.createOrganizationActionBatch(
                 organization_id, **kwargs
             )
@@ -410,8 +390,6 @@ def register_organizations_sdk_tools():
     def create_organization_adaptive_policy_acl(organization_id: str):
         """Create create organizationadaptivepolicyacl."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
-            
             result = meraki_client.dashboard.organizations.createOrganizationAdaptivePolicyAcl(
                 organization_id, **kwargs
             )
@@ -447,8 +425,6 @@ def register_organizations_sdk_tools():
     def create_organization_adaptive_policy_group(organization_id: str):
         """Create create organizationadaptivepolicygroup."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
-            
             result = meraki_client.dashboard.organizations.createOrganizationAdaptivePolicyGroup(
                 organization_id, **kwargs
             )
@@ -516,36 +492,83 @@ def register_organizations_sdk_tools():
     
     @app.tool(
         name="create_organization_admin",
-        description="➕ Create organizationAdmin"
+        description="➕ Create organization admin - Add new dashboard administrator"
     )
-    def create_organization_admin(organization_id: str):
-        """Create create organizationadmin."""
+    def create_organization_admin(
+        organization_id: str, 
+        email: str, 
+        name: str, 
+        org_access: str = "read-only",
+        networks: str = None,
+        tags: str = None
+    ):
+        """
+        Create a new organization admin.
+        
+        Args:
+            organization_id: Organization ID
+            email: Email address of the admin
+            name: Full name of the admin
+            org_access: Organization access level ('read-only', 'full', 'none')
+            networks: JSON string of network access (optional)
+            tags: JSON string of tag-based access (optional)
+        """
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            import json
+            
+            # Build admin configuration
+            admin_config = {
+                "email": email,
+                "name": name,
+                "orgAccess": org_access
+            }
+            
+            # Add optional network access
+            if networks:
+                try:
+                    admin_config["networks"] = json.loads(networks)
+                except json.JSONDecodeError:
+                    return "❌ Error: networks parameter must be valid JSON array"
+            
+            # Add optional tag access  
+            if tags:
+                try:
+                    admin_config["tags"] = json.loads(tags)
+                except json.JSONDecodeError:
+                    return "❌ Error: tags parameter must be valid JSON array"
             
             result = meraki_client.dashboard.organizations.createOrganizationAdmin(
-                organization_id, **kwargs
+                organization_id, **admin_config
             )
             
-            response = f"# ➕ Create Organizationadmin\n\n"
+            response = f"# ✅ Organization Admin Created Successfully\n\n"
+            response += f"**Organization ID**: {organization_id}\n\n"
             
-            if result:
-                if isinstance(result, list):
-                    response += f"**Total Items**: {len(result)}\n\n"
-                    
-                    for i, item in enumerate(result[:10], 1):
-                        response += f"{i}. **{item.get('name', item.get('id', 'Item'))}**\n"
-                        if isinstance(item, dict):
-                            for key, value in list(item.items())[:3]:
-                                response += f"   - {key}: {value}\n"
-                        response += "\n"
-                    
-                    if len(result) > 10:
-                        response += f"... and {len(result)-10} more items\n"
-                else:
-                    response += f"**Result**: {result}\n"
+            if result and isinstance(result, dict):
+                response += f"**Admin Details**:\n"
+                response += f"- **Name**: {result.get('name', name)}\n"
+                response += f"- **Email**: {result.get('email', email)}\n"
+                response += f"- **Admin ID**: {result.get('id', 'Generated')}\n"
+                response += f"- **Organization Access**: {result.get('orgAccess', org_access)}\n"
+                
+                # Show network access if configured
+                if result.get('networks'):
+                    response += f"- **Network Access**: {len(result['networks'])} networks\n"
+                    for net in result['networks'][:3]:  # Show first 3
+                        response += f"  - {net.get('id', 'Network')}: {net.get('access', 'access')}\n"
+                        
+                # Show tag access if configured  
+                if result.get('tags'):
+                    response += f"- **Tag Access**: {len(result['tags'])} tags\n"
+                    for tag in result['tags'][:3]:  # Show first 3
+                        response += f"  - {tag.get('tag', 'Tag')}: {tag.get('access', 'access')}\n"
+                
+                response += f"\n📧 **Admin invitation sent to**: {email}\n"
+                response += f"💡 **Next steps**: The admin will receive an email invitation to access the dashboard.\n"
             else:
-                response += "*No data available*\n"
+                response += f"**Admin Created**: {name} ({email})\n"
+                response += f"**Access Level**: {org_access}\n"
+                response += f"📧 **Invitation sent to**: {email}\n"
             
             return response
         except Exception as e:
@@ -962,13 +985,41 @@ def register_organizations_sdk_tools():
         name="create_organization_network",
         description="➕ Create organizationNetwork"
     )
-    def create_organization_network(organization_id: str):
-        """Create create organizationnetwork."""
+    def create_organization_network(
+        organization_id: str, 
+        name: str, 
+        product_types: str,
+        time_zone: str = None,
+        tags: str = None,
+        notes: str = None
+    ):
+        """
+        Create a new network in the organization.
+        
+        Args:
+            organization_id: Organization ID  
+            name: Network name
+            product_types: Comma-separated list of products (e.g., "appliance,switch,wireless")
+            time_zone: Network timezone (optional)
+            tags: Comma-separated tags (optional)  
+            notes: Network notes (optional)
+        """
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            # Build network configuration
+            network_config = {
+                "name": name,
+                "productTypes": [p.strip() for p in product_types.split(',')]
+            }
+            
+            if time_zone:
+                network_config["timeZone"] = time_zone
+            if tags:
+                network_config["tags"] = [t.strip() for t in tags.split(',')]
+            if notes:
+                network_config["notes"] = notes
             
             result = meraki_client.dashboard.organizations.createOrganizationNetwork(
-                organization_id, **kwargs
+                organization_id, **network_config
             )
             
             response = f"# ➕ Create Organizationnetwork\n\n"
