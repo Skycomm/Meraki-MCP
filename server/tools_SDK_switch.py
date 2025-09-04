@@ -452,11 +452,22 @@ def register_switch_sdk_tools():
         name="create_network_switch_dhcp_server_policy_arp_trusted_server",
         description="➕ Create network switchDhcpServerPolicyArpInspectionTrustedServer"
     )
-    def create_network_switch_dhcp_server_policy_arp_inspection_trusted_server(network_id: str):
-        """Create create network switchdhcpserverpolicyarpinspectiontrustedserver."""
+    def create_network_switch_dhcp_server_policy_arp_inspection_trusted_server(
+        network_id: str,
+        mac: str,
+        vlan: int,
+        ipv4_address: str
+    ):
+        """Create DHCP ARP inspection trusted server with required MAC, VLAN, and IP parameters."""
         try:
-            kwargs = {}
-            
+            # Build the required parameters
+            kwargs = {
+                "mac": mac,
+                "vlan": vlan,
+                "ipv4": {
+                    "address": ipv4_address
+                }
+            }
             
             result = meraki_client.dashboard.switch.createNetworkSwitchDhcpServerPolicyArpInspectionTrustedServer(network_id, **kwargs)
             
@@ -1456,15 +1467,18 @@ def register_switch_sdk_tools():
         name="delete_network_switch_dhcp_server_policy_arp_trusted_server",
         description="❌ Delete network switchDhcpServerPolicyArpInspectionTrustedServer"
     )
-    def delete_network_switch_dhcp_server_policy_arp_inspection_trusted_server(network_id: str, confirmed: bool = False):
-        """Delete delete network switchdhcpserverpolicyarpinspectiontrustedserver."""
+    def delete_network_switch_dhcp_server_policy_arp_inspection_trusted_server(
+        network_id: str, 
+        trusted_server_id: str,
+        confirmed: bool = False
+    ):
+        """Delete DHCP ARP inspection trusted server by ID."""
         if not confirmed:
             return "⚠️ This operation requires confirmed=true to execute"
         try:
-            kwargs = {}
-            
-            
-            result = meraki_client.dashboard.switch.deleteNetworkSwitchDhcpServerPolicyArpInspectionTrustedServer(network_id, **kwargs)
+            result = meraki_client.dashboard.switch.deleteNetworkSwitchDhcpServerPolicyArpInspectionTrustedServer(
+                network_id, trusted_server_id
+            )
             
             response = f"# ❌ Delete Network Switchdhcpserverpolicyarpinspectiontrustedserver\n\n"
             
@@ -6487,11 +6501,48 @@ def register_switch_sdk_tools():
         name="update_device_switch_routing_interface_dhcp",
         description="✏️ Update device switchRoutingInterfaceDhcp"
     )
-    def update_device_switch_routing_interface_dhcp(serial: str, interface_id: str):
-        """Update update device switchroutinginterfacedhcp."""
+    def update_device_switch_routing_interface_dhcp(
+        serial: str, 
+        interface_id: str,
+        dhcp_mode: str = None,
+        dhcp_lease_time: str = None,
+        dns_nameservers_option: str = None,
+        dns_custom_nameservers: str = None,
+        dhcp_relay_server_ips: str = None
+    ):
+        """Update layer 3 interface DHCP configuration for a switch."""
         try:
             kwargs = {}
             
+            # Add DHCP configuration parameters if provided
+            if dhcp_mode:
+                if dhcp_mode not in ['dhcpDisabled', 'dhcpRelay', 'dhcpServer']:
+                    return "❌ dhcp_mode must be 'dhcpDisabled', 'dhcpRelay', or 'dhcpServer'"
+                kwargs["dhcpMode"] = dhcp_mode
+            
+            if dhcp_lease_time:
+                valid_lease_times = ['30 minutes', '1 hour', '4 hours', '12 hours', '1 day', '1 week']
+                if dhcp_lease_time not in valid_lease_times:
+                    return f"❌ dhcp_lease_time must be one of: {', '.join(valid_lease_times)}"
+                kwargs["dhcpLeaseTime"] = dhcp_lease_time
+            
+            if dns_nameservers_option:
+                if dns_nameservers_option not in ['custom', 'googlePublicDns', 'openDns']:
+                    return "❌ dns_nameservers_option must be 'custom', 'googlePublicDns', or 'openDns'"
+                kwargs["dnsNameserversOption"] = dns_nameservers_option
+            
+            if dns_custom_nameservers:
+                # Parse comma-separated DNS servers
+                nameservers = [ns.strip() for ns in dns_custom_nameservers.split(',')]
+                kwargs["dnsCustomNameservers"] = nameservers
+            
+            if dhcp_relay_server_ips:
+                # Parse comma-separated relay server IPs
+                servers = [ip.strip() for ip in dhcp_relay_server_ips.split(',')]
+                kwargs["dhcpRelayServerIps"] = servers
+            
+            if not kwargs:
+                return "❌ Please provide at least one DHCP configuration parameter to update"
             
             result = meraki_client.dashboard.switch.updateDeviceSwitchRoutingInterfaceDhcp(serial, interface_id, **kwargs)
             
@@ -6985,11 +7036,38 @@ def register_switch_sdk_tools():
         name="update_network_switch_dhcp_server_policy",
         description="✏️ Update network switchDhcpServerPolicy"
     )
-    def update_network_switch_dhcp_server_policy(network_id: str):
-        """Update update network switchdhcpserverpolicy."""
+    def update_network_switch_dhcp_server_policy(
+        network_id: str,
+        default_policy: str = None,
+        allowed_servers: str = None,
+        blocked_servers: str = None,
+        arp_inspection_enabled: bool = None
+    ):
+        """Update DHCP server policy with optional default policy, server lists, and ARP inspection."""
         try:
             kwargs = {}
             
+            # Add policy parameters if provided
+            if default_policy:
+                if default_policy not in ['allow', 'block']:
+                    return "❌ default_policy must be 'allow' or 'block'"
+                kwargs["defaultPolicy"] = default_policy
+            
+            if allowed_servers:
+                # Parse comma-separated MAC addresses
+                servers = [s.strip() for s in allowed_servers.split(',')]
+                kwargs["allowedServers"] = servers
+            
+            if blocked_servers:
+                # Parse comma-separated MAC addresses
+                servers = [s.strip() for s in blocked_servers.split(',')]
+                kwargs["blockedServers"] = servers
+                
+            if arp_inspection_enabled is not None:
+                kwargs["arpInspection"] = {"enabled": arp_inspection_enabled}
+            
+            if not kwargs:
+                return "❌ Please provide at least one policy parameter to update"
             
             result = meraki_client.dashboard.switch.updateNetworkSwitchDhcpServerPolicy(network_id, **kwargs)
             
@@ -7068,13 +7146,35 @@ def register_switch_sdk_tools():
         name="update_network_switch_dhcp_server_policy_arp_trusted_server",
         description="✏️ Update network switchDhcpServerPolicyArpInspectionTrustedServer"
     )
-    def update_network_switch_dhcp_server_policy_arp_inspection_trusted_server(network_id: str):
-        """Update update network switchdhcpserverpolicyarpinspectiontrustedserver."""
+    def update_network_switch_dhcp_server_policy_arp_inspection_trusted_server(
+        network_id: str,
+        trusted_server_id: str,
+        mac: str = None,
+        vlan: int = None,
+        ipv4_address: str = None
+    ):
+        """Update DHCP ARP inspection trusted server configuration."""
         try:
             kwargs = {}
             
+            # Add update parameters if provided
+            if mac:
+                kwargs["mac"] = mac
             
-            result = meraki_client.dashboard.switch.updateNetworkSwitchDhcpServerPolicyArpInspectionTrustedServer(network_id, **kwargs)
+            if vlan:
+                if not (1 <= vlan <= 4094):
+                    return "❌ VLAN must be between 1 and 4094"
+                kwargs["vlan"] = vlan
+            
+            if ipv4_address:
+                kwargs["ipv4"] = {"address": ipv4_address}
+            
+            if not kwargs:
+                return "❌ Please provide at least one parameter to update (mac, vlan, or ipv4_address)"
+            
+            result = meraki_client.dashboard.switch.updateNetworkSwitchDhcpServerPolicyArpInspectionTrustedServer(
+                network_id, trusted_server_id, **kwargs
+            )
             
             response = f"# ✏️ Update Network Switchdhcpserverpolicyarpinspectiontrustedserver\n\n"
             
@@ -8064,11 +8164,48 @@ def register_switch_sdk_tools():
         name="update_network_switch_stack_routing_interface_dhcp",
         description="✏️ Update network switchStackRoutingInterfaceDhcp"
     )
-    def update_network_switch_stack_routing_interface_dhcp(network_id: str, interface_id: str):
-        """Update update network switchstackroutinginterfacedhcp."""
+    def update_network_switch_stack_routing_interface_dhcp(
+        network_id: str, 
+        interface_id: str,
+        dhcp_mode: str = None,
+        dhcp_lease_time: str = None,
+        dns_nameservers_option: str = None,
+        dns_custom_nameservers: str = None,
+        dhcp_relay_server_ips: str = None
+    ):
+        """Update layer 3 stack routing interface DHCP configuration."""
         try:
             kwargs = {}
             
+            # Add DHCP configuration parameters if provided
+            if dhcp_mode:
+                if dhcp_mode not in ['dhcpDisabled', 'dhcpRelay', 'dhcpServer']:
+                    return "❌ dhcp_mode must be 'dhcpDisabled', 'dhcpRelay', or 'dhcpServer'"
+                kwargs["dhcpMode"] = dhcp_mode
+            
+            if dhcp_lease_time:
+                valid_lease_times = ['30 minutes', '1 hour', '4 hours', '12 hours', '1 day', '1 week']
+                if dhcp_lease_time not in valid_lease_times:
+                    return f"❌ dhcp_lease_time must be one of: {', '.join(valid_lease_times)}"
+                kwargs["dhcpLeaseTime"] = dhcp_lease_time
+            
+            if dns_nameservers_option:
+                if dns_nameservers_option not in ['custom', 'googlePublicDns', 'openDns']:
+                    return "❌ dns_nameservers_option must be 'custom', 'googlePublicDns', or 'openDns'"
+                kwargs["dnsNameserversOption"] = dns_nameservers_option
+            
+            if dns_custom_nameservers:
+                # Parse comma-separated DNS servers
+                nameservers = [ns.strip() for ns in dns_custom_nameservers.split(',')]
+                kwargs["dnsCustomNameservers"] = nameservers
+            
+            if dhcp_relay_server_ips:
+                # Parse comma-separated relay server IPs
+                servers = [ip.strip() for ip in dhcp_relay_server_ips.split(',')]
+                kwargs["dhcpRelayServerIps"] = servers
+            
+            if not kwargs:
+                return "❌ Please provide at least one DHCP configuration parameter to update"
             
             result = meraki_client.dashboard.switch.updateNetworkSwitchStackRoutingInterfaceDhcp(network_id, interface_id, **kwargs)
             
