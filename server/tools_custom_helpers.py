@@ -214,70 +214,81 @@ def register_helper_tool_handlers():
                 audit_results.append("## ⚠️ Security Events: Unable to check\n")
             
             # 6. Check WiFi security
-            try:
-                ssids = meraki_client.dashboard.wireless.getNetworkWirelessSsids(network_id)
-                weak_ssids = []
-                secure_ssids = []
-                disabled_ssids = 0
+            audit_results.append("## 📶 WiFi Security Analysis")
+            
+            # Only check wireless if network has wireless capability
+            if 'wireless' not in network.get('productTypes', []):
+                audit_results.append("⚠️ **No wireless capability** detected in this network\n")
+            else:
+                try:
+                    ssids = meraki_client.dashboard.wireless.getNetworkWirelessSsids(network_id)
+                    weak_ssids = []
+                    secure_ssids = []
+                    disabled_ssids = 0
                 
-                for ssid in ssids:
-                    if ssid.get('enabled'):
-                        ssid_name = ssid.get('name', f"SSID {ssid.get('number', '?')}")
-                        auth = ssid.get('authMode', '')
-                        
-                        if auth == 'open':
-                            weak_ssids.append(f"**{ssid_name}** (SSID {ssid.get('number')})")
-                            weak_ssids.append(f"  - ❌ Security: Open (No password!)")
-                            weak_ssids.append(f"  - Visible: {ssid.get('visible', 'Unknown')}")
-                            weak_ssids.append(f"  - Splash Page: {ssid.get('splashPage', 'None')}")
-                        elif auth == 'psk' and ssid.get('encryptionMode') == 'wep':
-                            weak_ssids.append(f"**{ssid_name}** (SSID {ssid.get('number')})")
-                            weak_ssids.append(f"  - ❌ Security: WEP (Weak encryption!)")
-                        elif auth == 'psk':
-                            wpa_mode = ssid.get('wpaEncryptionMode', 'Unknown')
-                            if wpa_mode not in ['WPA2 only', 'WPA3 only', 'WPA3 Transition Mode']:
+                    for ssid in ssids:
+                        if ssid.get('enabled'):
+                            ssid_name = ssid.get('name', f"SSID {ssid.get('number', '?')}")
+                            auth = ssid.get('authMode', '')
+                            
+                            if auth == 'open':
                                 weak_ssids.append(f"**{ssid_name}** (SSID {ssid.get('number')})")
-                                weak_ssids.append(f"  - ⚠️ Security: {wpa_mode} (Consider WPA2/WPA3)")
+                                weak_ssids.append(f"  - ❌ Security: Open (No password!)")
+                                weak_ssids.append(f"  - Visible: {ssid.get('visible', 'Unknown')}")
+                                weak_ssids.append(f"  - Splash Page: {ssid.get('splashPage', 'None')}")
+                            elif auth == 'psk' and ssid.get('encryptionMode') == 'wep':
+                                weak_ssids.append(f"**{ssid_name}** (SSID {ssid.get('number')})")
+                                weak_ssids.append(f"  - ❌ Security: WEP (Weak encryption!)")
+                            elif auth == 'psk':
+                                wpa_mode = ssid.get('wpaEncryptionMode', 'Unknown')
+                                if wpa_mode not in ['WPA2 only', 'WPA3 only', 'WPA3 Transition Mode']:
+                                    weak_ssids.append(f"**{ssid_name}** (SSID {ssid.get('number')})")
+                                    weak_ssids.append(f"  - ⚠️ Security: {wpa_mode} (Consider WPA2/WPA3)")
+                                else:
+                                    secure_ssids.append(f"{ssid_name} ({wpa_mode})")
+                            elif auth == '8021x-radius':
+                                secure_ssids.append(f"{ssid_name} (Enterprise 802.1X)")
                             else:
-                                secure_ssids.append(f"{ssid_name} ({wpa_mode})")
-                        elif auth == '8021x-radius':
-                            secure_ssids.append(f"{ssid_name} (Enterprise 802.1X)")
+                                secure_ssids.append(f"{ssid_name} ({auth})")
                         else:
-                            secure_ssids.append(f"{ssid_name} ({auth})")
-                    else:
-                        disabled_ssids += 1
-                
-                audit_results.append("## 📶 WiFi Security Analysis")
-                audit_results.append(f"**Total SSIDs**: 15 (standard for Meraki)")
-                audit_results.append(f"**Enabled SSIDs**: {15 - disabled_ssids}")
-                audit_results.append(f"**Disabled SSIDs**: {disabled_ssids}")
-                
-                # Reference infrastructure type for context
-                if mx_with_wifi and not mr_devices:
-                    audit_results.append(f"*WiFi broadcast by MX integrated wireless*")
-                elif mr_devices and not mx_with_wifi:
-                    audit_results.append(f"*WiFi broadcast by {len(mr_devices)} dedicated access point{'s' if len(mr_devices) > 1 else ''}*")
-                elif mx_with_wifi and mr_devices:
-                    audit_results.append(f"*WiFi broadcast by mixed infrastructure (MX + {len(mr_devices)} AP{'s' if len(mr_devices) > 1 else ''})*")
-                audit_results.append("")
-                
-                if weak_ssids:
-                    audit_results.append("### ❌ Security Issues Found:")
-                    for line in weak_ssids:
-                        audit_results.append(line)
-                    audit_results.append("")
-                
-                if secure_ssids:
-                    audit_results.append("### ✅ Properly Secured SSIDs:")
-                    for ssid in secure_ssids:
-                        audit_results.append(f"- {ssid}")
+                            disabled_ssids += 1
+                    
+                    audit_results.append(f"**Total SSIDs**: 15 (standard for Meraki)")
+                    audit_results.append(f"**Enabled SSIDs**: {15 - disabled_ssids}")
+                    audit_results.append(f"**Disabled SSIDs**: {disabled_ssids}")
+                    
+                    # Reference infrastructure type for context
+                    if mx_with_wifi and not mr_devices:
+                        audit_results.append(f"*WiFi provided by MX integrated wireless - no separate access points*")
+                        if len(mx_with_wifi) > 0:
+                            mx_model = mx_with_wifi[0].get('model', 'MX*W')
+                            audit_results.append(f"*Source: {mx_model} security appliance with built-in WiFi*")
+                    elif mr_devices and not mx_with_wifi:
+                        audit_results.append(f"*WiFi broadcast by {len(mr_devices)} dedicated access point{'s' if len(mr_devices) > 1 else ''}*")
+                    elif mx_with_wifi and mr_devices:
+                        audit_results.append(f"*WiFi broadcast by mixed infrastructure:*")
+                        audit_results.append(f"  - MX integrated: {len(mx_with_wifi)} device{'s' if len(mx_with_wifi) > 1 else ''}")
+                        audit_results.append(f"  - Dedicated APs: {len(mr_devices)} device{'s' if len(mr_devices) > 1 else ''}")
                     audit_results.append("")
                     
-                if not weak_ssids and not secure_ssids:
-                    audit_results.append("### ℹ️ No active SSIDs configured\n")
+                    if weak_ssids:
+                        audit_results.append("### ❌ Security Issues Found:")
+                        for line in weak_ssids:
+                            audit_results.append(line)
+                        audit_results.append("")
                     
-            except Exception as e:
-                audit_results.append(f"## ⚠️ WiFi Security: Unable to check - {str(e)}\n")
+                    if secure_ssids:
+                        audit_results.append("### ✅ Properly Secured SSIDs:")
+                        for ssid in secure_ssids:
+                            audit_results.append(f"- {ssid}")
+                        audit_results.append("")
+                        
+                    if not weak_ssids and not secure_ssids:
+                        audit_results.append("### ℹ️ No active SSIDs configured\n")
+                        
+                except Exception as e:
+                    audit_results.append(f"⚠️ **WiFi Security**: Unable to check - {str(e)}")
+                    audit_results.append("*This might be expected for MX-only networks with integrated wireless*\n")
             
             # 7. Check VPN configuration
             try:
@@ -531,13 +542,27 @@ def register_helper_tool_handlers():
             org_id = network.get('organizationId')
             product_types = network.get('productTypes', [])
             
+            # Get devices to understand infrastructure
+            mx_with_wifi = []
+            mr_devices = []
+            try:
+                devices = meraki_client.dashboard.networks.getNetworkDevices(network_id)
+                for device in devices:
+                    model = device.get('model', '')
+                    if model.startswith('MX') and ('W' in model or 'w' in model):
+                        mx_with_wifi.append(device)
+                    elif model.startswith('MR'):
+                        mr_devices.append(device)
+            except:
+                pass
+            
             health_report = []
             health_report.append(f"# 🏥 Network Health Report: {network_name}")
             health_report.append(f"**Check Time**: {__import__('datetime').datetime.now().isoformat()}")
             health_report.append(f"**Product Types**: {', '.join(product_types)}\n")
             
-            # 1. For wireless networks, check connection stats
-            if 'wireless' in product_types:
+            # 1. For wireless networks with dedicated APs, check connection stats
+            if 'wireless' in product_types and mr_devices:
                 try:
                     conn_stats = meraki_client.dashboard.wireless.getNetworkWirelessConnectionStats(
                         network_id, timespan=3600
@@ -567,6 +592,12 @@ def register_helper_tool_handlers():
                         health_report.append("")
                 except:
                     pass
+            elif 'wireless' in product_types and mx_with_wifi and not mr_devices:
+                # MX-only wireless - connection stats may not be available via wireless API
+                health_report.append("## 📡 Wireless Infrastructure")
+                mx_model = mx_with_wifi[0].get('model', 'MX*W') if mx_with_wifi else 'MX*W'
+                health_report.append(f"**WiFi Source**: {mx_model} integrated wireless")
+                health_report.append("*Note: Dedicated AP metrics not applicable - WiFi provided by security appliance*\n")
             
             # 2. For appliance networks, check uplink status
             if 'appliance' in product_types:
