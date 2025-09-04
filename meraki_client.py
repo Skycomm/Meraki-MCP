@@ -111,9 +111,14 @@ class MerakiClient:
         return self.dashboard.appliance.getNetworkApplianceUplinksUsageHistory(network_id, timespan=timespan)
     
     def get_network_connection_stats(self, network_id: str, timespan: int = 86400):
-        """Get network connection statistics - REAL method."""
-        # This returns wireless connection stats
-        return self.dashboard.wireless.getNetworkWirelessConnectionStats(network_id, timespan=timespan)
+        """Get network connection statistics - REAL method with MX appliance support."""
+        try:
+            # First try the wireless-specific method for pure wireless networks
+            return self.dashboard.wireless.getNetworkWirelessConnectionStats(network_id, timespan=timespan)
+        except Exception as e:
+            # If that fails, it might be an MX appliance or other network type
+            # The custom tool will handle this case with client analysis
+            raise Exception(f"Wireless connection stats not available: {str(e)}")
     
     def get_network_latency_stats(self, network_id: str, timespan: int = 86400):
         """Get network latency statistics - REAL method."""

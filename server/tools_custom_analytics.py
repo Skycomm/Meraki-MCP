@@ -257,20 +257,33 @@ Possible causes:
     )
     def get_network_connection_stats(network_id: str, timespan: int = 86400):
         """
-        Get REAL network connection statistics.
+        Get REAL network connection statistics for all network types including MX appliances.
         
         Args:
             network_id: Network ID
             timespan: Timespan in seconds (default: 86400 = 24 hours)
             
         Returns:
-            Formatted connection statistics
+            Formatted connection statistics including wireless clients on MX appliances
         """
         try:
-            conn_stats = meraki_client.get_network_connection_stats(network_id, timespan)
+            # First check what type of network this is
+            network_info = meraki_client.dashboard.networks.getNetwork(network_id)
+            product_types = network_info.get('productTypes', [])
+            
+            # For MX appliances with built-in wireless, use a different approach
+            if 'appliance' in product_types and ('wireless' in product_types or 'MX' in network_info.get('name', '')):
+                return get_mx_appliance_connection_stats(network_id, timespan, network_info)
+            
+            # For standalone wireless networks, use the standard method
+            elif 'wireless' in product_types:
+                conn_stats = meraki_client.get_network_connection_stats(network_id, timespan)
+            else:
+                # For other network types, try to get client information
+                return get_general_network_client_stats(network_id, timespan, network_info)
             
             if not conn_stats:
-                return f"No connection statistics found for network {network_id}."
+                return f"No wireless connection statistics available for network {network_id}."
                 
             result = f"# 📊 Connection Statistics for Network {network_id}\n\n"
             result += f"**Time Period**: Last {timespan/3600:.1f} hours\n\n"
@@ -325,6 +338,125 @@ Possible causes:
             
         except Exception as e:
             return f"Error retrieving connection statistics: {str(e)}"
+
+        def get_mx_appliance_connection_stats(network_id: str, timespan: int, network_info: dict):
+            """Get connection statistics for MX appliances with built-in wireless."""
+            try:
+                # Get all clients on the network
+                clients = meraki_client.dashboard.networks.getNetworkClients(network_id)
+                
+                if not clients:
+                    return f"No clients found on MX appliance network {network_id}."
+                
+                # Analyze clients to separate wired vs wireless
+                wireless_clients = []
+                wired_clients = []
+                
+                for client in clients:
+                    ssid = client.get('ssid')
+                    if ssid and ssid != '':
+                        wireless_clients.append(client)
+                    else:
+                        wired_clients.append(client)
+                
+                network_name = network_info.get('name', 'Unknown')
+                result = f"# 📊 MX Appliance Connection Statistics\n\n"
+                result += f"**Network**: {network_name} ({network_id})\n"
+                result += f"**Device Type**: MX Appliance with Built-in Wireless\n"
+                result += f"**Analysis Period**: Last {timespan/3600:.1f} hours\n\n"
+                
+                # Client summary
+                result += f"## Client Summary\n"
+                result += f"- **Total Clients**: {len(clients)}\n"
+                result += f"- **Wireless Clients**: {len(wireless_clients)}\n"
+                result += f"- **Wired Clients**: {len(wired_clients)}\n\n"
+                
+                if wireless_clients:
+                    result += f"## 📡 Wireless Client Details\n"
+                    for client in wireless_clients[:10]:  # Show first 10
+                        name = client.get('description', client.get('mac', 'Unknown'))
+                        ssid = client.get('ssid', 'Unknown')
+                        usage_sent = client.get('usage', {}).get('sent', 0)
+                        usage_recv = client.get('usage', {}).get('recv', 0)
+                        total_usage = (usage_sent + usage_recv) / 1024  # Convert to MB
+                        
+                        result += f"**{name}**\n"
+                        result += f"   - SSID: {ssid}\n"
+                        result += f"   - MAC: {client.get('mac', 'N/A')}\n"
+                        result += f"   - IP: {client.get('ip', 'N/A')}\n"
+                        result += f"   - Usage: {total_usage:.1f} MB\n"
+                        result += f"   - Manufacturer: {client.get('manufacturer', 'Unknown')}\n\n"
+                    
+                    if len(wireless_clients) > 10:
+                        result += f"... and {len(wireless_clients) - 10} more wireless clients\n\n"
+                else:
+                    result += f"## 📡 Wireless Status\n"
+                    result += f"❌ **No wireless clients detected**\n"
+                    result += f"This could mean:\n"
+                    result += f"- Wireless is not enabled on the MX device\n"
+                    result += f"- No devices connected to wireless in the analysis period\n"
+                    result += f"- Wireless clients may have disconnected\n\n"
+                
+                if wired_clients:
+                    result += f"## 🔌 Wired Client Summary\n"
+                    result += f"- **Total Wired Clients**: {len(wired_clients)}\n"
+                    if len(wired_clients) <= 5:
+                        for client in wired_clients:
+                            name = client.get('description', client.get('mac', 'Unknown'))
+                            result += f"   - {name} ({client.get('ip', 'N/A')})\n"
+                    else:
+                        result += f"   - (See full client list via get_network_clients tool)\n"
+                
+                result += f"\n💡 **Note**: This analysis is based on client connection data from the MX appliance.\n"
+                result += f"For real-time wireless connection stats, the device may need to be configured as a dedicated wireless network.\n"
+                
+                return result
+                
+            except Exception as e:
+                return f"Error analyzing MX appliance clients: {str(e)}"
+
+        def get_general_network_client_stats(network_id: str, timespan: int, network_info: dict):
+            """Get client statistics for general network types."""
+            try:
+                clients = meraki_client.dashboard.networks.getNetworkClients(network_id)
+                
+                if not clients:
+                    return f"No clients found on network {network_id}."
+                
+                network_name = network_info.get('name', 'Unknown')
+                product_types = network_info.get('productTypes', [])
+                
+                result = f"# 📊 Network Client Statistics\n\n"
+                result += f"**Network**: {network_name} ({network_id})\n"
+                result += f"**Product Types**: {', '.join(product_types)}\n"
+                result += f"**Analysis Period**: Last {timespan/3600:.1f} hours\n\n"
+                
+                result += f"## Client Summary\n"
+                result += f"- **Total Clients**: {len(clients)}\n\n"
+                
+                # Show client details
+                result += f"## 📋 Client Details (Top 10)\n"
+                for client in clients[:10]:
+                    name = client.get('description', client.get('mac', 'Unknown'))
+                    usage_sent = client.get('usage', {}).get('sent', 0)
+                    usage_recv = client.get('usage', {}).get('recv', 0)
+                    total_usage = (usage_sent + usage_recv) / 1024  # Convert to MB
+                    
+                    result += f"**{name}**\n"
+                    result += f"   - MAC: {client.get('mac', 'N/A')}\n"
+                    result += f"   - IP: {client.get('ip', 'N/A')}\n"
+                    result += f"   - Usage: {total_usage:.1f} MB\n"
+                    result += f"   - Manufacturer: {client.get('manufacturer', 'Unknown')}\n\n"
+                
+                if len(clients) > 10:
+                    result += f"... and {len(clients) - 10} more clients\n\n"
+                
+                result += f"💡 **Note**: Connection statistics may vary based on network device type and configuration.\n"
+                
+                return result
+                
+            except Exception as e:
+                return f"Error analyzing network clients: {str(e)}"
     
     @app.tool(
         name="get_network_latency_stats",
