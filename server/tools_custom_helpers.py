@@ -43,6 +43,11 @@ def register_helper_tool_handlers():
             network = meraki_client.dashboard.networks.getNetwork(network_id)
             network_name = network.get('name', 'Unknown')
             
+            # Initialize device tracking variables for use throughout audit
+            mx_with_wifi = []
+            mr_devices = []
+            other_devices = []
+            
             audit_results = []
             audit_results.append(f"# 🔍 Comprehensive Security Audit Report: {network_name}")
             audit_results.append(f"**Network ID**: {network_id}")
@@ -50,6 +55,92 @@ def register_helper_tool_handlers():
             audit_results.append(f"**Product Types**: {', '.join(network.get('productTypes', []))}")
             audit_results.append(f"**Time Zone**: {network.get('timeZone', 'Unknown')}")
             audit_results.append(f"**Audit Time**: {__import__('datetime').datetime.now().isoformat()}\n")
+            
+            # 0. Analyze wireless infrastructure
+            try:
+                devices = meraki_client.dashboard.networks.getNetworkDevices(network_id)
+                
+                for device in devices:
+                    model = device.get('model', '')
+                    device_name = device.get('name') or device.get('serial', 'Unnamed')
+                    
+                    if model.startswith('MX') and ('W' in model or 'w' in model):
+                        mx_with_wifi.append({
+                            'model': model,
+                            'name': device_name,
+                            'serial': device.get('serial', ''),
+                            'status': device.get('status', 'unknown')
+                        })
+                    elif model.startswith('MR'):
+                        mr_devices.append({
+                            'model': model,
+                            'name': device_name,
+                            'serial': device.get('serial', ''),
+                            'status': device.get('status', 'unknown')
+                        })
+                    else:
+                        other_devices.append({
+                            'model': model,
+                            'name': device_name,
+                            'serial': device.get('serial', ''),
+                            'status': device.get('status', 'unknown')
+                        })
+                
+                # Determine wireless infrastructure type
+                audit_results.append("## 📡 Wireless Infrastructure Analysis")
+                
+                if mx_with_wifi and not mr_devices:
+                    audit_results.append("**WiFi Source**: MX Integrated Wireless Only")
+                    audit_results.append("*Note: No dedicated wireless access points - WiFi provided by MX appliance*")
+                    for mx in mx_with_wifi:
+                        status_icon = "✅" if mx['status'] == 'online' else "❌"
+                        audit_results.append(f"- {status_icon} **{mx['model']}**: {mx['name']} ({mx['serial']})")
+                        
+                elif mr_devices and not mx_with_wifi:
+                    audit_results.append("**WiFi Source**: Dedicated MR Access Points Only")
+                    audit_results.append(f"**Total APs**: {len(mr_devices)}")
+                    for mr in mr_devices[:3]:  # Show first 3
+                        status_icon = "✅" if mr['status'] == 'online' else "❌" 
+                        audit_results.append(f"- {status_icon} **{mr['model']}**: {mr['name']} ({mr['serial']})")
+                    if len(mr_devices) > 3:
+                        audit_results.append(f"  ... and {len(mr_devices) - 3} more APs")
+                        
+                elif mx_with_wifi and mr_devices:
+                    audit_results.append("**WiFi Source**: Mixed Infrastructure (MX + MR)")
+                    audit_results.append("*Network has both MX integrated wireless and dedicated access points*")
+                    
+                    audit_results.append("### MX Appliances with WiFi:")
+                    for mx in mx_with_wifi:
+                        status_icon = "✅" if mx['status'] == 'online' else "❌"
+                        audit_results.append(f"- {status_icon} **{mx['model']}**: {mx['name']}")
+                    
+                    audit_results.append("### Dedicated Access Points:")
+                    for mr in mr_devices[:3]:
+                        status_icon = "✅" if mr['status'] == 'online' else "❌"
+                        audit_results.append(f"- {status_icon} **{mr['model']}**: {mr['name']}")
+                    if len(mr_devices) > 3:
+                        audit_results.append(f"  ... and {len(mr_devices) - 3} more APs")
+                        
+                else:
+                    audit_results.append("**WiFi Source**: ⚠️ No wireless infrastructure detected")
+                    audit_results.append("*Network may not have WiFi capability*")
+                
+                # Show other network devices for context
+                if other_devices:
+                    audit_results.append(f"\n**Other Network Devices**: {len(other_devices)}")
+                    device_summary = {}
+                    for device in other_devices:
+                        model_type = device['model'][:2] if device['model'] else 'Unknown'
+                        device_summary[model_type] = device_summary.get(model_type, 0) + 1
+                    
+                    for device_type, count in device_summary.items():
+                        audit_results.append(f"- {device_type}*: {count} device{'s' if count > 1 else ''}")
+                
+                audit_results.append("")
+                
+            except Exception as e:
+                audit_results.append("## 📡 Wireless Infrastructure")
+                audit_results.append(f"⚠️ Unable to analyze devices: {str(e)}\n")
             
             # 1. Check IDS/IPS status
             try:
@@ -159,7 +250,16 @@ def register_helper_tool_handlers():
                 audit_results.append("## 📶 WiFi Security Analysis")
                 audit_results.append(f"**Total SSIDs**: 15 (standard for Meraki)")
                 audit_results.append(f"**Enabled SSIDs**: {15 - disabled_ssids}")
-                audit_results.append(f"**Disabled SSIDs**: {disabled_ssids}\n")
+                audit_results.append(f"**Disabled SSIDs**: {disabled_ssids}")
+                
+                # Reference infrastructure type for context
+                if mx_with_wifi and not mr_devices:
+                    audit_results.append(f"*WiFi broadcast by MX integrated wireless*")
+                elif mr_devices and not mx_with_wifi:
+                    audit_results.append(f"*WiFi broadcast by {len(mr_devices)} dedicated access point{'s' if len(mr_devices) > 1 else ''}*")
+                elif mx_with_wifi and mr_devices:
+                    audit_results.append(f"*WiFi broadcast by mixed infrastructure (MX + {len(mr_devices)} AP{'s' if len(mr_devices) > 1 else ''})*")
+                audit_results.append("")
                 
                 if weak_ssids:
                     audit_results.append("### ❌ Security Issues Found:")
