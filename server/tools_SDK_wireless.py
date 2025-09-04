@@ -3794,73 +3794,53 @@ def register_wireless_sdk_tools():
         name="get_network_wireless_ssid",
         description="📶 Get network wirelessSsid"
     )
-    def get_network_wireless_ssid(network_id: str, per_page: int = 1000):
-        """Get get network wirelessssid."""
+    def get_network_wireless_ssid(network_id: str, ssid_number: str = "0"):
+        """Get specific network wireless SSID details."""
         try:
-            kwargs = {}
-            
-            # Add pagination for GET methods
-            if "per_page" in locals():
-                kwargs["perPage"] = per_page
-            if "timespan" in locals():
-                kwargs["timespan"] = timespan
-                
             result = meraki_client.dashboard.wireless.getNetworkWirelessSsid(
-                network_id, **kwargs
+                network_id, ssid_number
             )
             
-            response = f"# 📶 Get Network Wirelessssid\n\n"
+            response = f"# 📶 Network Wireless SSID Details\n\n"
             
             if result is not None:
-                if isinstance(result, list):
-                    response += f"**Total Items**: {len(result)}\n\n"
+                if isinstance(result, dict):
+                    # Show SSID details with security information
+                    response += f"**SSID Name**: {result.get('name', 'Unnamed')}\n"
+                    response += f"**Number**: {result.get('number', ssid_number)}\n"
+                    response += f"**Enabled**: {'✅ Yes' if result.get('enabled') else '❌ No'}\n\n"
                     
-                    # Show first 10 items
-                    for idx, item in enumerate(result[:10], 1):
-                        if isinstance(item, dict):
-                            name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
-                            response += f"**{idx}. {name}**\n"
-                            
-                            # Show key fields based on wireless context
-                            if 'ssid' in item:
-                                response += f"   - SSID: {item.get('ssid')}\n"
-                            if 'enabled' in item:
-                                response += f"   - Enabled: {item.get('enabled')}\n"
-                            if 'status' in item:
-                                response += f"   - Status: {item.get('status')}\n"
-                            if 'channel' in item:
-                                response += f"   - Channel: {item.get('channel')}\n"
-                            if 'power' in item:
-                                response += f"   - Power: {item.get('power')}\n"
-                            if 'clientCount' in item:
-                                response += f"   - Clients: {item.get('clientCount')}\n"
-                            if 'usage' in item:
-                                usage = item.get('usage', {})
-                                if isinstance(usage, dict):
-                                    response += f"   - Usage: {usage.get('total', 'N/A')} MB\n"
-                                    
-                        else:
-                            response += f"**{idx}. {item}**\n"
-                        response += "\n"
+                    # Security Configuration
+                    response += "## 🔐 Security Configuration\n"
+                    auth_mode = result.get('authMode', 'Unknown')
+                    response += f"**Authentication Mode**: {auth_mode}\n"
                     
-                    if len(result) > 10:
-                        response += f"... and {len(result)-10} more items\n"
-                        
-                elif isinstance(result, dict):
-                    # Single item result
-                    for key, value in list(result.items())[:10]:
-                        if isinstance(value, (str, int, float, bool)):
-                            response += f"- **{key}**: {value}\n"
-                        elif isinstance(value, list) and value:
-                            response += f"- **{key}**: {len(value)} items\n"
-                        elif isinstance(value, dict) and value:
-                            response += f"- **{key}**: {', '.join(str(k) for k in list(value.keys())[:3])}\n"
+                    if auth_mode == 'psk':
+                        response += f"**Security**: ✅ WPA/WPA2 Personal (PSK)\n"
+                        wpa_encryption = result.get('wpaEncryptionMode', 'Unknown')
+                        response += f"**Encryption Mode**: {wpa_encryption}\n"
+                    elif auth_mode == 'open':
+                        response += f"**Security**: ❌ Open (No Password Protection)\n"
+                    else:
+                        response += f"**Security**: {auth_mode}\n"
                     
-                    if len(result) > 10:
-                        response += f"... and {len(result)-10} more fields\n"
-                        
+                    # Visibility
+                    if 'visible' in result:
+                        response += f"**SSID Visible**: {'✅ Yes' if result.get('visible') else '❌ Hidden'}\n"
+                    
+                    # Additional settings
+                    response += "\n## ⚙️ Additional Settings\n"
+                    if 'splashPage' in result:
+                        response += f"**Splash Page**: {result.get('splashPage', 'None')}\n"
+                    if 'bandSelection' in result:
+                        response += f"**Band Selection**: {result.get('bandSelection', 'Dual band operation')}\n"
+                    if 'perClientBandwidthLimitUp' in result or 'perClientBandwidthLimitDown' in result:
+                        up_limit = result.get('perClientBandwidthLimitUp', 'Unlimited')
+                        down_limit = result.get('perClientBandwidthLimitDown', 'Unlimited')
+                        response += f"**Bandwidth Limits**: ↑{up_limit} ↓{down_limit} Kbps per client\n"
                 else:
-                    response += f"**Result**: {result}\n"
+                    # Fallback for unexpected format
+                    response += f"**Result**: {str(result)}\n"
             else:
                 response += "*No data available*\n"
             

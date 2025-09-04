@@ -40,17 +40,20 @@ def register_helper_tool_handlers():
         """
         try:
             # Get network details first
-            network = meraki_client.get_network(network_id)
+            network = meraki_client.dashboard.networks.getNetwork(network_id)
             network_name = network.get('name', 'Unknown')
             
             audit_results = []
-            audit_results.append(f"# 🔍 Security Audit Report: {network_name}")
+            audit_results.append(f"# 🔍 Comprehensive Security Audit Report: {network_name}")
             audit_results.append(f"**Network ID**: {network_id}")
+            audit_results.append(f"**Organization**: {network.get('organizationId', 'Unknown')}")
+            audit_results.append(f"**Product Types**: {', '.join(network.get('productTypes', []))}")
+            audit_results.append(f"**Time Zone**: {network.get('timeZone', 'Unknown')}")
             audit_results.append(f"**Audit Time**: {__import__('datetime').datetime.now().isoformat()}\n")
             
             # 1. Check IDS/IPS status
             try:
-                ids_status = meraki_client.get_network_appliance_security_intrusion(network_id)
+                ids_status = meraki_client.dashboard.appliance.getNetworkApplianceSecurityIntrusion(network_id)
                 mode = ids_status.get('mode', 'disabled')
                 if mode == 'disabled':
                     audit_results.append("## ❌ IDS/IPS Status: DISABLED")
@@ -64,7 +67,7 @@ def register_helper_tool_handlers():
             
             # 2. Check AMP status
             try:
-                amp_status = meraki_client.get_network_appliance_security_malware(network_id)
+                amp_status = meraki_client.dashboard.appliance.getNetworkApplianceSecurityMalware(network_id)
                 mode = amp_status.get('mode', 'disabled')
                 if mode == 'disabled':
                     audit_results.append("## ❌ Malware Protection: DISABLED")
@@ -77,7 +80,7 @@ def register_helper_tool_handlers():
             
             # 3. Check content filtering
             try:
-                content_filter = meraki_client.get_network_appliance_content_filtering(network_id)
+                content_filter = meraki_client.dashboard.appliance.getNetworkApplianceContentFiltering(network_id)
                 blocked_categories = content_filter.get('blockedUrlCategories', [])
                 if not blocked_categories:
                     audit_results.append("## ❌ Content Filtering: NO CATEGORIES BLOCKED")
@@ -90,7 +93,7 @@ def register_helper_tool_handlers():
             
             # 4. Check firewall rules
             try:
-                l3_rules = meraki_client.get_network_appliance_firewall_l3_rules(network_id)
+                l3_rules = meraki_client.dashboard.appliance.getNetworkApplianceFirewallL3FirewallRules(network_id)
                 rules = l3_rules.get('rules', [])
                 custom_rules = [r for r in rules if r.get('comment') != 'Default rule']
                 if len(custom_rules) == 0:
@@ -104,10 +107,9 @@ def register_helper_tool_handlers():
             
             # 5. Check recent security events
             try:
-                events = meraki_client.get_network_appliance_security_events(
+                events = meraki_client.dashboard.appliance.getNetworkApplianceSecurityEvents(
                     network_id, 
-                    timespan=86400,  # Last 24 hours
-                    perPage=1000
+                    timespan=86400  # Last 24 hours
                 )
                 if events:
                     audit_results.append(f"## 🚨 Recent Security Events: {len(events)} in last 24h")
@@ -122,36 +124,286 @@ def register_helper_tool_handlers():
             
             # 6. Check WiFi security
             try:
-                ssids = meraki_client.get_network_wireless_ssids(network_id)
+                ssids = meraki_client.dashboard.wireless.getNetworkWirelessSsids(network_id)
                 weak_ssids = []
+                secure_ssids = []
+                disabled_ssids = 0
+                
                 for ssid in ssids:
                     if ssid.get('enabled'):
+                        ssid_name = ssid.get('name', f"SSID {ssid.get('number', '?')}")
                         auth = ssid.get('authMode', '')
+                        
                         if auth == 'open':
-                            weak_ssids.append(f"{ssid.get('name')} (Open - No password!)")
+                            weak_ssids.append(f"**{ssid_name}** (SSID {ssid.get('number')})")
+                            weak_ssids.append(f"  - ❌ Security: Open (No password!)")
+                            weak_ssids.append(f"  - Visible: {ssid.get('visible', 'Unknown')}")
+                            weak_ssids.append(f"  - Splash Page: {ssid.get('splashPage', 'None')}")
                         elif auth == 'psk' and ssid.get('encryptionMode') == 'wep':
-                            weak_ssids.append(f"{ssid.get('name')} (WEP - Weak encryption!)")
-                        elif auth == 'psk' and ssid.get('wpaEncryptionMode') not in ['WPA2 only', 'WPA3 only', 'WPA3 Transition Mode']:
-                            weak_ssids.append(f"{ssid.get('name')} (Weak WPA settings)")
+                            weak_ssids.append(f"**{ssid_name}** (SSID {ssid.get('number')})")
+                            weak_ssids.append(f"  - ❌ Security: WEP (Weak encryption!)")
+                        elif auth == 'psk':
+                            wpa_mode = ssid.get('wpaEncryptionMode', 'Unknown')
+                            if wpa_mode not in ['WPA2 only', 'WPA3 only', 'WPA3 Transition Mode']:
+                                weak_ssids.append(f"**{ssid_name}** (SSID {ssid.get('number')})")
+                                weak_ssids.append(f"  - ⚠️ Security: {wpa_mode} (Consider WPA2/WPA3)")
+                            else:
+                                secure_ssids.append(f"{ssid_name} ({wpa_mode})")
+                        elif auth == '8021x-radius':
+                            secure_ssids.append(f"{ssid_name} (Enterprise 802.1X)")
+                        else:
+                            secure_ssids.append(f"{ssid_name} ({auth})")
+                    else:
+                        disabled_ssids += 1
+                
+                audit_results.append("## 📶 WiFi Security Analysis")
+                audit_results.append(f"**Total SSIDs**: 15 (standard for Meraki)")
+                audit_results.append(f"**Enabled SSIDs**: {15 - disabled_ssids}")
+                audit_results.append(f"**Disabled SSIDs**: {disabled_ssids}\n")
                 
                 if weak_ssids:
-                    audit_results.append("## ❌ WiFi Security Issues Found:")
-                    for ssid in weak_ssids:
+                    audit_results.append("### ❌ Security Issues Found:")
+                    for line in weak_ssids:
+                        audit_results.append(line)
+                    audit_results.append("")
+                
+                if secure_ssids:
+                    audit_results.append("### ✅ Properly Secured SSIDs:")
+                    for ssid in secure_ssids:
                         audit_results.append(f"- {ssid}")
                     audit_results.append("")
-                else:
-                    audit_results.append("## ✅ WiFi Security: All SSIDs properly secured\n")
-            except:
-                audit_results.append("## ⚠️ WiFi Security: Unable to check\n")
+                    
+                if not weak_ssids and not secure_ssids:
+                    audit_results.append("### ℹ️ No active SSIDs configured\n")
+                    
+            except Exception as e:
+                audit_results.append(f"## ⚠️ WiFi Security: Unable to check - {str(e)}\n")
             
-            # 7. Summary and recommendations
-            audit_results.append("## 📋 Summary")
-            audit_results.append("Review the above findings and address any ❌ or ⚠️ items.")
-            audit_results.append("\n**Priority Actions:**")
-            audit_results.append("1. Enable any disabled security features")
-            audit_results.append("2. Review and update firewall rules")
-            audit_results.append("3. Ensure WiFi uses WPA2/WPA3 encryption")
-            audit_results.append("4. Monitor security events regularly")
+            # 7. Check VPN configuration
+            try:
+                vpn_config = meraki_client.dashboard.appliance.getNetworkApplianceVpnSiteToSiteVpn(network_id)
+                mode = vpn_config.get('mode', 'none')
+                
+                audit_results.append("## 🔐 VPN Configuration")
+                audit_results.append(f"**Mode**: {mode}")
+                
+                if mode != 'none':
+                    subnets = vpn_config.get('subnets', [])
+                    hubs = vpn_config.get('hubs', [])
+                    audit_results.append(f"**Subnets in VPN**: {len(subnets)}")
+                    audit_results.append(f"**Hub connections**: {len(hubs)}")
+                    
+                    # Check for local subnets
+                    local_subnets = [s for s in subnets if s.get('useVpn')]
+                    if local_subnets:
+                        audit_results.append("### Local subnets in VPN:")
+                        for subnet in local_subnets[:3]:
+                            audit_results.append(f"- {subnet.get('localSubnet')} ({subnet.get('name', 'Unnamed')})")
+                else:
+                    audit_results.append("VPN not configured")
+                audit_results.append("")
+            except:
+                pass
+            
+            # 8. Check VLAN configuration
+            try:
+                vlans = meraki_client.dashboard.appliance.getNetworkApplianceVlans(network_id)
+                
+                if vlans:
+                    audit_results.append("## 🏗️ Network Segmentation (VLANs)")
+                    audit_results.append(f"**Total VLANs**: {len(vlans)}")
+                    
+                    for vlan in vlans[:5]:  # Show first 5
+                        vlan_id = vlan.get('id', 'Unknown')
+                        vlan_name = vlan.get('name', 'Unnamed')
+                        subnet = vlan.get('subnet', 'Unknown')
+                        audit_results.append(f"- VLAN {vlan_id}: {vlan_name} ({subnet})")
+                    
+                    if len(vlans) > 5:
+                        audit_results.append(f"  ... and {len(vlans) - 5} more VLANs")
+                    audit_results.append("")
+                else:
+                    audit_results.append("## 🏗️ Network Segmentation")
+                    audit_results.append("⚠️ **No VLANs configured** - Consider network segmentation for security\n")
+            except:
+                pass
+            
+            # 9. Check Layer 7 firewall
+            try:
+                l7_rules = meraki_client.dashboard.appliance.getNetworkApplianceFirewallL7FirewallRules(network_id)
+                rules = l7_rules.get('rules', []) if isinstance(l7_rules, dict) else l7_rules
+                
+                if rules:
+                    audit_results.append("## 🌐 Layer 7 Application Control")
+                    audit_results.append(f"**Total L7 Rules**: {len(rules)}")
+                    
+                    blocked_countries = []
+                    blocked_apps = []
+                    
+                    for rule in rules:
+                        if rule.get('policy') == 'deny':
+                            rule_type = rule.get('type', '')
+                            if rule_type == 'blacklistedCountries':
+                                countries = rule.get('value', {}).get('countries', [])
+                                blocked_countries.extend(countries)
+                            elif rule_type == 'application':
+                                app_name = rule.get('value', {}).get('name', 'Unknown app')
+                                blocked_apps.append(app_name)
+                    
+                    if blocked_countries:
+                        audit_results.append(f"### 🌍 Geo-blocking Active:")
+                        audit_results.append(f"Blocking {len(set(blocked_countries))} countries: {', '.join(set(blocked_countries))}")
+                    
+                    if blocked_apps:
+                        audit_results.append(f"### 📱 Application Blocking:")
+                        for app in blocked_apps[:5]:
+                            audit_results.append(f"- {app}")
+                    audit_results.append("")
+                else:
+                    audit_results.append("## 🌐 Layer 7 Application Control")
+                    audit_results.append("⚠️ No L7 rules configured\n")
+            except:
+                pass
+            
+            # 10. Check client devices
+            try:
+                clients = meraki_client.dashboard.networks.getNetworkClients(network_id, timespan=86400)
+                
+                if clients:
+                    audit_results.append("## 👥 Client Analysis (Last 24h)")
+                    audit_results.append(f"**Total unique clients**: {len(clients)}")
+                    
+                    # Analyze client types
+                    os_types = {}
+                    manufacturers = {}
+                    
+                    for client in clients:
+                        os = client.get('os', 'Unknown')
+                        if os:
+                            os_types[os] = os_types.get(os, 0) + 1
+                        
+                        manufacturer = client.get('manufacturer', 'Unknown')
+                        if manufacturer:
+                            manufacturers[manufacturer] = manufacturers.get(manufacturer, 0) + 1
+                    
+                    # Show top OS types
+                    if os_types:
+                        audit_results.append("### Operating Systems:")
+                        sorted_os = sorted(os_types.items(), key=lambda x: x[1], reverse=True)
+                        for os, count in sorted_os[:5]:
+                            audit_results.append(f"- {os}: {count} devices")
+                    
+                    # Show top manufacturers
+                    if manufacturers:
+                        audit_results.append("### Device Manufacturers:")
+                        sorted_mfg = sorted(manufacturers.items(), key=lambda x: x[1], reverse=True)
+                        for mfg, count in sorted_mfg[:5]:
+                            audit_results.append(f"- {mfg}: {count} devices")
+                    
+                    audit_results.append("")
+            except:
+                pass
+            
+            # 11. Calculate security score
+            security_score = 0
+            max_score = 100
+            issues = []
+            
+            # IDS/IPS (20 points)
+            try:
+                if 'prevention' in str(audit_results):
+                    security_score += 20
+                elif 'detection' in str(audit_results):
+                    security_score += 10
+                else:
+                    issues.append("IDS/IPS disabled")
+            except:
+                pass
+            
+            # Malware protection (20 points)
+            if '✅ Malware Protection' in str(audit_results):
+                security_score += 20
+            else:
+                issues.append("Malware protection disabled")
+            
+            # Content filtering (15 points)
+            if '✅ Content Filtering' in str(audit_results):
+                security_score += 15
+            elif 'categories blocked' in str(audit_results):
+                security_score += 10
+            else:
+                issues.append("No content filtering")
+            
+            # Firewall rules (15 points)
+            if 'custom rules configured' in str(audit_results):
+                security_score += 15
+            else:
+                security_score += 5
+                issues.append("Only default firewall rules")
+            
+            # WiFi security (20 points)
+            if '❌ Security: Open' in str(audit_results):
+                issues.append("Open WiFi network detected")
+            elif '✅ Properly Secured SSIDs' in str(audit_results):
+                security_score += 20
+            else:
+                security_score += 10
+            
+            # VLANs (10 points)
+            if 'Total VLANs' in str(audit_results) and 'No VLANs' not in str(audit_results):
+                security_score += 10
+            else:
+                issues.append("No network segmentation")
+            
+            audit_results.append("## 🎯 Security Score")
+            audit_results.append(f"**Overall Score: {security_score}/100**")
+            
+            if security_score >= 80:
+                audit_results.append("✅ **Rating: Excellent** - Strong security posture")
+            elif security_score >= 60:
+                audit_results.append("⚠️ **Rating: Good** - Some improvements recommended")
+            elif security_score >= 40:
+                audit_results.append("⚠️ **Rating: Fair** - Significant improvements needed")
+            else:
+                audit_results.append("❌ **Rating: Poor** - Critical security gaps")
+            
+            if issues:
+                audit_results.append("\n### Key Issues to Address:")
+                for issue in issues:
+                    audit_results.append(f"- {issue}")
+            
+            # 12. Summary and recommendations
+            audit_results.append("\n## 📋 Detailed Recommendations")
+            
+            priority = 1
+            if 'IDS/IPS disabled' in issues:
+                audit_results.append(f"{priority}. **Enable IDS/IPS in prevention mode** - Critical for threat protection")
+                priority += 1
+            
+            if 'Malware protection disabled' in issues:
+                audit_results.append(f"{priority}. **Enable Advanced Malware Protection** - Essential for ransomware defense")
+                priority += 1
+            
+            if 'Open WiFi network' in str(issues):
+                audit_results.append(f"{priority}. **Secure WiFi with WPA2/WPA3** - Prevent unauthorized access")
+                priority += 1
+            
+            if 'No content filtering' in issues:
+                audit_results.append(f"{priority}. **Configure content filtering** - Block malicious websites")
+                priority += 1
+            
+            if 'No network segmentation' in issues:
+                audit_results.append(f"{priority}. **Implement VLANs** - Isolate critical systems")
+                priority += 1
+            
+            if priority == 1:
+                audit_results.append("✅ Security configuration looks good - maintain current settings")
+            
+            audit_results.append("\n**Regular Maintenance:**")
+            audit_results.append("- Review security events weekly")
+            audit_results.append("- Update firmware quarterly")
+            audit_results.append("- Audit firewall rules monthly")
+            audit_results.append("- Test backup connectivity regularly")
             
             return "\n".join(audit_results)
             
@@ -174,7 +426,7 @@ def register_helper_tool_handlers():
         """
         try:
             # Get network details
-            network = meraki_client.get_network(network_id)
+            network = meraki_client.dashboard.networks.getNetwork(network_id)
             network_name = network.get('name', 'Unknown')
             org_id = network.get('organizationId')
             product_types = network.get('productTypes', [])
@@ -239,7 +491,7 @@ def register_helper_tool_handlers():
             
             # 3. Check device status
             try:
-                devices = meraki_client.get_network_devices(network_id)
+                devices = meraki_client.dashboard.networks.getNetworkDevices(network_id)
                 offline_devices = []
                 alerting_devices = []
                 
@@ -269,10 +521,9 @@ def register_helper_tool_handlers():
             
             # 4. Check recent events
             try:
-                events = meraki_client.get_network_events(
+                events = meraki_client.dashboard.networks.getNetworkEvents(
                     network_id,
-                    event_types='port_carrier_change,went_down,came_up',
-                    timespan=86400,  # Last 24 hours
+                    productType='appliance',  # Required for multi-product networks
                     perPage=1000
                 )
                 
@@ -323,7 +574,7 @@ def register_helper_tool_handlers():
         """
         try:
             # Get organization details
-            org = meraki_client.get_organization(organization_id)
+            org = meraki_client.dashboard.organizations.getOrganization(organization_id)
             org_name = org.get('name', 'Unknown')
             
             analysis = []
@@ -331,7 +582,7 @@ def register_helper_tool_handlers():
             analysis.append(f"**Analysis Time**: {__import__('datetime').datetime.now().isoformat()}\n")
             
             # Get all networks
-            networks = meraki_client.get_organization_networks(organization_id)
+            networks = meraki_client.dashboard.organizations.getOrganizationNetworks(organization_id)
             
             # Security statistics
             networks_checked = 0
@@ -353,7 +604,7 @@ def register_helper_tool_handlers():
                 
                 # Check IDS/IPS
                 try:
-                    ids = meraki_client.get_network_appliance_security_intrusion(network_id)
+                    ids = meraki_client.dashboard.appliance.getNetworkApplianceSecurityIntrusion(network_id)
                     if ids.get('mode') != 'disabled':
                         ids_enabled_count += 1
                 except:
@@ -361,7 +612,7 @@ def register_helper_tool_handlers():
                 
                 # Check AMP
                 try:
-                    amp = meraki_client.get_network_appliance_security_malware(network_id)
+                    amp = meraki_client.dashboard.appliance.getNetworkApplianceSecurityMalware(network_id)
                     if amp.get('mode') != 'disabled':
                         amp_enabled_count += 1
                 except:
@@ -369,7 +620,7 @@ def register_helper_tool_handlers():
                 
                 # Check content filtering
                 try:
-                    cf = meraki_client.get_network_appliance_content_filtering(network_id)
+                    cf = meraki_client.dashboard.appliance.getNetworkApplianceContentFiltering(network_id)
                     if cf.get('blockedUrlCategories'):
                         content_filter_count += 1
                 except:
@@ -377,7 +628,7 @@ def register_helper_tool_handlers():
                 
                 # Check WiFi security
                 try:
-                    ssids = meraki_client.get_network_wireless_ssids(network_id)
+                    ssids = meraki_client.dashboard.wireless.getNetworkWirelessSsids(network_id)
                     for ssid in ssids:
                         if ssid.get('enabled'):
                             auth = ssid.get('authMode', '')
@@ -389,10 +640,9 @@ def register_helper_tool_handlers():
                 
                 # Count security events
                 try:
-                    events = meraki_client.get_network_appliance_security_events(
+                    events = meraki_client.dashboard.appliance.getNetworkApplianceSecurityEvents(
                         network_id, 
-                        timespan=86400,
-                        perPage=100000
+                        timespan=86400
                     )
                     total_threats += len(events)
                 except:
@@ -518,7 +768,7 @@ def register_helper_tool_handlers():
                         if "83" not in dangerous_categories:
                             dangerous_categories.append("83")
                     
-                    meraki_client.update_network_appliance_content_filtering(
+                    meraki_client.dashboard.appliance.updateNetworkApplianceContentFiltering(
                         network_id,
                         blockedUrlCategories=[f"meraki:contentFiltering/category/{cat}" for cat in dangerous_categories],
                         urlCategoryListSize='fullList'
@@ -568,7 +818,7 @@ def register_helper_tool_handlers():
             # Apply L7 rules if any
             if l7_rules:
                 try:
-                    meraki_client.update_network_appliance_firewall_l7_rules(network_id, rules=l7_rules)
+                    meraki_client.dashboard.appliance.updateNetworkApplianceFirewallL7FirewallRules(network_id, rules=l7_rules)
                 except Exception as e:
                     results.append(f"❌ **L7 Firewall**: Failed - {str(e)}")
             
@@ -576,7 +826,7 @@ def register_helper_tool_handlers():
             if custom_blocked_ports:
                 try:
                     # Get existing L3 rules
-                    current_l3 = meraki_client.get_network_appliance_firewall_l3_rules(network_id)
+                    current_l3 = meraki_client.dashboard.appliance.getNetworkApplianceFirewallL3FirewallRules(network_id)
                     existing_rules = current_l3.get('rules', [])
                     
                     # Add port blocking rules
@@ -594,16 +844,16 @@ def register_helper_tool_handlers():
                         existing_rules.insert(0, new_rule)  # Add to beginning
                     
                     # Update rules
-                    meraki_client.update_network_appliance_firewall_l3_rules(network_id, rules=existing_rules)
+                    meraki_client.dashboard.appliance.updateNetworkApplianceFirewallL3FirewallRules(network_id, rules=existing_rules)
                     results.append(f"✅ **L3 Firewall**: Blocked TCP ports: {custom_blocked_ports}")
                 except Exception as e:
                     results.append(f"❌ **L3 Firewall**: Failed - {str(e)}")
             
             # 4. Enable IDS/IPS if not already enabled
             try:
-                ids_status = meraki_client.get_network_appliance_security_intrusion(network_id)
+                ids_status = meraki_client.dashboard.appliance.getNetworkApplianceSecurityIntrusion(network_id)
                 if ids_status.get('mode') == 'disabled':
-                    meraki_client.update_network_appliance_security_intrusion(
+                    meraki_client.dashboard.appliance.updateNetworkApplianceSecurityIntrusion(
                         network_id,
                         mode='prevention',
                         idsRulesets='balanced'
@@ -616,9 +866,9 @@ def register_helper_tool_handlers():
             
             # 5. Enable AMP if not already enabled
             try:
-                amp_status = meraki_client.get_network_appliance_security_malware(network_id)
+                amp_status = meraki_client.dashboard.appliance.getNetworkApplianceSecurityMalware(network_id)
                 if amp_status.get('mode') == 'disabled':
-                    meraki_client.update_network_appliance_security_malware(network_id, mode='enabled')
+                    meraki_client.dashboard.appliance.updateNetworkApplianceSecurityMalware(network_id, mode='enabled')
                     results.append("✅ **Malware Protection**: Enabled AMP")
                 else:
                     results.append("ℹ️ **Malware Protection**: Already enabled")
