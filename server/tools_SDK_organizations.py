@@ -5293,15 +5293,12 @@ def register_organizations_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    for i, item in enumerate(result[:10], 1):
+                    for i, item in enumerate(result, 1):
                         response += f"{i}. **{item.get('name', item.get('id', 'Item'))}**\n"
                         if isinstance(item, dict):
                             for key, value in list(item.items())[:3]:
                                 response += f"   - {key}: {value}\n"
                         response += "\n"
-                    
-                    if len(result) > 10:
-                        response += f"... and {len(result)-10} more items\n"
                 else:
                     response += f"**Result**: {result}\n"
             else:
