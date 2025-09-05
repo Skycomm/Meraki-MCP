@@ -51,8 +51,7 @@ from server.tools_Custom_helpers import register_helper_tools
 from server.tools_Custom_monitoring_filtered import register_monitoring_tools_filtered  # 6 unique analytics tools
 from server.tools_Custom_search import register_search_tools
 
-# Import N8N essentials module
-from server.tools_N8N_essentials import register_n8n_essentials_tools
+# Import N8N essentials module (removed - using generic helpers instead)
 
 # Register resources first (always loaded)
 register_resources(app, meraki)
@@ -101,9 +100,7 @@ if should_load_module('Custom_monitoring_filtered', profile_name):
 if should_load_module('Custom_search', profile_name):
     register_search_tools(app, meraki)
 
-# Register N8N essentials module
-if should_load_module('N8N_essentials', profile_name):
-    register_n8n_essentials_tools(app, meraki)
+# N8N essentials module removed - generic MAC lookup tools are in Custom_helpers
 
 print(f"✅ Cisco Meraki MCP Server initialized with {profile_name} profile")
 
