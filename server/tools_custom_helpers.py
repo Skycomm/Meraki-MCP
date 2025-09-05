@@ -1651,13 +1651,9 @@ def _audit_transmission_security(networks, all_devices):
             except:
                 pass
             
-            # Check client VPN
-            try:
-                client_vpn = meraki_client.dashboard.appliance.getNetworkApplianceClientVpnSettings(net_id)
-                if client_vpn.get('enabled'):
-                    client_vpn_networks += 1
-            except:
-                pass
+            # Check client VPN (API not available in current SDK - skip for now)
+            # This would be implemented when client VPN API is available
+            # For now, we'll focus on site-to-site VPN which is more critical for HIPAA
         
         if vpn_networks > 0 or client_vpn_networks > 0:
             if vpn_networks >= len(networks) * 0.3:  # 30% threshold for VPN
