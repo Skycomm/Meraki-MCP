@@ -2042,3 +2042,155 @@ def _collect_compliance_evidence(networks, all_devices):
         pass
     
     return evidence
+
+    @app.tool(
+        name="find_device_by_mac_address",
+        description="🔍 MAC LOOKUP - Find device's current IP address using MAC address"
+    )
+    def find_device_by_mac_address(mac_address: str, network_id: str = "L_726205439913500692"):
+        """
+        Find device's current IP address and details by MAC address.
+        
+        Args:
+            mac_address: MAC address to search for (e.g., 02:f9:16:10:d7:85)
+            network_id: Network to search in (defaults to Reserve St)
+        """
+        try:
+            # Get all clients with extended timespan to catch recent connections
+            clients = meraki_client.dashboard.networks.getNetworkClients(
+                network_id, 
+                timespan=86400 * 7,  # 7 days
+                perPage=1000,
+                total_pages='all'
+            )
+            
+            # Search for the MAC address
+            target_device = None
+            for client in clients:
+                if client.get('mac', '').lower() == mac_address.lower():
+                    target_device = client
+                    break
+            
+            if target_device:
+                return {
+                    "found": True,
+                    "device": {
+                        "mac": target_device.get('mac'),
+                        "ip": target_device.get('ip'),
+                        "description": target_device.get('description') or target_device.get('dhcpHostname') or 'Unknown',
+                        "manufacturer": target_device.get('manufacturer', 'Unknown'),
+                        "os": target_device.get('os', 'Unknown'),
+                        "vlan": target_device.get('vlan', 'Unknown'),
+                        "status": target_device.get('status', 'Unknown'),
+                        "last_seen": target_device.get('recentDeviceConnection', 'Unknown')
+                    },
+                    "message": f"Device found at IP {target_device.get('ip')}"
+                }
+            else:
+                return {
+                    "found": False,
+                    "message": f"Device with MAC {mac_address} not found in recent client list",
+                    "suggestions": [
+                        "Device may be offline or not connected recently",
+                        "Try extending search timespan",
+                        "Check if device is on a different network/VLAN"
+                    ]
+                }
+                
+        except Exception as e:
+            return {"error": str(e)}
+
+    @app.tool(
+        name="lookup_mac_by_ip_and_reserve_dhcp",
+        description="🔍 IP TO MAC + DHCP - Find device MAC by IP, create DHCP reservation"
+    )
+    def lookup_mac_by_ip_and_reserve_dhcp(current_ip: str, desired_ip: str, network_id: str = "L_726205439913500692"):
+        """
+        Find device by current IP, get its MAC address, then create DHCP reservation.
+        
+        Args:
+            current_ip: Current IP address of device (e.g., 10.0.5.146)
+            desired_ip: Desired IP for reservation (e.g., 10.0.5.5)
+            network_id: Network ID (defaults to Reserve St)
+        """
+        try:
+            # Step 1: Find device by current IP
+            clients = meraki_client.dashboard.networks.getNetworkClients(
+                network_id,
+                timespan=86400 * 7,
+                perPage=1000,
+                total_pages='all'
+            )
+            
+            target_device = None
+            for client in clients:
+                if client.get('ip') == current_ip:
+                    target_device = client
+                    break
+            
+            if not target_device:
+                return {
+                    "error": f"Device at IP {current_ip} not found",
+                    "suggestion": "Device may be offline or IP changed recently"
+                }
+            
+            mac_address = target_device.get('mac')
+            vlan_id = target_device.get('vlan')
+            device_name = target_device.get('description') or target_device.get('dhcpHostname') or 'Reserved Device'
+            
+            # Step 2: Create DHCP reservation
+            dhcp_subnets = meraki_client.dashboard.appliance.getNetworkApplianceDhcpSubnets(network_id)
+            
+            # Find the VLAN subnet
+            target_subnet = None
+            for subnet in dhcp_subnets:
+                if subnet.get('vlanId') == int(vlan_id):
+                    target_subnet = subnet
+                    break
+            
+            if not target_subnet:
+                return {"error": f"VLAN {vlan_id} not found or DHCP not enabled"}
+            
+            # Check if desired IP is already reserved
+            existing = target_subnet.get('fixedIpAssignments', [])
+            for res in existing:
+                if res.get('ip') == desired_ip:
+                    return {
+                        "error": f"IP {desired_ip} already reserved",
+                        "existing_device": res
+                    }
+            
+            # Add new reservation
+            new_reservations = existing.copy()
+            new_reservations.append({
+                'mac': mac_address,
+                'ip': desired_ip,
+                'name': device_name
+            })
+            
+            # Update DHCP subnet
+            result = meraki_client.dashboard.appliance.updateNetworkApplianceDhcpSubnet(
+                network_id,
+                str(vlan_id),
+                fixedIpAssignments=new_reservations
+            )
+            
+            return {
+                "success": True,
+                "message": "🎉 DHCP reservation created successfully!",
+                "device_found": {
+                    "mac": mac_address,
+                    "current_ip": current_ip,
+                    "reserved_ip": desired_ip,
+                    "device_name": device_name,
+                    "vlan": vlan_id
+                },
+                "next_steps": [
+                    "1. Reboot the device or renew DHCP lease",
+                    f"2. Device should get new IP {desired_ip}",
+                    "3. Update any services using the old IP"
+                ]
+            }
+            
+        except Exception as e:
+            return {"error": f"Failed: {str(e)}"}
