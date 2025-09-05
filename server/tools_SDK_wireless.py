@@ -3795,20 +3795,90 @@ def register_wireless_sdk_tools():
         description="📶 Get network wirelessSsid"
     )
     def get_network_wireless_ssid(network_id: str, ssid_number: str = "0"):
-        """Get specific network wireless SSID details."""
+        """Get specific network wireless SSID details. Auto-detects MX vs MR infrastructure."""
         try:
-            result = meraki_client.dashboard.wireless.getNetworkWirelessSsid(
-                network_id, ssid_number
-            )
+            # Detect infrastructure type - use correct API based on devices
+            devices = meraki_client.dashboard.networks.getNetworkDevices(network_id)
+            mx_with_wifi = [d for d in devices if d.get('model', '').startswith('MX') and ('W' in d.get('model', '') or 'w' in d.get('model', ''))]
+            mr_devices = [d for d in devices if d.get('model', '').startswith('MR')]
             
-            response = f"# 📶 Network Wireless SSID Details\n\n"
+            result = None
+            api_used = ""
+            source = ""
+            
+            # Try to get SSID from appropriate sources based on infrastructure
+            if mx_with_wifi and not mr_devices:
+                # MX integrated wireless only - use appliance API
+                try:
+                    result = meraki_client.dashboard.appliance.getNetworkApplianceSsid(
+                        network_id, ssid_number
+                    )
+                    api_used = "MX Appliance (integrated wireless)"
+                    source = "MX_Integrated"
+                except:
+                    result = None
+                    
+            elif not mx_with_wifi and mr_devices:
+                # MR dedicated wireless only - use wireless API
+                try:
+                    result = meraki_client.dashboard.wireless.getNetworkWirelessSsid(
+                        network_id, ssid_number
+                    )
+                    api_used = "MR Wireless (dedicated access points)"
+                    source = "MR_Dedicated"
+                except:
+                    result = None
+                    
+            elif mx_with_wifi and mr_devices:
+                # Mixed infrastructure - try both APIs, return whichever works
+                mx_result = None
+                mr_result = None
+                
+                try:
+                    mx_result = meraki_client.dashboard.appliance.getNetworkApplianceSsid(
+                        network_id, ssid_number
+                    )
+                except:
+                    pass
+                    
+                try:
+                    mr_result = meraki_client.dashboard.wireless.getNetworkWirelessSsid(
+                        network_id, ssid_number
+                    )
+                except:
+                    pass
+                
+                # Use whichever one returned data, prefer MX if both exist
+                if mx_result:
+                    result = mx_result
+                    api_used = "MX Appliance (integrated wireless)"
+                    source = "MX_Integrated"
+                elif mr_result:
+                    result = mr_result
+                    api_used = "MR Wireless (dedicated access points)"
+                    source = "MR_Dedicated"
+                else:
+                    api_used = "Both MX and MR APIs (SSID not found in either)"
+                    
+            if result:
+                result['_source'] = source
+            
+            response = f"# 📶 Network Wireless SSID Details\n**API Used**: {api_used}\n\n"
             
             if result is not None:
                 if isinstance(result, dict):
                     # Show SSID details with security information
                     response += f"**SSID Name**: {result.get('name', 'Unnamed')}\n"
                     response += f"**Number**: {result.get('number', ssid_number)}\n"
-                    response += f"**Enabled**: {'✅ Yes' if result.get('enabled') else '❌ No'}\n\n"
+                    response += f"**Enabled**: {'✅ Yes' if result.get('enabled') else '❌ No'}\n"
+                    
+                    # Show source infrastructure
+                    source = result.get('_source', '')
+                    if source == 'MX_Integrated':
+                        response += f"**Source**: 🔧 MX Integrated Wireless\n"
+                    elif source == 'MR_Dedicated':
+                        response += f"**Source**: 📡 MR Dedicated Access Point\n"
+                    response += "\n"
                     
                     # Security Configuration
                     response += "## 🔐 Security Configuration\n"
@@ -3816,9 +3886,18 @@ def register_wireless_sdk_tools():
                     response += f"**Authentication Mode**: {auth_mode}\n"
                     
                     if auth_mode == 'psk':
-                        response += f"**Security**: ✅ WPA/WPA2 Personal (PSK)\n"
-                        wpa_encryption = result.get('wpaEncryptionMode', 'Unknown')
-                        response += f"**Encryption Mode**: {wpa_encryption}\n"
+                        # For MX networks, check if PSK actually has a value
+                        if mx_with_wifi and not mr_devices:
+                            # MX integrated wireless - check PSK presence
+                            if result.get('psk'):
+                                response += f"**Security**: ✅ WPA/WPA2 Personal (PSK) - Password Protected\n"
+                            else:
+                                response += f"**Security**: ⚠️ PSK Configured but No Password Set\n"
+                        else:
+                            # MR wireless - use existing logic
+                            response += f"**Security**: ✅ WPA/WPA2 Personal (PSK)\n"
+                            wpa_encryption = result.get('wpaEncryptionMode', 'Unknown')
+                            response += f"**Encryption Mode**: {wpa_encryption}\n"
                     elif auth_mode == 'open':
                         response += f"**Security**: ❌ Open (No Password Protection)\n"
                     else:
@@ -4786,11 +4865,51 @@ def register_wireless_sdk_tools():
         description="📶 Get network wirelessSsids"
     )
     def get_network_wireless_ssids(network_id: str):
-        """Get all wireless SSIDs for a network."""
+        """Get all wireless SSIDs for a network. Auto-detects MX vs MR infrastructure."""
         try:
-            result = meraki_client.dashboard.wireless.getNetworkWirelessSsids(network_id)
+            # Detect infrastructure type - use correct API based on devices
+            devices = meraki_client.dashboard.networks.getNetworkDevices(network_id)
+            mx_with_wifi = [d for d in devices if d.get('model', '').startswith('MX') and ('W' in d.get('model', '') or 'w' in d.get('model', ''))]
+            mr_devices = [d for d in devices if d.get('model', '').startswith('MR')]
             
-            response = f"# 📶 Get Network Wirelessssids\n\n"
+            # Collect SSIDs from appropriate sources based on infrastructure
+            mx_ssids = []
+            mr_ssids = []
+            api_sources = []
+            
+            if mx_with_wifi:
+                # Get MX integrated wireless SSIDs
+                try:
+                    mx_ssids = meraki_client.dashboard.appliance.getNetworkApplianceSsids(network_id)
+                    api_sources.append("MX Appliance (integrated wireless)")
+                except:
+                    mx_ssids = []
+            
+            if mr_devices:
+                # Get MR dedicated wireless SSIDs
+                try:
+                    mr_ssids = meraki_client.dashboard.wireless.getNetworkWirelessSsids(network_id)
+                    api_sources.append("MR Wireless (dedicated access points)")
+                except:
+                    mr_ssids = []
+            
+            # Combine results
+            result = []
+            if mx_ssids:
+                # Add source identifier to MX SSIDs
+                for ssid in mx_ssids:
+                    ssid['_source'] = 'MX_Integrated'
+                result.extend(mx_ssids)
+            
+            if mr_ssids:
+                # Add source identifier to MR SSIDs
+                for ssid in mr_ssids:
+                    ssid['_source'] = 'MR_Dedicated'
+                result.extend(mr_ssids)
+            
+            api_used = " + ".join(api_sources) if api_sources else "No wireless infrastructure found"
+            
+            response = f"# 📶 Get Network Wirelessssids\n**API Used**: {api_used}\n\n"
             
             if result is not None:
                 if isinstance(result, list):
@@ -4800,7 +4919,9 @@ def register_wireless_sdk_tools():
                     for idx, item in enumerate(result[:10], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('ssid', item.get('id', f'Item {idx}')))
-                            response += f"**{idx}. {name}**\n"
+                            source = item.get('_source', 'Unknown')
+                            source_label = "🔧 MX Integrated" if source == 'MX_Integrated' else "📡 MR Dedicated" if source == 'MR_Dedicated' else ""
+                            response += f"**{idx}. {name}** {source_label}\n"
                             
                             # Show key fields based on wireless context
                             if 'ssid' in item:
