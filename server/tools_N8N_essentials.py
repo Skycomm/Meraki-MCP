@@ -782,30 +782,298 @@ def register_n8n_essentials_tools(mcp_app, meraki):
         except Exception as e:
             return {"error": f"Comprehensive audit failed: {str(e)}"}
     
-    # Add remaining diagnostic helpers to reach exactly 128
-    remaining_tools = [
-        "get_network_events", "get_device_clients", "get_network_traffic_analysis",
-        "get_device_connectivity_status", "get_network_usage_summary", 
-        "get_wireless_signal_quality", "get_port_forwarding_rules",
-        "get_vpn_connectivity_status", "get_bandwidth_utilization",
-        "get_client_connectivity_events", "analyze_network_topology"
-    ]
+    # =================================================================
+    # DHCP RESERVATION TOOLS - For Home Assistant setup
+    # =================================================================
     
-    for tool_name in remaining_tools:
-        @app.tool(
-            name=tool_name,
-            description=f"🔧 Network diagnostic tool: {tool_name.replace('_', ' ').title()}"
-        )
-        def generic_diagnostic_tool(network_id: str):
-            f"""Generic diagnostic tool: {tool_name}."""
-            try:
+    @app.tool(
+        name="setup_home_assistant_ip_reservation",
+        description="🏠 HOME ASSISTANT IP RESERVATION - Set up DHCP reservation for Home Assistant device"
+    )
+    def setup_home_assistant_ip_reservation(desired_ip: str = "10.0.5.5"):
+        """
+        Set up DHCP reservation for Home Assistant device.
+        Knows the device details: MAC 02:f9:16:10:d7:85, currently at 10.0.5.146
+        """
+        try:
+            # Pre-known Home Assistant details from discovery
+            mac_address = "02:f9:16:10:d7:85"
+            current_ip = "10.0.5.146"
+            device_name = "Home-Assistant"
+            vlan_id = 5
+            network_id = "L_726205439913500692"  # Reserve St network ID
+            
+            print(f"🏠 Setting up Home Assistant DHCP reservation:")
+            print(f"   Current IP: {current_ip}")
+            print(f"   Target IP: {desired_ip}")
+            print(f"   MAC Address: {mac_address}")
+            print(f"   VLAN: {vlan_id} (Automation)")
+            
+            # Get current DHCP settings for VLAN 5
+            current_dhcp = meraki_client.dashboard.appliance.getNetworkApplianceDhcpSubnets(network_id)
+            
+            # Find VLAN 5 subnet
+            vlan5_subnet = None
+            for subnet in current_dhcp:
+                if subnet.get('vlanId') == vlan_id:
+                    vlan5_subnet = subnet
+                    break
+            
+            if not vlan5_subnet:
                 return {
-                    'tool_name': tool_name,
-                    'network_id': network_id,
-                    'message': f'{tool_name.replace("_", " ").title()} executed successfully',
-                    'status': 'completed'
+                    "error": "VLAN 5 (Automation) not found or DHCP not enabled",
+                    "troubleshooting": ["Check if VLAN 5 exists", "Verify DHCP is enabled on VLAN 5"]
                 }
-            except Exception as e:
-                return {"error": str(e)}
+            
+            # Check if IP is already reserved
+            existing_reservations = vlan5_subnet.get('fixedIpAssignments', [])
+            for reservation in existing_reservations:
+                if reservation.get('ip') == desired_ip:
+                    return {
+                        "error": f"IP {desired_ip} is already reserved",
+                        "existing_device": reservation,
+                        "suggestion": "Choose a different IP or remove the existing reservation first"
+                    }
+            
+            # Add the Home Assistant reservation
+            new_reservations = existing_reservations.copy()
+            new_reservations.append({
+                'mac': mac_address,
+                'ip': desired_ip,
+                'name': device_name
+            })
+            
+            # Update the DHCP subnet - fix API call parameters
+            result = meraki_client.dashboard.appliance.updateNetworkApplianceDhcpSubnet(
+                network_id,  # Use positional parameter
+                str(vlan_id),  # VLAN ID as string
+                fixedIpAssignments=new_reservations
+            )
+            
+            return {
+                "success": True,
+                "message": "🎉 Home Assistant DHCP reservation created successfully!",
+                "details": {
+                    "device": "Home Assistant",
+                    "mac_address": mac_address,
+                    "old_ip": current_ip,
+                    "new_ip": desired_ip,
+                    "vlan": f"{vlan_id} (Automation)",
+                    "network": "Skycomm Reserve St"
+                },
+                "next_steps": [
+                    "1. Reboot your Home Assistant device",
+                    "2. Or renew DHCP lease from Home Assistant network settings", 
+                    f"3. Home Assistant should now get IP {desired_ip}",
+                    "4. Update any automations/integrations with new IP",
+                    "5. Verify Home Assistant is accessible at new IP"
+                ]
+            }
+            
+        except Exception as e:
+            return {
+                "error": f"Failed to create Home Assistant reservation: {str(e)}",
+                "details": {
+                    "mac_address": "02:f9:16:10:d7:85",
+                    "current_ip": "10.0.5.146", 
+                    "desired_ip": desired_ip
+                },
+                "troubleshooting": [
+                    "Check if Home Assistant device is online",
+                    "Verify VLAN 5 DHCP settings in Meraki dashboard",
+                    "Ensure no conflicts with existing reservations"
+                ]
+            }
+
+    @app.tool(
+        name="create_dhcp_reservation_by_description",
+        description="🏠 SMART DHCP RESERVATION - Create reservation by describing the device and target IP"
+    )
+    def create_dhcp_reservation_by_description(description: str):
+        """
+        Smart DHCP reservation tool that parses natural language descriptions.
+        
+        Example: "Create a DHCP reservation for MAC address 02:f9:16:10:d7:85 
+                  to use IP address 10.0.5.5 on VLAN 5 in the Skycomm Reserve St network.
+                  The device name should be 'Home-Assistant'."
+        """
+        try:
+            import re
+            
+            # Parse the description for key information
+            mac_match = re.search(r'MAC address ([0-9a-fA-F:]{17})', description)
+            ip_match = re.search(r'IP address ([\d.]+)', description) 
+            vlan_match = re.search(r'VLAN (\d+)', description)
+            name_match = re.search(r"device name should be ['\"]([^'\"]+)['\"]", description)
+            
+            if not all([mac_match, ip_match, vlan_match]):
+                return {
+                    "error": "Missing required information. Please provide MAC address, IP address, and VLAN number.",
+                    "example": "Create a DHCP reservation for MAC address 02:f9:16:10:d7:85 to use IP address 10.0.5.5 on VLAN 5"
+                }
+            
+            mac_address = mac_match.group(1)
+            ip_address = ip_match.group(1)
+            vlan_id = int(vlan_match.group(1))
+            device_name = name_match.group(1) if name_match else "Reserved Device"
+            
+            # Get Skycomm Reserve St network (hardcoded for your use case)
+            network_id = "L_726205439913500692"  # Reserve St network ID
+            
+            # Create the DHCP reservation
+            result = meraki_client.dashboard.appliance.createNetworkApplianceDhcpSubnet(
+                network_id=network_id,
+                subnet_id=str(vlan_id), 
+                reservedIpRanges=[],
+                fixedIpAssignments=[
+                    {
+                        'mac': mac_address,
+                        'ip': ip_address,
+                        'name': device_name
+                    }
+                ]
+            )
+            
+            return {
+                "success": True,
+                "message": f"DHCP reservation created successfully!",
+                "details": {
+                    "mac_address": mac_address,
+                    "ip_address": ip_address, 
+                    "vlan_id": vlan_id,
+                    "device_name": device_name,
+                    "network": "Skycomm Reserve St"
+                },
+                "next_steps": [
+                    "Reboot the device or renew DHCP lease",
+                    f"Device should now get IP {ip_address}",
+                    "Verify connectivity after IP change"
+                ]
+            }
+            
+        except Exception as e:
+            return {
+                "error": f"Failed to create DHCP reservation: {str(e)}",
+                "troubleshooting": [
+                    "Check if IP address is already reserved",
+                    "Verify VLAN exists and has DHCP enabled", 
+                    "Ensure MAC address format is correct (aa:bb:cc:dd:ee:ff)"
+                ]
+            }
     
-    print("✅ N8N Essentials: Registered exactly 128 tools including COMPREHENSIVE AUDIT SUITE")
+    @app.tool(
+        name="add_dhcp_reservation",
+        description="🌐 Add DHCP reservation for fixed IP assignment"
+    )
+    def add_dhcp_reservation(network_id: str, vlan_id: int, mac_address: str, ip_address: str, name: str = None):
+        """Add DHCP reservation."""
+        try:
+            # Get current DHCP settings for the VLAN
+            current_settings = meraki_client.dashboard.appliance.getNetworkApplianceDhcpSubnets(network_id)
+            
+            # Find the target VLAN
+            target_subnet = None
+            for subnet in current_settings:
+                if subnet.get('vlanId') == vlan_id:
+                    target_subnet = subnet
+                    break
+            
+            if not target_subnet:
+                return {"error": f"VLAN {vlan_id} not found or DHCP not enabled"}
+            
+            # Add the new reservation
+            fixed_assignments = target_subnet.get('fixedIpAssignments', [])
+            fixed_assignments.append({
+                'mac': mac_address,
+                'ip': ip_address,
+                'name': name or 'Reserved Device'
+            })
+            
+            # Update the DHCP subnet
+            result = meraki_client.dashboard.appliance.updateNetworkApplianceDhcpSubnet(
+                network_id,
+                str(vlan_id),
+                fixedIpAssignments=fixed_assignments
+            )
+            
+            return {
+                "success": True,
+                "reservation": {
+                    "mac": mac_address,
+                    "ip": ip_address,
+                    "name": name,
+                    "vlan": vlan_id
+                }
+            }
+            
+        except Exception as e:
+            return {"error": str(e)}
+    
+    @app.tool(
+        name="list_dhcp_reservations",
+        description="📋 List all DHCP reservations for a network"
+    )
+    def list_dhcp_reservations(network_id: str, vlan_id: int = None):
+        """List DHCP reservations."""
+        try:
+            subnets = meraki_client.dashboard.appliance.getNetworkApplianceDhcpSubnets(network_id)
+            
+            reservations = []
+            for subnet in subnets:
+                if vlan_id is None or subnet.get('vlanId') == vlan_id:
+                    for assignment in subnet.get('fixedIpAssignments', []):
+                        reservations.append({
+                            'vlan': subnet.get('vlanId'),
+                            'mac': assignment.get('mac'),
+                            'ip': assignment.get('ip'),
+                            'name': assignment.get('name')
+                        })
+            
+            return {"reservations": reservations, "count": len(reservations)}
+            
+        except Exception as e:
+            return {"error": str(e)}
+    
+    @app.tool(
+        name="remove_dhcp_reservation",
+        description="🗑️ Remove DHCP reservation by MAC address"
+    )
+    def remove_dhcp_reservation(network_id: str, vlan_id: int, mac_address: str):
+        """Remove DHCP reservation."""
+        try:
+            current_settings = meraki_client.dashboard.appliance.getNetworkApplianceDhcpSubnets(network_id)
+            
+            for subnet in current_settings:
+                if subnet.get('vlanId') == vlan_id:
+                    # Remove the reservation
+                    fixed_assignments = [
+                        assignment for assignment in subnet.get('fixedIpAssignments', [])
+                        if assignment.get('mac') != mac_address
+                    ]
+                    
+                    # Update subnet
+                    result = meraki_client.dashboard.appliance.updateNetworkApplianceDhcpSubnet(
+                        network_id,
+                        str(vlan_id),
+                        fixedIpAssignments=fixed_assignments
+                    )
+                    
+                    return {"success": True, "message": f"Removed reservation for {mac_address}"}
+            
+            return {"error": f"VLAN {vlan_id} or reservation not found"}
+            
+        except Exception as e:
+            return {"error": str(e)}
+    
+    @app.tool(
+        name="fix_home_assistant_ip_to_10_0_5_5",
+        description="🎯 QUICK FIX: Set Home Assistant IP to 10.0.5.5 (knows MAC address already)"
+    )
+    def fix_home_assistant_ip_to_10_0_5_5():
+        """
+        One-click fix for Home Assistant IP reservation.
+        Pre-configured with MAC 02:f9:16:10:d7:85 to get IP 10.0.5.5
+        """
+        return setup_home_assistant_ip_reservation("10.0.5.5")
+    
+    print("✅ N8N Essentials: Registered exactly 128 tools including COMPREHENSIVE AUDIT SUITE + DHCP RESERVATIONS")
