@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  meraki-mcp-server:
+    build: .
+    container_name: meraki-mcp-server
+    ports:
+      - "8100:8100"
+    environment:
+      - MCP_PROFILE=N8N_ESSENTIALS
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=8100
+      - MERAKI_API_KEY=${MERAKI_API_KEY}
+    command: >
+      /bin/bash -c "
+        source .venv/bin/activate &&
+        python -c \"
+        import os
+        os.environ['MCP_PROFILE'] = 'N8N_ESSENTIALS'
+        from server.main import app
+        import uvicorn
+        print('🎯 Loading N8N_ESSENTIALS profile (97 tools)...')
+        print('🌐 Starting HTTP server on port 8100...')
+        uvicorn.run(app.streamable_http_app, host='0.0.0.0', port=8100)
+        \"
+      "
+    networks:
+      - n8n_network
+
+networks:
+  n8n_network:
+    external: true

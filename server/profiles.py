@@ -109,6 +109,39 @@ PROFILES = {
             'helpers'
         ],
         'tool_count': 80
+    },
+    
+    'N8N_DIAGNOSTICS': {
+        'name': 'N8N Network Diagnostics',
+        'description': 'Automated network diagnostics for support tickets - latency, packet loss, health checks',
+        'modules': [
+            'resources',
+            # Core discovery tools
+            'SDK_organizations',     # 25 selected: org lookup, network discovery
+            'SDK_networks',          # 20 selected: network info, clients, alerts
+            'SDK_devices',           # 15 selected: device status, performance
+            # Performance & analytics tools  
+            'SDK_wireless',          # 35 selected: WiFi performance, latency, packet loss
+            'SDK_appliance',         # 15 selected: WAN performance, uplink status
+            'SDK_switch',            # 10 selected: switch port status, performance
+            # Custom diagnostic tools
+            'Custom_search',         # 5 tools: cross-org device search
+            'Custom_analytics',      # 8 tools: performance analytics
+            'Custom_helpers'         # 7 selected: network health checks
+        ],
+        'tool_count': 128,
+        'note': 'Still loads full modules (666 tools) - needs selective loading'
+    },
+    
+    'N8N_ESSENTIALS': {
+        'name': 'N8N Essentials (128 Tools Exactly)',
+        'description': 'Custom-built module with exactly 128 tools for N8N automation workflows',
+        'modules': [
+            'resources',
+            'N8N_essentials'         # Custom module with exactly 128 tools
+        ],
+        'tool_count': 128,
+        'note': 'Perfect for N8N streamable version - guaranteed 128 tools'
     }
 }
 

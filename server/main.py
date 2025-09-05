@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
 """
 Cisco Meraki MCP Server - Clean SDK Implementation
-100% SDK Coverage with consolidated modules.
+100% SDK Coverage with consolidated modules and profile support.
 """
 
+import os
 from mcp.server.fastmcp import FastMCP
 from meraki_client import MerakiClient
 from config import SERVER_NAME, SERVER_VERSION
 from utils.helpers import create_resource, create_content, format_error_message
+from server.profiles import should_load_module, print_profile_info
+
+# Get profile from environment
+profile_name = os.getenv('MCP_PROFILE', 'FULL').upper()
 
 # Initialize the Meraki client
 meraki = MerakiClient()
@@ -15,10 +20,13 @@ meraki = MerakiClient()
 # Initialize MCP server with the modern FastMCP class
 app = FastMCP(SERVER_NAME)
 
-# Import resources
+# Import resources (always loaded)
 from server.resources import register_resources
 
-# Import ALL SDK modules (complete coverage)
+# Print profile information
+print_profile_info(profile_name)
+
+# Import ALL SDK modules (conditionally based on profile)
 from server.tools_SDK_administered import register_administered_tools      # 4 methods
 from server.tools_SDK_appliance import register_appliance_tools            # 130 methods  
 # from server.tools_SDK_batch import register_batch_tools                    # 12 methods (may duplicate SDK)
@@ -43,37 +51,61 @@ from server.tools_Custom_helpers import register_helper_tools
 from server.tools_Custom_monitoring_filtered import register_monitoring_tools_filtered  # 6 unique analytics tools
 from server.tools_Custom_search import register_search_tools
 
-# Register resources first
+# Import N8N essentials module
+from server.tools_N8N_essentials import register_n8n_essentials_tools
+
+# Register resources first (always loaded)
 register_resources(app, meraki)
 
-# Register ALL SDK modules (complete coverage)
-print("🎯 Registering ALL SDK Modules (complete coverage)...")
-register_administered_tools(app, meraki)      # 4 methods
-register_appliance_tools(app, meraki)         # 130 methods
-# register_batch_tools(app, meraki)             # 12 methods (may duplicate SDK tools)
-register_camera_tools(app, meraki)            # 45 methods
-register_cellular_gateway_tools(app, meraki)  # 24 methods
-register_devices_tools(app, meraki)           # 27 methods
-register_insight_tools(app, meraki)           # 7 methods
-register_licensing_tools(app, meraki)         # 8 methods
-register_networks_tools(app, meraki)          # 114 methods
-register_organizations_tools(app, meraki)     # 173 methods
-register_sensor_tools(app, meraki)            # 18 methods
-register_sm_tools(app, meraki)                # 49 methods
-register_switch_tools(app, meraki)            # 101 methods
-register_wireless_tools(app, meraki)          # 116 methods
+# Register SDK modules based on profile
+if should_load_module('SDK_administered', profile_name):
+    register_administered_tools(app, meraki)
+if should_load_module('SDK_appliance', profile_name):
+    register_appliance_tools(app, meraki)
+if should_load_module('SDK_camera', profile_name):
+    register_camera_tools(app, meraki)
+if should_load_module('SDK_cellularGateway', profile_name):
+    register_cellular_gateway_tools(app, meraki)
+if should_load_module('SDK_devices', profile_name):
+    register_devices_tools(app, meraki)
+if should_load_module('SDK_insight', profile_name):
+    register_insight_tools(app, meraki)
+if should_load_module('SDK_licensing', profile_name):
+    register_licensing_tools(app, meraki)
+if should_load_module('SDK_networks', profile_name):
+    register_networks_tools(app, meraki)
+if should_load_module('SDK_organizations', profile_name):
+    register_organizations_tools(app, meraki)
+if should_load_module('SDK_sensor', profile_name):
+    register_sensor_tools(app, meraki)
+if should_load_module('SDK_sm', profile_name):
+    register_sm_tools(app, meraki)
+if should_load_module('SDK_switch', profile_name):
+    register_switch_tools(app, meraki)
+if should_load_module('SDK_wireless', profile_name):
+    register_wireless_tools(app, meraki)
 
-# Register custom tools (non-SDK extensions)
-print("🔧 Registering Custom Tools...")
-register_alerts_tools_filtered(app, meraki)        # 7 unique webhook tools
-register_analytics_tools(app, meraki)
-register_custom_batch_tools(app, meraki)
-register_beta_tools(app, meraki)
-register_helper_tools(app, meraki)
-register_monitoring_tools_filtered(app, meraki)    # 6 unique analytics tools
-register_search_tools(app, meraki)
+# Register custom tools based on profile
+if should_load_module('Custom_alerts_filtered', profile_name):
+    register_alerts_tools_filtered(app, meraki)
+if should_load_module('Custom_analytics', profile_name):
+    register_analytics_tools(app, meraki)
+if should_load_module('Custom_batch', profile_name):
+    register_custom_batch_tools(app, meraki)
+if should_load_module('Custom_beta', profile_name):
+    register_beta_tools(app, meraki)
+if should_load_module('Custom_helpers', profile_name):
+    register_helper_tools(app, meraki)
+if should_load_module('Custom_monitoring_filtered', profile_name):
+    register_monitoring_tools_filtered(app, meraki)
+if should_load_module('Custom_search', profile_name):
+    register_search_tools(app, meraki)
 
-print("✅ Cisco Meraki MCP Server initialized with clean SDK structure")
+# Register N8N essentials module
+if should_load_module('N8N_essentials', profile_name):
+    register_n8n_essentials_tools(app, meraki)
+
+print(f"✅ Cisco Meraki MCP Server initialized with {profile_name} profile")
 
 if __name__ == "__main__":
     import uvicorn
