@@ -3410,7 +3410,10 @@ def register_networks_sdk_tools():
     def get_network_clients(network_id: str, per_page: int = 1000):
         """Get get networkclients."""
         try:
-            kwargs = {}
+            kwargs = {
+                'timespan': 604800,  # 7 days to get historical data
+                'total_pages': 'all'  # Ensure ALL clients are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
