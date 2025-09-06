@@ -3470,7 +3470,7 @@ def register_networks_sdk_tools():
                     
                     for idx, item in enumerate(display_items, 1):  # Show ALL clients (no limit)
                         if isinstance(item, dict):
-                            name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
+                            name = item.get('description', item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}')))))
                             
                             # Mark priority items
                             if item in priority_items:
