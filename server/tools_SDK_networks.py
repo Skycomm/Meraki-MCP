@@ -3451,8 +3451,11 @@ def register_networks_sdk_tools():
                                 name = item.get('name', '').lower()
                                 ip = item.get('ip', '')
                                 
-                                # Priority: Home Assistant, servers, management devices
-                                if any(keyword in desc + name for keyword in ['home', 'assistant', 'server', 'printer', 'router', 'switch', 'ap', 'gateway']):
+                                # Priority: Home Assistant, servers, management devices, cameras
+                                if any(keyword in desc + name for keyword in ['home', 'assistant', 'server', 'printer', 'router', 'switch', 'ap', 'gateway', 'camera', 'cam', 'nvr', 'dvr']):
+                                    priority_items.append(item)
+                                # Also prioritize TZC prefix devices (common IP cameras)
+                                elif desc.upper().startswith('TZC') or 'IPC' in desc.upper():
                                     priority_items.append(item)
                                 # Also prioritize .1, .5, and .x.5.x IPs (common for important devices)
                                 elif ip and (ip.endswith('.1') or ip.endswith('.5') or '.5.' in ip or ip.endswith('.100')):
@@ -3460,12 +3463,12 @@ def register_networks_sdk_tools():
                                 else:
                                     regular_items.append(item)
                         
-                        display_items = priority_items + regular_items[:30]
+                        display_items = priority_items + regular_items  # Show ALL items
                         
                         if priority_items:
                             response += f"**🎯 Priority Devices Found**: {len(priority_items)}\n\n"
                     
-                    for idx, item in enumerate(display_items[:50], 1):  # Max 50 total
+                    for idx, item in enumerate(display_items, 1):  # Show ALL clients (no limit)
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             
