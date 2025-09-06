@@ -460,7 +460,10 @@ def register_organizations_sdk_tools():
     def create_organization_adaptive_policy_policy(organization_id: str):
         """Create create organizationadaptivepolicypolicy."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.createOrganizationAdaptivePolicyPolicy(
                 organization_id, **kwargs
@@ -581,7 +584,10 @@ def register_organizations_sdk_tools():
     def create_organization_alerts_profile(organization_id: str):
         """Create create organizationalertsprofile."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.createOrganizationAlertsProfile(
                 organization_id, **kwargs
@@ -618,7 +624,10 @@ def register_organizations_sdk_tools():
     def create_organization_branding_policy(organization_id: str):
         """Create create organizationbrandingpolicy."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.createOrganizationBrandingPolicy(
                 organization_id, **kwargs
@@ -655,7 +664,10 @@ def register_organizations_sdk_tools():
     def create_organization_config_template(organization_id: str):
         """Create create organizationconfigtemplate."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.createOrganizationConfigTemplate(
                 organization_id, **kwargs
@@ -692,7 +704,10 @@ def register_organizations_sdk_tools():
     def create_organization_devices_controller_migration(organization_id: str):
         """Create create organizationdevicescontrollermigration."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.createOrganizationDevicesControllerMigration(
                 organization_id, **kwargs
@@ -729,7 +744,10 @@ def register_organizations_sdk_tools():
     def create_organization_devices_packet_capture_capture(organization_id: str):
         """Create create organizationdevicespacketcapturecapture."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.createOrganizationDevicesPacketCaptureCapture(
                 organization_id, **kwargs
@@ -766,7 +784,10 @@ def register_organizations_sdk_tools():
     def create_organization_devices_packet_capture_schedule(organization_id: str):
         """Create create organizationdevicespacketcaptureschedule."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.createOrganizationDevicesPacketCaptureSchedule(
                 organization_id, **kwargs
@@ -803,7 +824,10 @@ def register_organizations_sdk_tools():
     def create_organization_early_access_features_opt_in(organization_id: str):
         """Create create organizationearlyaccessfeaturesoptin."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.createOrganizationEarlyAccessFeaturesOptIn(
                 organization_id, **kwargs
@@ -840,7 +864,10 @@ def register_organizations_sdk_tools():
     def create_organization_inventory_devices_swaps_bulk(organization_id: str):
         """Create create organizationinventorydevicesswapsbulk."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.createOrganizationInventoryDevicesSwapsBulk(
                 organization_id, **kwargs
@@ -877,7 +904,10 @@ def register_organizations_sdk_tools():
     def create_organization_inventory_onboarding_cloud_monitoring_export_event(organization_id: str):
         """Create create organizationinventoryonboardingcloudmonitoringexportevent."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.createOrganizationInventoryOnboardingCloudMonitoringExportEvent(
                 organization_id, **kwargs
@@ -914,7 +944,10 @@ def register_organizations_sdk_tools():
     def create_organization_inventory_onboarding_cloud_monitoring_import(organization_id: str):
         """Create create organizationinventoryonboardingcloudmonitoringimport."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.createOrganizationInventoryOnboardingCloudMonitoringImport(
                 organization_id, **kwargs
@@ -951,7 +984,10 @@ def register_organizations_sdk_tools():
     def create_organization_inventory_onboarding_cloud_monitoring_prepare(organization_id: str):
         """Create create organizationinventoryonboardingcloudmonitoringprepare."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.createOrganizationInventoryOnboardingCloudMonitoringPrepare(
                 organization_id, **kwargs
@@ -1053,7 +1089,10 @@ def register_organizations_sdk_tools():
     def create_organization_policy_object(organization_id: str):
         """Create create organizationpolicyobject."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.createOrganizationPolicyObject(
                 organization_id, **kwargs
@@ -1090,7 +1129,10 @@ def register_organizations_sdk_tools():
     def create_organization_policy_objects_group(organization_id: str):
         """Create create organizationpolicyobjectsgroup."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.createOrganizationPolicyObjectsGroup(
                 organization_id, **kwargs
@@ -1127,7 +1169,10 @@ def register_organizations_sdk_tools():
     def create_organization_saml_idp(organization_id: str):
         """Create create organizationsamlidp."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.createOrganizationSamlIdp(
                 organization_id, **kwargs
@@ -1164,7 +1209,10 @@ def register_organizations_sdk_tools():
     def create_organization_saml_role(organization_id: str):
         """Create create organizationsamlrole."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.createOrganizationSamlRole(
                 organization_id, **kwargs
@@ -1201,7 +1249,10 @@ def register_organizations_sdk_tools():
     def create_organization_splash_theme(organization_id: str):
         """Create create organizationsplashtheme."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.createOrganizationSplashTheme(
                 organization_id, **kwargs
@@ -1238,7 +1289,10 @@ def register_organizations_sdk_tools():
     def create_organization_splash_theme_asset(organization_id: str):
         """Create create organizationsplashthemeasset."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.createOrganizationSplashThemeAsset(
                 organization_id, **kwargs
@@ -1275,7 +1329,10 @@ def register_organizations_sdk_tools():
     def delete_organization(organization_id: str):
         """Delete delete organization."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.deleteOrganization(
                 organization_id, **kwargs
@@ -1773,7 +1830,10 @@ def register_organizations_sdk_tools():
     def disable_organization_integrations_xdr_networks(organization_id: str):
         """Manage disable organizationintegrationsxdrnetworks."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.disableOrganizationIntegrationsXdrNetworks(
                 organization_id, **kwargs
@@ -1846,7 +1906,10 @@ def register_organizations_sdk_tools():
     def enable_organization_integrations_xdr_networks(organization_id: str):
         """Manage enable organizationintegrationsxdrnetworks."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.enableOrganizationIntegrationsXdrNetworks(
                 organization_id, **kwargs
@@ -1883,7 +1946,10 @@ def register_organizations_sdk_tools():
     def generate_organization_devices_packet_capture_capture_download_url(organization_id: str):
         """Manage generate organizationdevicespacketcapturecapturedownloadurl."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.generateOrganizationDevicesPacketCaptureCaptureDownloadUrl(
                 organization_id, **kwargs
@@ -1920,7 +1986,10 @@ def register_organizations_sdk_tools():
     def get_organization(organization_id: str, per_page: int = 1000):
         """Get get organization."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganization(
                 organization_id, **kwargs
@@ -1957,7 +2026,10 @@ def register_organizations_sdk_tools():
     def get_organization_action_batch(organization_id: str, per_page: int = 1000):
         """Get get organizationactionbatch."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationActionBatch(
                 organization_id, **kwargs
@@ -1994,7 +2066,10 @@ def register_organizations_sdk_tools():
     def get_organization_action_batches(organization_id: str, per_page: int = 1000):
         """Get get organizationactionbatches."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationActionBatches(
                 organization_id, **kwargs
@@ -2031,7 +2106,10 @@ def register_organizations_sdk_tools():
     def get_organization_adaptive_policy_acl(organization_id: str, per_page: int = 1000):
         """Get get organizationadaptivepolicyacl."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationAdaptivePolicyAcl(
                 organization_id, **kwargs
@@ -2068,7 +2146,10 @@ def register_organizations_sdk_tools():
     def get_organization_adaptive_policy_acls(organization_id: str, per_page: int = 1000):
         """Get get organizationadaptivepolicyacls."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationAdaptivePolicyAcls(
                 organization_id, **kwargs
@@ -2105,7 +2186,10 @@ def register_organizations_sdk_tools():
     def get_organization_adaptive_policy_group(organization_id: str, per_page: int = 1000):
         """Get get organizationadaptivepolicygroup."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationAdaptivePolicyGroup(
                 organization_id, **kwargs
@@ -2142,7 +2226,10 @@ def register_organizations_sdk_tools():
     def get_organization_adaptive_policy_groups(organization_id: str, per_page: int = 1000):
         """Get get organizationadaptivepolicygroups."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationAdaptivePolicyGroups(
                 organization_id, **kwargs
@@ -2179,7 +2266,10 @@ def register_organizations_sdk_tools():
     def get_organization_adaptive_policy_overview(organization_id: str, per_page: int = 100):
         """Get get organizationadaptivepolicyoverview."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationAdaptivePolicyOverview(
                 organization_id, **kwargs
@@ -2216,7 +2306,10 @@ def register_organizations_sdk_tools():
     def get_organization_adaptive_policy_policies(organization_id: str, per_page: int = 1000):
         """Get get organizationadaptivepolicypolicies."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationAdaptivePolicyPolicies(
                 organization_id, **kwargs
@@ -2253,7 +2346,10 @@ def register_organizations_sdk_tools():
     def get_organization_adaptive_policy_policy(organization_id: str, per_page: int = 1000):
         """Get get organizationadaptivepolicypolicy."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationAdaptivePolicyPolicy(
                 organization_id, **kwargs
@@ -2290,7 +2386,10 @@ def register_organizations_sdk_tools():
     def get_organization_adaptive_policy_settings(organization_id: str, per_page: int = 1000):
         """Get get organizationadaptivepolicysettings."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationAdaptivePolicySettings(
                 organization_id, **kwargs
@@ -2327,7 +2426,10 @@ def register_organizations_sdk_tools():
     def get_organization_admins(organization_id: str, per_page: int = 1000):
         """Get get organizationadmins."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationAdmins(
                 organization_id, **kwargs
@@ -2364,7 +2466,10 @@ def register_organizations_sdk_tools():
     def get_organization_alerts_profiles(organization_id: str, per_page: int = 1000):
         """Get get organizationalertsprofiles."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationAlertsProfiles(
                 organization_id, **kwargs
@@ -2401,7 +2506,10 @@ def register_organizations_sdk_tools():
     def get_organization_api_requests(organization_id: str, per_page: int = 1000):
         """Get get organizationapirequests."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationApiRequests(
                 organization_id, **kwargs
@@ -2438,7 +2546,10 @@ def register_organizations_sdk_tools():
     def get_organization_api_requests_overview(organization_id: str, per_page: int = 100):
         """Get get organizationapirequestsoverview."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationApiRequestsOverview(
                 organization_id, **kwargs
@@ -2475,7 +2586,10 @@ def register_organizations_sdk_tools():
     def get_organization_api_requests_overview_response_codes_by_interval(organization_id: str, per_page: int = 100):
         """Get get organizationapirequestsoverviewresponsecodesbyinterval."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationApiRequestsOverviewResponseCodesByInterval(
                 organization_id, **kwargs
@@ -2512,7 +2626,10 @@ def register_organizations_sdk_tools():
     def get_organization_assurance_alert(organization_id: str, per_page: int = 1000):
         """Get get organizationassurancealert."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationAssuranceAlert(
                 organization_id, **kwargs
@@ -2549,7 +2666,10 @@ def register_organizations_sdk_tools():
     def get_organization_assurance_alerts(organization_id: str, per_page: int = 300):
         """Get get organizationassurancealerts."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationAssuranceAlerts(
                 organization_id, **kwargs
@@ -2586,7 +2706,10 @@ def register_organizations_sdk_tools():
     def get_organization_assurance_alerts_overview(organization_id: str, per_page: int = 100):
         """Get get organizationassurancealertsoverview."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationAssuranceAlertsOverview(
                 organization_id, **kwargs
@@ -2623,7 +2746,10 @@ def register_organizations_sdk_tools():
     def get_organization_assurance_alerts_overview_by_network(organization_id: str, per_page: int = 100):
         """Get get organizationassurancealertsoverviewbynetwork."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationAssuranceAlertsOverviewByNetwork(
                 organization_id, **kwargs
@@ -2660,7 +2786,10 @@ def register_organizations_sdk_tools():
     def get_organization_assurance_alerts_overview_by_type(organization_id: str, per_page: int = 100):
         """Get get organizationassurancealertsoverviewbytype."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationAssuranceAlertsOverviewByType(
                 organization_id, **kwargs
@@ -2697,7 +2826,10 @@ def register_organizations_sdk_tools():
     def get_organization_assurance_alerts_overview_historical(organization_id: str, per_page: int = 100):
         """Get get organizationassurancealertsoverviewhistorical."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationAssuranceAlertsOverviewHistorical(
                 organization_id, **kwargs
@@ -2734,7 +2866,10 @@ def register_organizations_sdk_tools():
     def get_organization_branding_policies(organization_id: str, per_page: int = 1000):
         """Get get organizationbrandingpolicies."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationBrandingPolicies(
                 organization_id, **kwargs
@@ -2771,7 +2906,10 @@ def register_organizations_sdk_tools():
     def get_organization_branding_policies_priorities(organization_id: str, per_page: int = 1000):
         """Get get organizationbrandingpoliciespriorities."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationBrandingPoliciesPriorities(
                 organization_id, **kwargs
@@ -2808,7 +2946,10 @@ def register_organizations_sdk_tools():
     def get_organization_branding_policy(organization_id: str, per_page: int = 1000):
         """Get get organizationbrandingpolicy."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationBrandingPolicy(
                 organization_id, **kwargs
@@ -2845,7 +2986,10 @@ def register_organizations_sdk_tools():
     def get_organization_clients_bandwidth_usage_history(organization_id: str, per_page: int = 1000):
         """Get get organizationclientsbandwidthusagehistory."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationClientsBandwidthUsageHistory(
                 organization_id, **kwargs
@@ -2882,7 +3026,10 @@ def register_organizations_sdk_tools():
     def get_organization_clients_overview(organization_id: str, per_page: int = 100):
         """Get get organizationclientsoverview."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationClientsOverview(
                 organization_id, **kwargs
@@ -2919,7 +3066,10 @@ def register_organizations_sdk_tools():
     def get_organization_clients_search(organization_id: str, per_page: int = 1000):
         """Get get organizationclientssearch."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationClientsSearch(
                 organization_id, **kwargs
@@ -2956,7 +3106,10 @@ def register_organizations_sdk_tools():
     def get_organization_config_template(organization_id: str, per_page: int = 1000):
         """Get get organizationconfigtemplate."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationConfigTemplate(
                 organization_id, **kwargs
@@ -2993,7 +3146,10 @@ def register_organizations_sdk_tools():
     def get_organization_config_templates(organization_id: str, per_page: int = 1000):
         """Get get organizationconfigtemplates."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationConfigTemplates(
                 organization_id, **kwargs
@@ -3030,7 +3186,10 @@ def register_organizations_sdk_tools():
     def get_organization_configuration_changes(organization_id: str, per_page: int = 1000):
         """Get get organizationconfigurationchanges."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationConfigurationChanges(
                 organization_id, **kwargs
@@ -3067,7 +3226,10 @@ def register_organizations_sdk_tools():
     def get_organization_devices(organization_id: str, per_page: int = 1000):
         """Get get organizationdevices."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationDevices(
                 organization_id, **kwargs
@@ -3104,7 +3266,10 @@ def register_organizations_sdk_tools():
     def get_organization_devices_availabilities(organization_id: str, per_page: int = 1000):
         """Get get organizationdevicesavailabilities."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationDevicesAvailabilities(
                 organization_id, **kwargs
@@ -3141,7 +3306,10 @@ def register_organizations_sdk_tools():
     def get_organization_devices_availabilities_change_history(organization_id: str, per_page: int = 1000):
         """Get get organizationdevicesavailabilitieschangehistory."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationDevicesAvailabilitiesChangeHistory(
                 organization_id, **kwargs
@@ -3178,7 +3346,10 @@ def register_organizations_sdk_tools():
     def get_organization_devices_controller_migrations(organization_id: str, per_page: int = 1000):
         """Get get organizationdevicescontrollermigrations."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationDevicesControllerMigrations(
                 organization_id, **kwargs
@@ -3215,7 +3386,10 @@ def register_organizations_sdk_tools():
     def get_organization_devices_overview_by_model(organization_id: str, per_page: int = 100):
         """Get get organizationdevicesoverviewbymodel."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationDevicesOverviewByModel(
                 organization_id, **kwargs
@@ -3252,7 +3426,10 @@ def register_organizations_sdk_tools():
     def get_organization_devices_packet_capture_captures(organization_id: str, per_page: int = 1000):
         """Get get organizationdevicespacketcapturecaptures."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationDevicesPacketCaptureCaptures(
                 organization_id, **kwargs
@@ -3289,7 +3466,10 @@ def register_organizations_sdk_tools():
     def get_organization_devices_packet_capture_schedules(organization_id: str, per_page: int = 1000):
         """Get get organizationdevicespacketcaptureschedules."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationDevicesPacketCaptureSchedules(
                 organization_id, **kwargs
@@ -3326,7 +3506,10 @@ def register_organizations_sdk_tools():
     def get_organization_devices_power_modules_statuses_by_device(organization_id: str, per_page: int = 1000):
         """Get get organizationdevicespowermodulesstatusesbydevice."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationDevicesPowerModulesStatusesByDevice(
                 organization_id, **kwargs
@@ -3363,7 +3546,10 @@ def register_organizations_sdk_tools():
     def get_organization_devices_provisioning_statuses(organization_id: str, per_page: int = 1000):
         """Get get organizationdevicesprovisioningstatuses."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationDevicesProvisioningStatuses(
                 organization_id, **kwargs
@@ -3400,7 +3586,10 @@ def register_organizations_sdk_tools():
     def get_organization_devices_statuses(organization_id: str, per_page: int = 1000):
         """Get get organizationdevicesstatuses."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationDevicesStatuses(
                 organization_id, **kwargs
@@ -3449,7 +3638,10 @@ def register_organizations_sdk_tools():
     def get_organization_devices_statuses_overview(organization_id: str, per_page: int = 100):
         """Get get organizationdevicesstatusesoverview."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationDevicesStatusesOverview(
                 organization_id, **kwargs
@@ -3486,7 +3678,10 @@ def register_organizations_sdk_tools():
     def get_organization_devices_system_memory_usage_history_by_interval(organization_id: str, per_page: int = 1000):
         """Get get organizationdevicessystemmemoryusagehistorybyinterval."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationDevicesSystemMemoryUsageHistoryByInterval(
                 organization_id, **kwargs
@@ -3523,7 +3718,10 @@ def register_organizations_sdk_tools():
     def get_organization_devices_uplinks_addresses_by_device(organization_id: str, per_page: int = 1000):
         """Get get organizationdevicesuplinksaddressesbydevice."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationDevicesUplinksAddressesByDevice(
                 organization_id, **kwargs
@@ -3620,7 +3818,10 @@ def register_organizations_sdk_tools():
     def get_organization_early_access_features(organization_id: str, per_page: int = 1000):
         """Get get organizationearlyaccessfeatures."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationEarlyAccessFeatures(
                 organization_id, **kwargs
@@ -3657,7 +3858,10 @@ def register_organizations_sdk_tools():
     def get_organization_early_access_features_opt_in(organization_id: str, per_page: int = 1000):
         """Get get organizationearlyaccessfeaturesoptin."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationEarlyAccessFeaturesOptIn(
                 organization_id, **kwargs
@@ -3694,7 +3898,10 @@ def register_organizations_sdk_tools():
     def get_organization_early_access_features_opt_ins(organization_id: str, per_page: int = 1000):
         """Get get organizationearlyaccessfeaturesoptins."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationEarlyAccessFeaturesOptIns(
                 organization_id, **kwargs
@@ -3731,7 +3938,10 @@ def register_organizations_sdk_tools():
     def get_organization_firmware_upgrades(organization_id: str, per_page: int = 1000):
         """Get get organizationfirmwareupgrades."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationFirmwareUpgrades(
                 organization_id, **kwargs
@@ -3768,7 +3978,10 @@ def register_organizations_sdk_tools():
     def get_organization_firmware_upgrades_by_device(organization_id: str, per_page: int = 1000):
         """Get get organizationfirmwareupgradesbydevice."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationFirmwareUpgradesByDevice(
                 organization_id, **kwargs
@@ -3805,7 +4018,10 @@ def register_organizations_sdk_tools():
     def get_organization_floor_plans_auto_locate_devices(organization_id: str, per_page: int = 1000):
         """Get get organizationfloorplansautolocatedevices."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationFloorPlansAutoLocateDevices(
                 organization_id, **kwargs
@@ -3842,7 +4058,10 @@ def register_organizations_sdk_tools():
     def get_organization_floor_plans_auto_locate_statuses(organization_id: str, per_page: int = 1000):
         """Get get organizationfloorplansautolocatestatuses."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationFloorPlansAutoLocateStatuses(
                 organization_id, **kwargs
@@ -3879,7 +4098,10 @@ def register_organizations_sdk_tools():
     def get_organization_integrations_xdr_networks(organization_id: str, per_page: int = 1000):
         """Get get organizationintegrationsxdrnetworks."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationIntegrationsXdrNetworks(
                 organization_id, **kwargs
@@ -3916,7 +4138,10 @@ def register_organizations_sdk_tools():
     def get_organization_inventory_device(organization_id: str, per_page: int = 1000):
         """Get get organizationinventorydevice."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationInventoryDevice(
                 organization_id, **kwargs
@@ -3953,7 +4178,10 @@ def register_organizations_sdk_tools():
     def get_organization_inventory_devices(organization_id: str, per_page: int = 1000):
         """Get get organizationinventorydevices."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationInventoryDevices(
                 organization_id, **kwargs
@@ -3990,7 +4218,10 @@ def register_organizations_sdk_tools():
     def get_organization_inventory_devices_swaps_bulk(organization_id: str, per_page: int = 1000):
         """Get get organizationinventorydevicesswapsbulk."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationInventoryDevicesSwapsBulk(
                 organization_id, **kwargs
@@ -4027,7 +4258,10 @@ def register_organizations_sdk_tools():
     def get_organization_inventory_onboarding_cloud_monitoring_imports(organization_id: str, per_page: int = 1000):
         """Get get organizationinventoryonboardingcloudmonitoringimports."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationInventoryOnboardingCloudMonitoringImports(
                 organization_id, **kwargs
@@ -4064,7 +4298,10 @@ def register_organizations_sdk_tools():
     def get_organization_inventory_onboarding_cloud_monitoring_networks(organization_id: str, per_page: int = 1000):
         """Get get organizationinventoryonboardingcloudmonitoringnetworks."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationInventoryOnboardingCloudMonitoringNetworks(
                 organization_id, **kwargs
@@ -4101,7 +4338,10 @@ def register_organizations_sdk_tools():
     def get_organization_license(organization_id: str, per_page: int = 1000):
         """Get get organizationlicense."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationLicense(
                 organization_id, **kwargs
@@ -4138,7 +4378,10 @@ def register_organizations_sdk_tools():
     def get_organization_licenses(organization_id: str, per_page: int = 1000):
         """Get get organizationlicenses."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationLicenses(
                 organization_id, **kwargs
@@ -4175,7 +4418,10 @@ def register_organizations_sdk_tools():
     def get_organization_licenses_overview(organization_id: str, per_page: int = 100):
         """Get get organizationlicensesoverview."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationLicensesOverview(
                 organization_id, **kwargs
@@ -4212,7 +4458,10 @@ def register_organizations_sdk_tools():
     def get_organization_login_security(organization_id: str, per_page: int = 1000):
         """Get get organizationloginsecurity."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationLoginSecurity(
                 organization_id, **kwargs
@@ -4249,7 +4498,10 @@ def register_organizations_sdk_tools():
     def get_organization_networks(organization_id: str, per_page: int = 1000):
         """Get get organizationnetworks."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationNetworks(
                 organization_id, **kwargs
@@ -4286,7 +4538,10 @@ def register_organizations_sdk_tools():
     def get_organization_openapi_spec(organization_id: str, per_page: int = 1000):
         """Get get organizationopenapispec."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationOpenapiSpec(
                 organization_id, **kwargs
@@ -4323,7 +4578,10 @@ def register_organizations_sdk_tools():
     def get_organization_policy_object(organization_id: str, per_page: int = 1000):
         """Get get organizationpolicyobject."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationPolicyObject(
                 organization_id, **kwargs
@@ -4360,7 +4618,10 @@ def register_organizations_sdk_tools():
     def get_organization_policy_objects(organization_id: str, per_page: int = 1000):
         """Get get organizationpolicyobjects."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationPolicyObjects(
                 organization_id, **kwargs
@@ -4397,7 +4658,10 @@ def register_organizations_sdk_tools():
     def get_organization_policy_objects_group(organization_id: str, per_page: int = 1000):
         """Get get organizationpolicyobjectsgroup."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationPolicyObjectsGroup(
                 organization_id, **kwargs
@@ -4434,7 +4698,10 @@ def register_organizations_sdk_tools():
     def get_organization_policy_objects_groups(organization_id: str, per_page: int = 1000):
         """Get get organizationpolicyobjectsgroups."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationPolicyObjectsGroups(
                 organization_id, **kwargs
@@ -4471,7 +4738,10 @@ def register_organizations_sdk_tools():
     def get_organization_saml(organization_id: str, per_page: int = 1000):
         """Get get organizationsaml."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationSaml(
                 organization_id, **kwargs
@@ -4508,7 +4778,10 @@ def register_organizations_sdk_tools():
     def get_organization_saml_idp(organization_id: str, per_page: int = 1000):
         """Get get organizationsamlidp."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationSamlIdp(
                 organization_id, **kwargs
@@ -4545,7 +4818,10 @@ def register_organizations_sdk_tools():
     def get_organization_saml_idps(organization_id: str, per_page: int = 1000):
         """Get get organizationsamlidps."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationSamlIdps(
                 organization_id, **kwargs
@@ -4582,7 +4858,10 @@ def register_organizations_sdk_tools():
     def get_organization_saml_role(organization_id: str, per_page: int = 1000):
         """Get get organizationsamlrole."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationSamlRole(
                 organization_id, **kwargs
@@ -4619,7 +4898,10 @@ def register_organizations_sdk_tools():
     def get_organization_saml_roles(organization_id: str, per_page: int = 1000):
         """Get get organizationsamlroles."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationSamlRoles(
                 organization_id, **kwargs
@@ -4656,7 +4938,10 @@ def register_organizations_sdk_tools():
     def get_organization_snmp(organization_id: str, per_page: int = 1000):
         """Get get organizationsnmp."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationSnmp(
                 organization_id, **kwargs
@@ -4693,7 +4978,10 @@ def register_organizations_sdk_tools():
     def get_organization_splash_asset(organization_id: str, per_page: int = 1000):
         """Get get organizationsplashasset."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationSplashAsset(
                 organization_id, **kwargs
@@ -4730,7 +5018,10 @@ def register_organizations_sdk_tools():
     def get_organization_splash_themes(organization_id: str, per_page: int = 1000):
         """Get get organizationsplashthemes."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationSplashThemes(
                 organization_id, **kwargs
@@ -4767,7 +5058,10 @@ def register_organizations_sdk_tools():
     def get_organization_summary_top_appliances_by_utilization(organization_id: str, per_page: int = 100):
         """Get get organizationsummarytopappliancesbyutilization."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationSummaryTopAppliancesByUtilization(
                 organization_id, **kwargs
@@ -4804,7 +5098,10 @@ def register_organizations_sdk_tools():
     def get_organization_summary_top_applications_by_usage(organization_id: str, per_page: int = 100):
         """Get get organizationsummarytopapplicationsbyusage."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationSummaryTopApplicationsByUsage(
                 organization_id, **kwargs
@@ -4841,7 +5138,10 @@ def register_organizations_sdk_tools():
     def get_organization_summary_top_applications_categories_by_usage(organization_id: str, per_page: int = 100):
         """Get get organizationsummarytopapplicationscategoriesbyusage."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationSummaryTopApplicationsCategoriesByUsage(
                 organization_id, **kwargs
@@ -4878,7 +5178,10 @@ def register_organizations_sdk_tools():
     def get_organization_summary_top_clients_by_usage(organization_id: str, per_page: int = 100):
         """Get get organizationsummarytopclientsbyusage."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationSummaryTopClientsByUsage(
                 organization_id, **kwargs
@@ -4915,7 +5218,10 @@ def register_organizations_sdk_tools():
     def get_organization_summary_top_clients_manufacturers_by_usage(organization_id: str, per_page: int = 100):
         """Get get organizationsummarytopclientsmanufacturersbyusage."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationSummaryTopClientsManufacturersByUsage(
                 organization_id, **kwargs
@@ -4952,7 +5258,10 @@ def register_organizations_sdk_tools():
     def get_organization_summary_top_devices_by_usage(organization_id: str, per_page: int = 100):
         """Get get organizationsummarytopdevicesbyusage."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationSummaryTopDevicesByUsage(
                 organization_id, **kwargs
@@ -4989,7 +5298,10 @@ def register_organizations_sdk_tools():
     def get_organization_summary_top_devices_models_by_usage(organization_id: str, per_page: int = 100):
         """Get get organizationsummarytopdevicesmodelsbyusage."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationSummaryTopDevicesModelsByUsage(
                 organization_id, **kwargs
@@ -5026,7 +5338,10 @@ def register_organizations_sdk_tools():
     def get_organization_summary_top_networks_by_status(organization_id: str, per_page: int = 100):
         """Get get organizationsummarytopnetworksbystatus."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationSummaryTopNetworksByStatus(
                 organization_id, **kwargs
@@ -5063,7 +5378,10 @@ def register_organizations_sdk_tools():
     def get_organization_summary_top_ssids_by_usage(organization_id: str, per_page: int = 100):
         """Get get organizationsummarytopssidsbyusage."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationSummaryTopSsidsByUsage(
                 organization_id, **kwargs
@@ -5100,7 +5418,10 @@ def register_organizations_sdk_tools():
     def get_organization_summary_top_switches_by_energy_usage(organization_id: str, per_page: int = 100):
         """Get get organizationsummarytopswitchesbyenergyusage."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationSummaryTopSwitchesByEnergyUsage(
                 organization_id, **kwargs
@@ -5137,7 +5458,10 @@ def register_organizations_sdk_tools():
     def get_organization_uplinks_statuses(organization_id: str, per_page: int = 1000):
         """Get get organizationuplinksstatuses."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationUplinksStatuses(
                 organization_id, **kwargs
@@ -5174,7 +5498,10 @@ def register_organizations_sdk_tools():
     def get_organization_webhooks_alert_types(organization_id: str, per_page: int = 1000):
         """Get get organizationwebhooksalerttypes."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationWebhooksAlertTypes(
                 organization_id, **kwargs
@@ -5211,7 +5538,10 @@ def register_organizations_sdk_tools():
     def get_organization_webhooks_callbacks_status(organization_id: str, per_page: int = 1000):
         """Get get organizationwebhookscallbacksstatus."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationWebhooksCallbacksStatus(
                 organization_id, **kwargs
@@ -5248,7 +5578,10 @@ def register_organizations_sdk_tools():
     def get_organization_webhooks_logs(organization_id: str, per_page: int = 1000):
         """Get get organizationwebhookslogs."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.getOrganizationWebhooksLogs(
                 organization_id, **kwargs
@@ -5315,7 +5648,10 @@ def register_organizations_sdk_tools():
     def move_organization_licenses(organization_id: str):
         """Move move organizationlicenses."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.moveOrganizationLicenses(
                 organization_id, **kwargs
@@ -5352,7 +5688,10 @@ def register_organizations_sdk_tools():
     def move_organization_licenses_seats(organization_id: str):
         """Move move organizationlicensesseats."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.moveOrganizationLicensesSeats(
                 organization_id, **kwargs
@@ -5389,7 +5728,10 @@ def register_organizations_sdk_tools():
     def release_from_organization_inventory(organization_id: str):
         """Manage releasefrom organizationinventory."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.releaseFromOrganizationInventory(
                 organization_id, **kwargs
@@ -5426,7 +5768,10 @@ def register_organizations_sdk_tools():
     def renew_organization_licenses_seats(organization_id: str):
         """Manage renew organizationlicensesseats."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.renewOrganizationLicensesSeats(
                 organization_id, **kwargs
@@ -5463,7 +5808,10 @@ def register_organizations_sdk_tools():
     def reorder_organization_devices_packet_capture_schedules(organization_id: str):
         """Manage reorder organizationdevicespacketcaptureschedules."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.reorderOrganizationDevicesPacketCaptureSchedules(
                 organization_id, **kwargs
@@ -5500,7 +5848,10 @@ def register_organizations_sdk_tools():
     def restore_organization_assurance_alerts(organization_id: str):
         """Manage restore organizationassurancealerts."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.restoreOrganizationAssuranceAlerts(
                 organization_id, **kwargs
@@ -5537,7 +5888,10 @@ def register_organizations_sdk_tools():
     def stop_organization_devices_packet_capture_capture(organization_id: str):
         """Manage stop organizationdevicespacketcapturecapture."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.stopOrganizationDevicesPacketCaptureCapture(
                 organization_id, **kwargs
@@ -5574,7 +5928,10 @@ def register_organizations_sdk_tools():
     def update_organization(organization_id: str):
         """Update update organization."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.updateOrganization(
                 organization_id, **kwargs
@@ -5611,7 +5968,10 @@ def register_organizations_sdk_tools():
     def update_organization_action_batch(organization_id: str):
         """Update update organizationactionbatch."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.updateOrganizationActionBatch(
                 organization_id, **kwargs
@@ -5648,7 +6008,10 @@ def register_organizations_sdk_tools():
     def update_organization_adaptive_policy_acl(organization_id: str):
         """Update update organizationadaptivepolicyacl."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.updateOrganizationAdaptivePolicyAcl(
                 organization_id, **kwargs
@@ -5685,7 +6048,10 @@ def register_organizations_sdk_tools():
     def update_organization_adaptive_policy_group(organization_id: str):
         """Update update organizationadaptivepolicygroup."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.updateOrganizationAdaptivePolicyGroup(
                 organization_id, **kwargs
@@ -5722,7 +6088,10 @@ def register_organizations_sdk_tools():
     def update_organization_adaptive_policy_policy(organization_id: str):
         """Update update organizationadaptivepolicypolicy."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.updateOrganizationAdaptivePolicyPolicy(
                 organization_id, **kwargs
@@ -5759,7 +6128,10 @@ def register_organizations_sdk_tools():
     def update_organization_adaptive_policy_settings(organization_id: str):
         """Update update organizationadaptivepolicysettings."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.updateOrganizationAdaptivePolicySettings(
                 organization_id, **kwargs
@@ -5796,7 +6168,10 @@ def register_organizations_sdk_tools():
     def update_organization_admin(organization_id: str):
         """Update update organizationadmin."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.updateOrganizationAdmin(
                 organization_id, **kwargs
@@ -5833,7 +6208,10 @@ def register_organizations_sdk_tools():
     def update_organization_alerts_profile(organization_id: str):
         """Update update organizationalertsprofile."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.updateOrganizationAlertsProfile(
                 organization_id, **kwargs
@@ -5870,7 +6248,10 @@ def register_organizations_sdk_tools():
     def update_organization_branding_policies_priorities(organization_id: str):
         """Update update organizationbrandingpoliciespriorities."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.updateOrganizationBrandingPoliciesPriorities(
                 organization_id, **kwargs
@@ -5907,7 +6288,10 @@ def register_organizations_sdk_tools():
     def update_organization_branding_policy(organization_id: str):
         """Update update organizationbrandingpolicy."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.updateOrganizationBrandingPolicy(
                 organization_id, **kwargs
@@ -5944,7 +6328,10 @@ def register_organizations_sdk_tools():
     def update_organization_config_template(organization_id: str):
         """Update update organizationconfigtemplate."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.updateOrganizationConfigTemplate(
                 organization_id, **kwargs
@@ -5981,7 +6368,10 @@ def register_organizations_sdk_tools():
     def update_organization_devices_packet_capture_schedule(organization_id: str):
         """Update update organizationdevicespacketcaptureschedule."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.updateOrganizationDevicesPacketCaptureSchedule(
                 organization_id, **kwargs
@@ -6018,7 +6408,10 @@ def register_organizations_sdk_tools():
     def update_organization_early_access_features_opt_in(organization_id: str):
         """Update update organizationearlyaccessfeaturesoptin."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.updateOrganizationEarlyAccessFeaturesOptIn(
                 organization_id, **kwargs
@@ -6055,7 +6448,10 @@ def register_organizations_sdk_tools():
     def update_organization_license(organization_id: str):
         """Update update organizationlicense."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.updateOrganizationLicense(
                 organization_id, **kwargs
@@ -6092,7 +6488,10 @@ def register_organizations_sdk_tools():
     def update_organization_login_security(organization_id: str):
         """Update update organizationloginsecurity."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.updateOrganizationLoginSecurity(
                 organization_id, **kwargs
@@ -6129,7 +6528,10 @@ def register_organizations_sdk_tools():
     def update_organization_policy_object(organization_id: str):
         """Update update organizationpolicyobject."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.updateOrganizationPolicyObject(
                 organization_id, **kwargs
@@ -6166,7 +6568,10 @@ def register_organizations_sdk_tools():
     def update_organization_policy_objects_group(organization_id: str):
         """Update update organizationpolicyobjectsgroup."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.updateOrganizationPolicyObjectsGroup(
                 organization_id, **kwargs
@@ -6203,7 +6608,10 @@ def register_organizations_sdk_tools():
     def update_organization_saml(organization_id: str):
         """Update update organizationsaml."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.updateOrganizationSaml(
                 organization_id, **kwargs
@@ -6240,7 +6648,10 @@ def register_organizations_sdk_tools():
     def update_organization_saml_idp(organization_id: str):
         """Update update organizationsamlidp."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.updateOrganizationSamlIdp(
                 organization_id, **kwargs
@@ -6277,7 +6688,10 @@ def register_organizations_sdk_tools():
     def update_organization_saml_role(organization_id: str):
         """Update update organizationsamlrole."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.updateOrganizationSamlRole(
                 organization_id, **kwargs
@@ -6314,7 +6728,10 @@ def register_organizations_sdk_tools():
     def update_organization_snmp(organization_id: str):
         """Update update organizationsnmp."""
         try:
-            kwargs = {"perPage": per_page} if "per_page" in locals() else {}
+            kwargs = {
+                "perPage": per_page,
+                "total_pages": "all"  # Ensure ALL items are retrieved
+            } if "per_page" in locals() else {"total_pages": "all"}
             
             result = meraki_client.dashboard.organizations.updateOrganizationSnmp(
                 organization_id, **kwargs

@@ -2316,7 +2316,9 @@ def register_switch_sdk_tools():
     def get_device_switch_ports_statuses(serial: str, per_page: int = 1000):
         """Get get device switchportsstatuses."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
@@ -2401,7 +2403,9 @@ def register_switch_sdk_tools():
     def get_device_switch_ports_statuses_packets(serial: str, per_page: int = 1000):
         """Get get device switchportsstatusespackets."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
@@ -2652,7 +2656,9 @@ def register_switch_sdk_tools():
     def get_device_switch_routing_interfaces(serial: str, per_page: int = 1000):
         """Get get device switchroutinginterfaces."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
@@ -2820,7 +2826,9 @@ def register_switch_sdk_tools():
     def get_device_switch_routing_static_routes(serial: str, per_page: int = 1000):
         """Get get device switchroutingstaticroutes."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
@@ -3071,7 +3079,9 @@ def register_switch_sdk_tools():
     def get_network_switch_access_policies(network_id: str, per_page: int = 1000):
         """Get get network switchaccesspolicies."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
@@ -3903,7 +3913,9 @@ def register_switch_sdk_tools():
     def get_network_switch_port_schedules(network_id: str, per_page: int = 1000):
         """Get get network switchportschedules."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
@@ -4071,7 +4083,9 @@ def register_switch_sdk_tools():
     def get_network_switch_qos_rules(network_id: str, per_page: int = 1000):
         """Get get network switchqosrules."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
@@ -4156,7 +4170,9 @@ def register_switch_sdk_tools():
     def get_network_switch_qos_rules_order(network_id: str, per_page: int = 1000):
         """Get get network switchqosrulesorder."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
@@ -4905,7 +4921,9 @@ def register_switch_sdk_tools():
     def get_network_switch_stack_routing_interfaces(network_id: str, switch_stack_id: str, per_page: int = 1000):
         """Get get network switchstackroutinginterfaces."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
@@ -5073,7 +5091,9 @@ def register_switch_sdk_tools():
     def get_network_switch_stack_routing_static_routes(network_id: str, switch_stack_id: str, per_page: int = 1000):
         """Get get network switchstackroutingstaticroutes."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
@@ -5158,7 +5178,9 @@ def register_switch_sdk_tools():
     def get_network_switch_stacks(network_id: str, per_page: int = 1000):
         """Get get network switchstacks."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
@@ -5492,7 +5514,9 @@ def register_switch_sdk_tools():
     def get_organization_config_template_switch_profile_ports(organization_id: str, per_page: int = 1000):
         """Get get organizationconfigtemplate switchprofileports."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
@@ -5743,7 +5767,9 @@ def register_switch_sdk_tools():
     def get_organization_switch_ports_by_switch(organization_id: str, per_page: int = 1000):
         """Get get organization switchportsby switch."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
@@ -5828,7 +5854,9 @@ def register_switch_sdk_tools():
     def get_organization_switch_ports_clients_overview_by_device(organization_id: str, per_page: int = 1000):
         """Get get organization switchportsclientsoverviewby device."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
@@ -5913,7 +5941,9 @@ def register_switch_sdk_tools():
     def get_organization_switch_ports_overview(organization_id: str, per_page: int = 1000):
         """Get get organization switchportsoverview."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
@@ -5998,7 +6028,9 @@ def register_switch_sdk_tools():
     def get_organization_switch_ports_statuses_by_switch(organization_id: str, per_page: int = 1000):
         """Get get organization switchportsstatusesby switch."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
@@ -6083,7 +6115,9 @@ def register_switch_sdk_tools():
     def get_organization_switch_ports_topology_discovery_by_device(organization_id: str, per_page: int = 1000):
         """Get get organization switchportstopologydiscoveryby device."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
@@ -6168,7 +6202,9 @@ def register_switch_sdk_tools():
     def get_organization_switch_ports_usage_history_by_device_by_interval(organization_id: str, per_page: int = 1000):
         """Get get organization switchportsusagehistoryby devicebyinterval."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)

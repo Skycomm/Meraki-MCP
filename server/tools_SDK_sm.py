@@ -1143,7 +1143,9 @@ def register_sm_sdk_tools():
         """Get get network sm device deviceprofiles."""
         
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             # Build parameters based on method signature
             if 'per_page' in locals() and per_page:
@@ -1479,7 +1481,9 @@ def register_sm_sdk_tools():
         """Get get network sm devicesecuritycenters."""
         
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             # Build parameters based on method signature
             if 'per_page' in locals() and per_page:
@@ -1564,7 +1568,9 @@ def register_sm_sdk_tools():
         """Get get network sm devicesoftwares."""
         
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             # Build parameters based on method signature
             if 'per_page' in locals() and per_page:
@@ -1732,7 +1738,9 @@ def register_sm_sdk_tools():
         """Get get network sm devices."""
         
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             # Build parameters based on method signature
             if 'per_page' in locals() and per_page:
@@ -1817,7 +1825,9 @@ def register_sm_sdk_tools():
         """Get get network smprofiles."""
         
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             # Build parameters based on method signature
             if 'per_page' in locals() and per_page:
@@ -1985,7 +1995,9 @@ def register_sm_sdk_tools():
         """Get get network smtargetgroups."""
         
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             # Build parameters based on method signature
             if 'per_page' in locals() and per_page:
@@ -2070,7 +2082,9 @@ def register_sm_sdk_tools():
         """Get get network smtrustedaccessconfigs."""
         
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             # Build parameters based on method signature
             if 'per_page' in locals() and per_page:
@@ -2155,7 +2169,9 @@ def register_sm_sdk_tools():
         """Get get network smuseraccess devices."""
         
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             # Build parameters based on method signature
             if 'per_page' in locals() and per_page:
@@ -2240,7 +2256,9 @@ def register_sm_sdk_tools():
         """Get get network smuser deviceprofiles."""
         
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             # Build parameters based on method signature
             if 'per_page' in locals() and per_page:
@@ -2325,7 +2343,9 @@ def register_sm_sdk_tools():
         """Get get network smusersoftwares."""
         
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             # Build parameters based on method signature
             if 'per_page' in locals() and per_page:
@@ -2410,7 +2430,9 @@ def register_sm_sdk_tools():
         """Get get network smusers."""
         
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             # Build parameters based on method signature
             if 'per_page' in locals() and per_page:
@@ -2578,7 +2600,9 @@ def register_sm_sdk_tools():
         """Get get organization smadminsroles."""
         
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             # Build parameters based on method signature
             if 'per_page' in locals() and per_page:
@@ -2912,7 +2936,9 @@ def register_sm_sdk_tools():
         """Get get organization smvppaccounts."""
         
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             # Build parameters based on method signature
             if 'per_page' in locals() and per_page:

@@ -2878,7 +2878,9 @@ def register_networks_sdk_tools():
     def get_network_bluetooth_clients(network_id: str, per_page: int = 1000):
         """Get get networkbluetoothclients."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
@@ -3144,7 +3146,9 @@ def register_networks_sdk_tools():
     def get_network_client_splash_authorization_status(network_id: str, per_page: int = 1000):
         """Get get networkclientsplashauthorizationstatus."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
@@ -3503,7 +3507,9 @@ def register_networks_sdk_tools():
     def get_network_clients_application_usage(network_id: str, per_page: int = 1000):
         """Get get networkclientsapplicationusage."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
@@ -3593,7 +3599,9 @@ def register_networks_sdk_tools():
     def get_network_clients_bandwidth_usage_history(network_id: str, per_page: int = 1000):
         """Get get networkclientsbandwidthusagehistory."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
@@ -3683,7 +3691,9 @@ def register_networks_sdk_tools():
     def get_network_clients_overview(network_id: str, per_page: int = 1000):
         """Get get networkclientsoverview."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
@@ -3773,7 +3783,9 @@ def register_networks_sdk_tools():
     def get_network_clients_usage_histories(network_id: str, per_page: int = 1000):
         """Get get networkclientsusagehistories."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
@@ -3948,7 +3960,9 @@ def register_networks_sdk_tools():
     def get_network_events(network_id: str, product_type: str = 'wireless', per_page: int = 1000):
         """Get get networkevents."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
@@ -4041,7 +4055,9 @@ def register_networks_sdk_tools():
     def get_network_events_event_types(network_id: str, per_page: int = 1000):
         """Get get networkeventseventtypes."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
@@ -4219,7 +4235,9 @@ def register_networks_sdk_tools():
     def get_network_firmware_upgrades_staged_events(network_id: str, per_page: int = 1000):
         """Get get networkfirmwareupgradesstagedevents."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
@@ -4397,7 +4415,9 @@ def register_networks_sdk_tools():
     def get_network_firmware_upgrades_staged_groups(network_id: str, per_page: int = 1000):
         """Get get networkfirmwareupgradesstagedgroups."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
@@ -5100,7 +5120,9 @@ def register_networks_sdk_tools():
     def get_network_meraki_auth_users(network_id: str, per_page: int = 1000):
         """Get get networkmerakiauthusers."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
@@ -5278,7 +5300,9 @@ def register_networks_sdk_tools():
     def get_network_mqtt_brokers(network_id: str, per_page: int = 1000):
         """Get get networkmqttbrokers."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
@@ -5808,7 +5832,9 @@ def register_networks_sdk_tools():
     def get_network_pii_sm_devices_for_key(network_id: str, per_page: int = 1000):
         """Get get networkpiismdevicesforkey."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
@@ -5986,7 +6012,9 @@ def register_networks_sdk_tools():
     def get_network_policies_by_client(network_id: str, client_id: str, per_page: int = 1000):
         """Get get networkpoliciesbyclient."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
@@ -6340,7 +6368,9 @@ def register_networks_sdk_tools():
     def get_network_syslog_servers(network_id: str, per_page: int = 1000):
         """Get get networksyslogservers."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
@@ -7222,7 +7252,9 @@ def register_networks_sdk_tools():
     def get_network_webhooks_http_servers(network_id: str, per_page: int = 1000):
         """Get get networkwebhookshttpservers."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
@@ -7400,7 +7432,9 @@ def register_networks_sdk_tools():
     def get_network_webhooks_payload_templates(network_id: str, per_page: int = 1000):
         """Get get networkwebhookspayloadtemplates."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)

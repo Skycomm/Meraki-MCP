@@ -224,7 +224,9 @@ def register_licensing_sdk_tools():
     def get_administered_licensing_subscription_entitlements(per_page: int = 100):
         """Get get administered licensing subscriptionentitlements."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
@@ -314,7 +316,9 @@ def register_licensing_sdk_tools():
     def get_administered_licensing_subscription_subscriptions(per_page: int = 100):
         """Get get administered licensing subscription subscriptions."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
@@ -404,7 +408,9 @@ def register_licensing_sdk_tools():
     def get_administered_licensing_subscription_subscriptions_compliance_statuses(per_page: int = 100):
         """Get get administered licensing subscription subscriptionscompliancestatuses."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
@@ -494,7 +500,9 @@ def register_licensing_sdk_tools():
     def get_organization_licensing_coterm_licenses(organization_id: str, per_page: int = 100):
         """Get get organization licensing co-termlicenses."""
         try:
-            kwargs = {}
+            kwargs = {
+                'total_pages': 'all'  # Ensure ALL items are retrieved
+            }
             
             if 'per_page' in locals() and per_page:
                 kwargs['perPage'] = min(per_page, 1000)
