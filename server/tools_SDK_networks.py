@@ -3540,6 +3540,68 @@ def register_networks_sdk_tools():
             return f"❌ Error in get_network_clients: {str(e)}"
     
     @app.tool(
+        name="get_network_client_count",
+        description="📊 Get accurate client count for network or specific VLAN"
+    )
+    def get_network_client_count(network_id: str, vlan_id: str = ""):
+        """Get accurate client count for network, optionally filtered by VLAN."""
+        try:
+            # Get all clients
+            result = meraki_client.dashboard.networks.getNetworkClients(
+                network_id, 
+                timespan=604800, 
+                perPage=1000, 
+                total_pages='all'
+            )
+            
+            if not result:
+                return f"# 📊 Client Count - {network_id}\n\n*No clients found*"
+            
+            response = f"# 📊 Client Count - {network_id}\n\n"
+            
+            # Total count
+            response += f"**Total Network Clients**: {len(result)}\n\n"
+            
+            # Count by VLAN
+            vlan_counts = {}
+            for client in result:
+                vlan = str(client.get('vlan', 'Unknown'))
+                vlan_counts[vlan] = vlan_counts.get(vlan, 0) + 1
+            
+            # If specific VLAN requested
+            if vlan_id:
+                vlan_key = str(vlan_id)
+                vlan_client_count = vlan_counts.get(vlan_key, 0)
+                response += f"**VLAN {vlan_id} Clients**: {vlan_client_count}\n\n"
+                
+                # Show some examples from that VLAN
+                vlan_clients = [c for c in result if str(c.get('vlan', '')) == vlan_key]
+                if vlan_clients:
+                    response += f"**Sample VLAN {vlan_id} Devices**:\n"
+                    for i, client in enumerate(vlan_clients[:10], 1):
+                        ip = client.get('ip', 'No IP')
+                        desc = client.get('description', 'Unknown')
+                        response += f"{i}. {desc} - {ip}\n"
+                    
+                    if len(vlan_clients) > 10:
+                        response += f"... and {len(vlan_clients)-10} more devices\n"
+                else:
+                    response += f"*No clients found in VLAN {vlan_id}*\n"
+            else:
+                # Show breakdown by VLAN
+                response += "**Clients by VLAN**:\n"
+                for vlan, count in sorted(vlan_counts.items()):
+                    if vlan == 'Unknown':
+                        response += f"- No VLAN: {count} clients\n"
+                    else:
+                        response += f"- VLAN {vlan}: {count} clients\n"
+            
+            return response
+            
+        except Exception as e:
+            return f"❌ Error getting client count: {str(e)}"
+    
+    @app.tool(
         name="get_network_clients_application_usage",
         description="🌐 Get networkClientsApplicationUsage"
     )

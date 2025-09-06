@@ -2044,6 +2044,52 @@ def _collect_compliance_evidence(networks, all_devices):
     return evidence
 
     @app.tool(
+        name="find_device_by_ip_address",
+        description="🔍 FIND DEVICE BY IP - Get device info for specific IP address (USE THIS!)"
+    )
+    def find_device_by_ip_address(ip_address: str, network_id: str = "L_726205439913500692"):
+        """
+        Find device by IP address - GUARANTEED TO WORK with any number of devices.
+        This tool searches through ALL network clients to find the specific IP.
+        """
+        try:
+            # Get ALL clients with full pagination
+            clients = meraki_client.dashboard.networks.getNetworkClients(
+                network_id,
+                perPage=1000,
+                total_pages='all',
+                timespan=604800  # 7 days
+            )
+            
+            # Search for the specific IP
+            for client in clients:
+                if client.get('ip') == ip_address:
+                    return {
+                        'found': True,
+                        'ip_address': client.get('ip'),
+                        'mac_address': client.get('mac'),
+                        'description': client.get('description', 'Unknown Device'),
+                        'manufacturer': client.get('manufacturer'),
+                        'os': client.get('os'),
+                        'vlan': client.get('vlan'),
+                        'status': client.get('status'),
+                        'last_seen': client.get('lastSeen'),
+                        'usage_sent': client.get('usage', {}).get('sent'),
+                        'usage_recv': client.get('usage', {}).get('recv'),
+                        'total_clients_searched': len(clients)
+                    }
+            
+            return {
+                'found': False,
+                'message': f'Device with IP {ip_address} not found',
+                'total_clients_searched': len(clients),
+                'suggestion': 'Device might be offline or IP changed recently'
+            }
+            
+        except Exception as e:
+            return {"error": f"IP lookup failed: {str(e)}"}
+
+    @app.tool(
         name="find_device_by_mac_address",
         description="🔍 MAC LOOKUP - Find device's current IP address using MAC address"
     )
@@ -2101,7 +2147,7 @@ def _collect_compliance_evidence(networks, all_devices):
             return {"error": str(e)}
 
     @app.tool(
-        name="lookup_mac_by_ip_and_reserve_dhcp",
+        name="lookup_mac_by_ip_and_reserve_dhcp", 
         description="🔍 IP TO MAC + DHCP - Find device MAC by IP, create DHCP reservation"
     )
     def lookup_mac_by_ip_and_reserve_dhcp(current_ip: str, desired_ip: str, network_id: str = "L_726205439913500692"):
@@ -2138,8 +2184,21 @@ def _collect_compliance_evidence(networks, all_devices):
             vlan_id = target_device.get('vlan')
             device_name = target_device.get('description') or target_device.get('dhcpHostname') or 'Reserved Device'
             
-            # Step 2: Create DHCP reservation
-            dhcp_subnets = meraki_client.dashboard.appliance.getNetworkApplianceDhcpSubnets(network_id)
+            # Step 2: Get DHCP reservation info - need the MX device serial  
+            # First get network devices to find the MX appliance
+            devices = meraki_client.dashboard.networks.getNetworkDevices(network_id)
+            mx_serial = None
+            for device in devices:
+                model = device.get('model', '')
+                # Look for MX models (MX64, MX67, MX68, MX75, etc.)
+                if model.startswith('MX'):
+                    mx_serial = device.get('serial')
+                    break
+            
+            if not mx_serial:
+                return {"error": "No MX appliance found in network - DHCP reservations require MX device"}
+            
+            dhcp_subnets = meraki_client.dashboard.appliance.getDeviceApplianceDhcpSubnets(mx_serial)
             
             # Find the VLAN subnet
             target_subnet = None

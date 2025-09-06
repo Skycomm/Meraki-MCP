@@ -3105,15 +3105,15 @@ def register_additional_appliance_tools():
             return f"❌ Error getting VLAN {vlan_id}: {str(e)}"
     
     @app.tool(
-        name="get_network_appliance_dhcp_subnets",
-        description="🌐 Get DHCP subnet information for network"
+        name="get_device_appliance_dhcp_subnets",
+        description="🌐 Get DHCP subnet information for appliance device"
     )
-    def get_network_appliance_dhcp_subnets(network_id: str):
-        """Get DHCP subnet information for a network appliance."""
+    def get_device_appliance_dhcp_subnets(device_serial: str):
+        """Get DHCP subnet information for an appliance device."""
         try:
-            result = meraki_client.dashboard.appliance.getNetworkApplianceDhcpSubnets(network_id)
+            result = meraki_client.dashboard.appliance.getDeviceApplianceDhcpSubnets(device_serial)
             
-            response = f"# 🌐 DHCP Subnets - {network_id}\n\n"
+            response = f"# 🌐 DHCP Subnets - {device_serial}\n\n"
             
             if result:
                 response += f"**Total DHCP Subnets**: {len(result)}\n\n"
