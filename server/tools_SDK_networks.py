@@ -51,8 +51,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -139,8 +139,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -227,8 +227,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -317,8 +317,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -405,8 +405,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -493,8 +493,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -581,8 +581,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -669,8 +669,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -757,8 +757,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -845,8 +845,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -933,8 +933,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -1021,8 +1021,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -1109,8 +1109,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -1197,8 +1197,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -1285,8 +1285,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -1373,8 +1373,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -1461,8 +1461,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -1549,8 +1549,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -1639,8 +1639,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -1729,8 +1729,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -1819,8 +1819,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -1909,8 +1909,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -1999,8 +1999,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -2089,8 +2089,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -2179,8 +2179,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -2269,8 +2269,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -2359,8 +2359,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -2449,8 +2449,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -2537,8 +2537,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -2625,8 +2625,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -2713,8 +2713,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -2801,8 +2801,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -2893,8 +2893,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -2981,8 +2981,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -3069,8 +3069,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -3161,8 +3161,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -3249,8 +3249,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -3337,8 +3337,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -3408,11 +3408,11 @@ def register_networks_sdk_tools():
             return f"❌ Error in get_network_client_usage_history: {str(e)}"
     
     @app.tool(
-        name="get_network_clients",
-        description="🌐 Get networkClients"
+        name="get_network_clients", 
+        description="🌐 Get network clients - can search for specific IP address"
     )
-    def get_network_clients(network_id: str, per_page: int = 1000):
-        """Get get networkclients."""
+    def get_network_clients(network_id: str, per_page: int = 1000, search_ip: str = ""):
+        """Get network clients, optionally search for specific IP address."""
         try:
             kwargs = {
                 'timespan': 604800,  # 7 days to get historical data
@@ -3430,13 +3430,52 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # If searching for specific IP, show that first
+                    if search_ip:
+                        found_ip = [item for item in result if item.get('ip') == search_ip]
+                        other_items = [item for item in result if item.get('ip') != search_ip]
+                        display_items = found_ip + other_items[:30]  # Show found IP + first 30 others
+                        
+                        if found_ip:
+                            response += f"**🔍 Found IP {search_ip}**: {len(found_ip)} device(s)\n\n"
+                        else:
+                            response += f"**❌ IP {search_ip} not found** in {len(result)} clients\n\n"
+                    else:
+                        # Smart display: Show important devices first
+                        priority_items = []
+                        regular_items = []
+                        
+                        for item in result:
+                            if isinstance(item, dict):
+                                desc = item.get('description', '').lower()
+                                name = item.get('name', '').lower()
+                                ip = item.get('ip', '')
+                                
+                                # Priority: Home Assistant, servers, management devices
+                                if any(keyword in desc + name for keyword in ['home', 'assistant', 'server', 'printer', 'router', 'switch', 'ap', 'gateway']):
+                                    priority_items.append(item)
+                                # Also prioritize .1, .5, and .x.5.x IPs (common for important devices)
+                                elif ip and (ip.endswith('.1') or ip.endswith('.5') or '.5.' in ip or ip.endswith('.100')):
+                                    priority_items.append(item)
+                                else:
+                                    regular_items.append(item)
+                        
+                        display_items = priority_items + regular_items[:30]
+                        
+                        if priority_items:
+                            response += f"**🎯 Priority Devices Found**: {len(priority_items)}\n\n"
+                    
+                    for idx, item in enumerate(display_items[:50], 1):  # Max 50 total
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
-                            response += f"**{idx}. {name}**\n"
                             
-                            # Show key network-specific fields
+                            # Mark priority items
+                            if item in priority_items:
+                                response += f"**🎯 {idx}. {name}** ⭐\n"
+                            else:
+                                response += f"**{idx}. {name}**\n"
+                            
+                            # Show key fields
                             if 'status' in item:
                                 response += f"   - Status: {item.get('status')}\n"
                             if 'ip' in item:
@@ -3522,8 +3561,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -3614,8 +3653,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -3706,8 +3745,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -3798,8 +3837,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -3978,8 +4017,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -4070,8 +4109,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -4158,8 +4197,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -4250,8 +4289,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -4338,8 +4377,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -4430,8 +4469,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -4518,8 +4557,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -4606,8 +4645,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -4694,8 +4733,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -4779,8 +4818,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -4867,8 +4906,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -4955,8 +4994,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -5043,8 +5082,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -5135,8 +5174,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -5223,8 +5262,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -5315,8 +5354,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -5403,8 +5442,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -5491,8 +5530,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -5579,8 +5618,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -5667,8 +5706,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -5755,8 +5794,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -5847,8 +5886,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -5935,8 +5974,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -6027,8 +6066,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -6115,8 +6154,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -6203,8 +6242,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -6291,8 +6330,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -6383,8 +6422,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -6471,8 +6510,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -6559,8 +6598,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -6647,8 +6686,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -6735,8 +6774,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -6823,8 +6862,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -6911,8 +6950,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -6999,8 +7038,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -7087,8 +7126,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -7175,8 +7214,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -7267,8 +7306,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -7355,8 +7394,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -7447,8 +7486,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -7535,8 +7574,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -7623,8 +7662,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -7711,8 +7750,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -7799,8 +7838,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -7887,8 +7926,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -7977,8 +8016,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -8065,8 +8104,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -8155,8 +8194,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -8243,8 +8282,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -8331,8 +8370,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -8419,8 +8458,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -8507,8 +8546,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -8595,8 +8634,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -8683,8 +8722,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -8771,8 +8810,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -8859,8 +8898,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -8947,8 +8986,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -9035,8 +9074,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -9123,8 +9162,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -9211,8 +9250,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -9299,8 +9338,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -9387,8 +9426,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -9475,8 +9514,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -9563,8 +9602,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -9651,8 +9690,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -9739,8 +9778,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -9827,8 +9866,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -9915,8 +9954,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -10003,8 +10042,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
@@ -10091,8 +10130,8 @@ def register_networks_sdk_tools():
                 if isinstance(result, list):
                     response += f"**Total Items**: {len(result)}\n\n"
                     
-                    # Show first 10 items with network-specific context
-                    for idx, item in enumerate(result[:10], 1):
+                    # Show first 50 items for clients (critical for DHCP reservations)  
+                    for idx, item in enumerate(result[:50], 1):
                         if isinstance(item, dict):
                             name = item.get('name', item.get('id', item.get('clientId', item.get('mac', f'Item {idx}'))))
                             response += f"**{idx}. {name}**\n"
