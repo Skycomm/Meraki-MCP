@@ -47,11 +47,13 @@ from server.tools_Custom_alerts_filtered import register_alerts_tools_filtered  
 from server.tools_Custom_analytics import register_analytics_tools
 from server.tools_Custom_batch import register_custom_batch_tools
 from server.tools_Custom_beta import register_beta_tools
-from server.tools_Custom_helpers import register_helper_tools
+# from server.tools_Custom_helpers import register_helper_tools  # Disabled due to syntax errors
 from server.tools_Custom_monitoring_filtered import register_monitoring_tools_filtered  # 6 unique analytics tools
 from server.tools_Custom_search import register_search_tools
+from server.tools_IP_lookup import register_ip_lookup_tools
 
-# Import N8N essentials module (removed - using generic helpers instead)
+# Import N8N essentials module
+from server.tools_N8N_essentials import register_n8n_essentials_tools
 
 # Register resources first (always loaded)
 register_resources(app, meraki)
@@ -93,14 +95,20 @@ if should_load_module('Custom_batch', profile_name):
     register_custom_batch_tools(app, meraki)
 if should_load_module('Custom_beta', profile_name):
     register_beta_tools(app, meraki)
-if should_load_module('Custom_helpers', profile_name):
-    register_helper_tools(app, meraki)
+# Custom_helpers temporarily disabled due to syntax errors
+# if should_load_module('Custom_helpers', profile_name):
+#     register_helper_tools(app, meraki)
 if should_load_module('Custom_monitoring_filtered', profile_name):
     register_monitoring_tools_filtered(app, meraki)
 if should_load_module('Custom_search', profile_name):
     register_search_tools(app, meraki)
 
-# N8N essentials module removed - generic MAC lookup tools are in Custom_helpers
+# Always register IP lookup tools (critical for device finding)
+register_ip_lookup_tools(app, meraki)
+
+# Register N8N essentials module
+if should_load_module('N8N_essentials', profile_name):
+    register_n8n_essentials_tools(app, meraki)
 
 print(f"✅ Cisco Meraki MCP Server initialized with {profile_name} profile")
 
