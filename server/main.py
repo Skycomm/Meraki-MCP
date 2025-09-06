@@ -47,7 +47,7 @@ from server.tools_Custom_alerts_filtered import register_alerts_tools_filtered  
 from server.tools_Custom_analytics import register_analytics_tools
 from server.tools_Custom_batch import register_custom_batch_tools
 from server.tools_Custom_beta import register_beta_tools
-# from server.tools_Custom_helpers import register_helper_tools  # Disabled due to syntax errors
+# from server.tools_Custom_helpers import register_helper_tools  # Has decorator issues
 from server.tools_Custom_monitoring_filtered import register_monitoring_tools_filtered  # 6 unique analytics tools
 from server.tools_Custom_search import register_search_tools
 from server.tools_IP_lookup import register_ip_lookup_tools
@@ -95,7 +95,7 @@ if should_load_module('Custom_batch', profile_name):
     register_custom_batch_tools(app, meraki)
 if should_load_module('Custom_beta', profile_name):
     register_beta_tools(app, meraki)
-# Custom_helpers temporarily disabled due to syntax errors
+# Custom_helpers disabled due to decorator structure issues
 # if should_load_module('Custom_helpers', profile_name):
 #     register_helper_tools(app, meraki)
 if should_load_module('Custom_monitoring_filtered', profile_name):
